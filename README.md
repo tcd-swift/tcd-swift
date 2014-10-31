@@ -22,3 +22,18 @@ So  ```cd /opt/tcd-swift``` will allow you to run make commands like ```make all
 
 The docker pull will take awhile the first time, needs to be done only once.
 Any updates to it will be incremental and should be much quicker.
+
+#### Linux
+
+##### Debian
+See: [https://docs.docker.com/installation/debian/](https://docs.docker.com/installation/debian/)
+
+##### Ubuntu
+See: [http://docs.docker.com/installation/ubuntulinux/](http://docs.docker.com/installation/ubuntulinux/)
+
+Once docker is installed:
+
+* ```docker pull ianconnolly/tcd-swift```
+* ```git clone https://github.com/tcd-swift/tcd-swift```
+* ```cd tcd-swift && ./launch.sh```
+* ```cd /opt/tcd-swift```
