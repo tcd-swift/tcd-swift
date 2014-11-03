@@ -1,7 +1,7 @@
 all: bin/coco
 	mkdir -p generated/
 	mkdir -p bin/
-	mono bin/coco -frames src/frames -o generated -namespace TCDSwift src/grammar/TCD-Swift.ATG
+	mono bin/coco -frames src/frames -o generated -namespace TCDSwift src/grammar/Swift.ATG
 	dmcs src/Main.cs /opt/tcd-swift/generated/*.cs -out:bin/tcdscc.exe
 
 bin/coco:
