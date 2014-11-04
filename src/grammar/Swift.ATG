@@ -14,7 +14,7 @@ CHARACTERS
   dot = '.'.
   characters = ANY - cr - lf - singleQuote.
   ascii = ANY - cr - lf - doubleQuote.
-  
+
 
 TOKENS
   ident  = letter {letter | digit | dot}.
@@ -95,8 +95,8 @@ CastOp
 ComparativeOp
 =
   ( "=="
-  | "<"  
-  | ">"  
+  | "<"
+  | ">"
   | "<="
   | ">="
   | "!="
@@ -111,7 +111,7 @@ ComparativeOp
 
 ConjuctiveOp
 = "&&".
-  
+
 /*------------------------------------------------------------------------*/
 
 //Left associative, precedence level 110
@@ -138,20 +138,20 @@ TernaryOp
 //Right associative, precedence level 90
 
 AssignmentOps
-= 
-  ( "="  
-  | "*="  
-  | "/="  
-  | "%="  
-  | "+="  
-  | "-="  
-  | "<<="  
-  | ">>="  
-  | "&="  
-  | "^="  
-  | "|="  
-  | "&&="  
-  | "||="  
+=
+  ( "="
+  | "*="
+  | "/="
+  | "%="
+  | "+="
+  | "-="
+  | "<<="
+  | ">>="
+  | "&="
+  | "^="
+  | "|="
+  | "&&="
+  | "||="
   ).
 
 /*------------------------------------------------------------------------*/
@@ -193,7 +193,7 @@ ExpressionList
 
 /*------------------------------------------------------------------------*/
 
-PrefixExpression 
+PrefixExpression
 =
   ( [PrefixOps] PostfixExpression
   | InOutExpression
@@ -206,9 +206,9 @@ InOutExpression
 
 /*------------------------------------------------------------------------*/
 
-BinaryExpression 
+BinaryExpression
 =
-  ( BinaryOps PrefixExpression
+  ( BinaryOp PrefixExpression
   | "=" PrefixExpression
   | ConditionalOp PrefixExpression
   | TypeCastOp
@@ -216,13 +216,13 @@ BinaryExpression
 
 /*------------------------------------------------------------------------*/
 
-BinaryExpressions 
+BinaryExpressions
 = BinaryExpression [BinaryExpressions].
 
 /*------------------------------------------------------------------------*/
 
 PrimaryExpression
-= 
+=
   ( Ident [GenericArgumentClause]
   | LiteralExpression
   | SelfExpression
@@ -259,7 +259,7 @@ ArrayLiteralItem
 /*------------------------------------------------------------------------*/
 
 DictionaryLiteral
-= 
+=
   ( '[' DictionaryLiteralItems ']'
   | "[:]"
   ).
@@ -277,7 +277,7 @@ DictionaryLiteralItem
 /*------------------------------------------------------------------------*/
 
 SelfExpression
-= 
+=
   ( "self"
   | "self" '.' Ident
   | "self" '[' Expression ']'
@@ -316,7 +316,7 @@ ClosureExpression
 /*------------------------------------------------------------------------*/
 
 ClosureSignature
-= 
+=
   ( ParamterClause [FunctionResult] "in"
   | IdentifierList [FunctionResult] "in"
   | CaptureList ParamterClause [FunctionResult] "in"
@@ -332,7 +332,7 @@ CaptureList
 /*------------------------------------------------------------------------*/
 
 CaptureSpecifier
-= 
+=
   ( "weak"
   | "unowned"
   | "unowned(safe)"
@@ -356,8 +356,8 @@ ExpressionElementList
 
 /*------------------------------------------------------------------------*/
 
-ExpressionElement 
-= 
+ExpressionElement
+=
   ( Expression
   | Ident ':' Expression
   ).
@@ -436,7 +436,7 @@ OptionalChainingExpression
 
 /*------------------------------------------------------------------------*/
 
-Expressions
+BinaryOp
 = Ternary.
 
 /*------------------------------------------------------------------------*/
@@ -496,7 +496,7 @@ Multiplicative
 /*------------------------------------------------------------------------*/
 
 Exponetative
-= Factor 
+= Factor
   { ExponentiativeOp Factor }.
 
 /*------------------------------------------------------------------------*/
@@ -504,8 +504,8 @@ Exponetative
 Factor
 =
   ( Ident
-  | Literal                                                              
-  | '-' Factor                   
+  | Literal
+  | '-' Factor
   ).
 
 /*------------------------------------------------------------------------*/
@@ -531,7 +531,7 @@ IfStatement
 = "if"
   '(' Expression ')'
       Statement
-  [ 
+  [
     "else" "if"
     Statement
   ]
@@ -544,7 +544,7 @@ IfStatement
 
 SwitchStatement
 = "switch"
-  '(' Expression ')'        
+  '(' Expression ')'
   '{'
 
   {
