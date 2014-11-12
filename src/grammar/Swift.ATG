@@ -124,16 +124,14 @@ DisjunctiveOp
 //Right associative, precedence level 110
 
 NilCoalescingOp
-= ( "??"
-  ).
+= "??"
 
 /*------------------------------------------------------------------------*/
 
 //Right associative, precedence level 100
 
 TernaryOp
-= ( "?"
-  ).
+= "?"
 
 /*------------------------------------------------------------------------*/
 
