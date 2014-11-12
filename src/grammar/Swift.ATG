@@ -290,6 +290,84 @@ SelfExpression
 
 /*------------------------------------------------------------------------*/
 
+SuperclassExpression
+=
+  ( SuperclassMethodExpression
+  | SuperclassSubscriptExpression
+  | SuperclassInitializerExpression
+  ).
+
+/*------------------------------------------------------------------------*/
+
+SuperclassMethodExpression
+= "super" '.' Ident
+
+/*------------------------------------------------------------------------*/
+
+SuperclassSubscriptExpression
+= "super" '[' Expression ']'
+
+/*------------------------------------------------------------------------*/
+
+SuperclassInitializerExpression
+= "super" '.' "init"
+
+/*------------------------------------------------------------------------*/
+
+ClosureExpression
+= '{' [ClosureSignature] Statements '}'
+
+/*------------------------------------------------------------------------*/
+
+ClosureSignature
+= 
+  ( ParamterClause [FunctionResult] "in"
+  | IdentifierList [FunctionResult] "in"
+  | CaptureList ParamterClause [FunctionResult] "in"
+  | CaptureList IdentifierList [FunctionResult] "in"
+  | CaptureList "in"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+CaptureList
+= '[' CaptureSpecifier Expression ']'
+
+/*------------------------------------------------------------------------*/
+
+CaptureSpecifier
+= 
+  ( "weak"
+  | "unowned"
+  | "unowned(safe)"
+  | "unowned(unsafe)"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+ImplicitMemberExpression
+= '.' Ident
+
+/*------------------------------------------------------------------------*/
+
+ParanthesizedExpression
+= '(' [ExpressionElementList] ')'
+
+/*------------------------------------------------------------------------*/
+
+ExpressionElementList
+= ExpressionElement [',' ExpressionElementList]
+
+/*------------------------------------------------------------------------*/
+
+ExpressionElement 
+= 
+  ( Expression
+  | Ident ':' Expression
+  ).
+
+/*------------------------------------------------------------------------*/
+
 Expressions
 = Ternary
 
