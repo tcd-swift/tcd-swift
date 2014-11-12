@@ -110,16 +110,14 @@ ComparativeOp
 //Left associative, precedence level 120
 
 ConjuctiveOp
-= ( "&&""
-  ).
+= "&&""
   
 /*------------------------------------------------------------------------*/
 
 //Left associative, precedence level 110
 
 DisjunctiveOp
-= ( "||"
-  ).
+= "||"
 
 /*------------------------------------------------------------------------*/
 
