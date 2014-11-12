@@ -160,6 +160,19 @@ AssignmentOps
 
 /*------------------------------------------------------------------------*/
 
+PrefixOps
+=
+  (
+  | "++"
+  | "--"
+  | "!"
+  | "~"
+  | "+"
+  | "-"
+  ).
+
+/*------------------------------------------------------------------------*/
+
 Ident
 = ident
 
@@ -168,6 +181,112 @@ Ident
 /*------------------------------------------------------------------------
 Expressions
 ------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+Expression
+= PrefixExpression [BinaryExpressions]
+
+/*------------------------------------------------------------------------*/
+
+ExpressionList
+=
+  ( Expression
+  | Expression ExpressionList
+  ).
+
+/*------------------------------------------------------------------------*/
+
+PrefixExpression 
+=
+  ( [PrefixOps] PostfixExpression
+  | InOutExpression
+  ).
+
+/*------------------------------------------------------------------------*/
+
+InOutExpression
+= "&" Ident
+
+/*------------------------------------------------------------------------*/
+
+BinaryExpression 
+=
+  ( BinaryOps PrefixExpression
+  | "=" PrefixExpression
+  | ConditionalOp PrefixExpression
+  | TypeCastOp
+  )
+
+/*------------------------------------------------------------------------*/
+
+BinaryExpressions 
+= BinaryExpression [BinaryExpressions]
+
+/*------------------------------------------------------------------------*/
+
+PrimaryExpression
+= 
+  ( Ident [GenericArgumentClause]
+  | LiteralExpression
+  | SelfExpression
+  | SuperclassExpression
+  | ClosureExpression
+  | ParanthesizedExpression
+  | ImplicitMemberExpression
+  | WildcardExpression
+  ).
+
+/*------------------------------------------------------------------------*/
+
+LiteralExpression
+=
+  ( Literal
+  | ( ArrayLiteral | DictionaryLiteral )
+  | ( "_FILE_" | "_LINE_" | "_COLUMN_" | "_FUNCTION_" )
+  ).
+
+/*------------------------------------------------------------------------*/
+
+ArrayLiteral = '[' [ArrayLiteralItems] ']'
+
+/*------------------------------------------------------------------------*/
+
+ArrayLiteralItems
+= ArrayLiteralItem [',' ArrayLiteralItems]
+
+/*------------------------------------------------------------------------*/
+
+ArrayLiteralItem
+= Expression
+
+/*------------------------------------------------------------------------*/
+
+DictionaryLiteral
+= 
+  ( '[' DictionaryLiteralItems ']'
+  | "[:]"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+DictionaryLiteralItems
+= DictionaryLiteralItem [',' DictionaryLiteralItems]
+
+/*------------------------------------------------------------------------*/
+
+DictionaryLiteralItem
+= Expression ':' Expression
+
+/*------------------------------------------------------------------------*/
+
+SelfExpression
+= 
+  ( "self"
+  | "self" '.' Ident
+  | "self" '[' Expression ']'
+  | "self" '.' "init"
+  ).
 
 /*------------------------------------------------------------------------*/
 
