@@ -364,6 +364,78 @@ ExpressionElement
 
 /*------------------------------------------------------------------------*/
 
+WildcardExpression
+= "_".
+
+/*------------------------------------------------------------------------*/
+
+PostfixExpression
+=
+  ( PrimaryExpression
+  | PostfixExpression PostfixOp
+  | FunctionCallExpression
+  | InitializerExpression
+  | ExplicitMemberExpression
+  | PostfixSelfExpression
+  | DynamicTypeExtension
+  | SubscriptExpression
+  | ForcedValueExpression
+  | OptionalChainingExpression
+  ).
+
+/*------------------------------------------------------------------------*/
+
+FunctionCallExpression
+=
+  ( PostfixExpression ParenthesizedExpression
+  | PostfixExpression [ParenthesizedExpression] TrailingClosure
+  ).
+
+/*------------------------------------------------------------------------*/
+
+TrailingClosure
+= ClosureExpression.
+
+/*------------------------------------------------------------------------*/
+
+InitializerExpression
+= PostfixExpression '.' "init".
+
+/*------------------------------------------------------------------------*/
+
+ExplicitMemberExpression
+=
+  ( PostfixExpression '.' number
+  | PostfixExpression '.' Ident [GenericArgumentClause]
+  ).
+
+/*------------------------------------------------------------------------*/
+
+PostfixSelfExpression
+= PostfixExpression '.' "self".
+
+/*------------------------------------------------------------------------*/
+
+DynamicTypeExpression
+= PostfixExpression '.' "dynamicType".
+
+/*------------------------------------------------------------------------*/
+
+SubscriptExpression
+= PostfixExpression '[' ExpressionList ']'.
+
+/*------------------------------------------------------------------------*/
+
+ForcedValueExpression
+= PostfixeExpression '!'.
+
+/*------------------------------------------------------------------------*/
+
+OptionalChainingExpression
+= PostfixExpression '?'.
+
+/*------------------------------------------------------------------------*/
+
 Expressions
 = Ternary.
 
