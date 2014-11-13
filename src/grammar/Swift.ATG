@@ -452,7 +452,7 @@ IfStatement
   '(' Expression ')'
       Statement
   [ 
-    "else if"
+    "else" "if"
     Statement
   ]
   [
@@ -497,7 +497,7 @@ ForStatement
 Statement
 
 = Ident AssignmentOp Expression';'
-| BranchStatement';
+| BranchStatement';'
 | LoopStatement';'
 | '{' { Statement } '}' .
 
