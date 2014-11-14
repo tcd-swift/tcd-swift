@@ -7,7 +7,7 @@ using Ident = System.String;
  * The different internal types for IR tuples
  * Some of them like LABEL are not really ops
  */
-enum IrOp: int
+public enum IrOp: int
 {
   ADD,
   ALLOC,
@@ -41,7 +41,7 @@ enum IrOp: int
 };
 
 /* Generalized IRTuple class */
-class IRTuple
+public class IRTuple
 {
   protected IrOp op;
   protected Ident dest;
@@ -64,7 +64,7 @@ class IRTuple
 }
 
 /* IRTuple with one operand where operand is an Ident */
-class IRTupleOneOpIdent : IRTuple
+public class IRTupleOneOpIdent : IRTuple
 {
   protected Ident src1;
 
@@ -80,7 +80,7 @@ class IRTupleOneOpIdent : IRTuple
 }
 
 /* IRTuple with one operand where operand is an immediate */
-class IRTupleOneOpImm<T> : IRTuple
+public class IRTupleOneOpImm<T> : IRTuple
 {
   protected T src1;
 
@@ -96,7 +96,7 @@ class IRTupleOneOpImm<T> : IRTuple
 }
 
 /* IRTuple with two operands */
-class IRTupleTwoOp : IRTupleOneOpIdent
+public class IRTupleTwoOp : IRTupleOneOpIdent
 {
   protected Ident src2;
 
