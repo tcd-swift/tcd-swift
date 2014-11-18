@@ -427,7 +427,7 @@ SubscriptExpression
 /*------------------------------------------------------------------------*/
 
 ForcedValueExpression
-= PostfixeExpression '!'.
+= PostfixExpression '!'.
 
 /*------------------------------------------------------------------------*/
 
@@ -504,12 +504,20 @@ Exponetative
 Factor
 =
   ( Ident
-  | number                      
-  | char                        
-  | string                      
-  | '-' Factor
-  | "true"                      
-  | "false"                     
+  | Literal                                                              
+  | '-' Factor                   
+  ).
+
+/*------------------------------------------------------------------------*/
+
+Literal
+=
+  ( number
+  | string
+  | char
+  | "true"
+  | "false"
+  | "nil"
   ).
 
 /*------------------------------------------------------------------------*/
