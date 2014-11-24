@@ -589,40 +589,195 @@ Declarations
 
 /*------------------------------------------------------------------------*/
 
-attributes
-=
+Attribute
+= '@'
+  AttributeName
+  [AttributeArgumentClause]
   .
 
 /*------------------------------------------------------------------------*/
 
-constant_declaration
-= [attributes]
-  [declaration_specifiers]
+Attributes
+= Attribute
+  [Attributes]
+  .
+
+/*------------------------------------------------------------------------*/
+
+AttributeName
+=  Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+AttributeArgumentClause
+= '('
+  [BalancedTokens]
+  ')'
+  .
+
+/*------------------------------------------------------------------------*/
+
+BalancedToken
+= 
+  ( '('
+    [BalancedTokens]
+    ')'
+  | '['
+    [BalancedTokens]
+    ']'
+  | '{'
+    [BalancedTokens]
+    '}'
+    // “Any identifier, keyword, literal, or operator”
+    // “Any punctuation except (, ), [, ], {, or }”
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+BalancedTokens
+= BalancedToken
+  [BalancedTokens]
+  .
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock
+= '{'
+  [Statements]
+  '}'
+  .
+
+/*------------------------------------------------------------------------*/
+
+ConstantDeclaration
+= [Attributes]
+  [DeclarationSpecifiers]
   "let"
-  pattern_initializer_list
+  PatternInitializerList
   .
 
 /*------------------------------------------------------------------------*/
 
-declaration_specifiers
+Declaration
+= ( ImportDeclaration
+  | ConstantDeclaration
+  | VariableDeclaration
+  | FunctionDeclaration
+  | EnumDeclaration
+  | StructDeclaration
+  | InitializerDeclaration
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+DeclarationSpecifiers
 =
   .
 
 /*------------------------------------------------------------------------*/
 
-expression
-=
+EnumDeclaration
+= [Attributes]
+  ( UnionStyleEnum
+  | RawValueStyleEnum
+  )
   .
 
 /*------------------------------------------------------------------------*/
 
-initializer
-= expression
+EnumName
+= Identifier
   .
 
 /*------------------------------------------------------------------------*/
 
-pattern_initializer_list
+EnumCaseName
+= Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnum
+= EnumName
+  [GenericParameterClause]
+  '{'
+  [UnionStyleEnumMembers]
+  '}'
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnumMembers
+= UnionStyleEnumMember
+  [UnionStyleEnumMembers]
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnumMember
+= ( Declaration
+  | UnionStyleEnumCaseClause
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionDeclaration
+= FunctionHead
+  FunctionName
+  [GenericParameterClause]
+  FunctionSignature
+  FunctionBody
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionHead
+= [Attributes]
+  [DeclarationSpecifiers]
+  "func"
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionName
+= ( Identifier
+  | Operator
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionSignature
+= ParamterClause
+  [FunctionResult]
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionResult
+= [Attributes]
+  Type
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionBody
+= CodeBlock
+  .
+
+/*------------------------------------------------------------------------*/
+
+Initializer
+= Expression
+  .
+
+/*------------------------------------------------------------------------*/
+
+PatternInitializerList
 =
   .
 
