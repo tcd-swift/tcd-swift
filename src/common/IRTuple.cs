@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 // Type of an Ident; leaving this as string for now
 using Ident = System.String;
@@ -10,7 +11,6 @@ using Ident = System.String;
 public enum IrOp: int
 {
   ADD,
-  ALLOC,
   AND,
   CALL,
   DIV,
@@ -61,6 +61,12 @@ public class IRTuple
   {
     return this.dest;
   }
+
+  public virtual void Print()
+  {
+    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
+    Console.WriteLine("}");
+  }
 }
 
 /* IRTuple with one operand where operand is an Ident */
@@ -76,7 +82,14 @@ public class IRTupleOneOpIdent : IRTuple
   public Ident getSrc1()
   {
     return this.src1;
-  }  
+  }
+
+  public override void Print()
+  {
+    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
+    Console.Write(", " + this.src1);
+    Console.WriteLine("}");
+  }
 }
 
 /* IRTuple with one operand where operand is an immediate */
@@ -92,7 +105,14 @@ public class IRTupleOneOpImm<T> : IRTuple
   public T getSrc1()
   {
     return this.src1;
-  }  
+  }
+
+  public override void Print()
+  {
+    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
+    Console.Write(", " + this.src1);
+    Console.WriteLine("}");
+  }
 }
 
 /* IRTuple with two operands */
@@ -108,6 +128,14 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
   public Ident getSrc2()
   {
     return this.src2;
-  } 
+  }
+
+  public override void Print()
+  {
+    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
+    Console.Write(", " + this.src1);
+    Console.Write(", " + this.src2);
+    Console.WriteLine("}");
+  }  
 }
 

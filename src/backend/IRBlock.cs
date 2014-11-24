@@ -4,20 +4,20 @@ using System.Collections.Generic;
 /* A basic block of IR */
 public class IRBlock
 {
-  private string name;
+  private int index; // The index number of this block within the graph
   private List<IRTuple> statements;
   private List<IRBlock> successors;
 
-  public IRBlock(string name)
+  public IRBlock(int ind)
   {
-    this.name = name;
+    this.index = ind;
     this.statements = new List<IRTuple>();
     this.successors = new List<IRBlock>();
   }
 
-  public string GetName()
+  public int GetIndex()
   {
-    return this.name;
+    return this.index;
   }
 
   /* Forwarding functions */
@@ -89,7 +89,7 @@ public class IRBlock
     Console.Write("Successors: ");
     foreach (IRBlock irb in this.successors)
     {
-      Console.Write(irb.GetName() + " ");
+      Console.Write("B" + irb.GetIndex() + " ");
     }
     Console.WriteLine();
   }

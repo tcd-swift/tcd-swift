@@ -5,21 +5,21 @@ public class IRBlockTest
 {
   public static void Main(string [] args)
   {
-    IRBlock block1 = new IRBlock("B1");
-    block1.AppendStatement(new IRTuple(IrOp.ALLOC, "result"));
+    IRBlock block1 = new IRBlock(1);
+    block1.AppendStatement(new IRTuple(IrOp.LABEL, "l1"));
     block1.AppendStatement(new IRTupleTwoOp(IrOp.EQU, "t1", "b", "a"));
 
-    IRBlock block2 = new IRBlock("B2");
+    IRBlock block2 = new IRBlock(2);
     block2.AppendStatement(new IRTupleOneOpImm<int>(IrOp.STORE, "b", 4));
     block2.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "c", "b"));
     block1.AppendStatement(new IRTupleTwoOp(IrOp.ADD, "t3", "a", "c"));
     block2.AppendStatement(new IRTuple(IrOp.JMP, "l1"));
 
-    IRBlock block3 = new IRBlock("B3");
+    IRBlock block3 = new IRBlock(3);
     block3.AppendStatement(new IRTupleTwoOp(IrOp.LTE, "t2", "b", "c"));
     block3.AppendStatement(new IRTupleOneOpIdent(IrOp.JMPF, "t2", "l2"));
 
-    IRBlock block4 = new IRBlock("B4");
+    IRBlock block4 = new IRBlock(4);
     block4.AppendStatement(new IRTuple(IrOp.JMP, "l3"));
 
     block1.AddSuccessor(block2);
@@ -34,7 +34,7 @@ public class IRBlockTest
 
     foreach (IRBlock irb in blocks)
     {
-      Console.WriteLine(irb.GetName() + ":");
+      Console.WriteLine("B" + irb.GetIndex() + ":");
       irb.PrintStatements();
       irb.PrintSuccessors();
       Console.WriteLine();
