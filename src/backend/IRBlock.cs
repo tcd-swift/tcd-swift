@@ -46,6 +46,21 @@ public class IRBlock
     return this.statements[index];
   }
 
+  public IRTuple GetFirst()
+  {
+    return this.statements[0];
+  }
+
+  public IRTuple GetLast()
+  {
+    return this.statements[this.statements.Count-1];
+  }
+
+  public int CountStatements()
+  {
+    return this.statements.Count;
+  }
+
   public void AddSuccessor(IRBlock block)
   {
     this.successors.Add(block);

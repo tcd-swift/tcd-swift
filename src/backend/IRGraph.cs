@@ -17,11 +17,12 @@ public class IRGraph
     if(tuples.Count < 1)
       return;
 
-    int currentIndex = 0; // The next block index in the graph
-    List<int> leaderIndices = new List<int>(); // Ordered list of indices where each basic block's leading tuple is found
+    int currentIndex = 1; // The next block index in the graph
 
-    // By definition, the very first tuple is a leader, and belongs to the first block    
-    leaderIndices.Add(0);
+    SortedDictionary<int, int> firsts = new SortedDictionary<int, int>(); // Map from block index to line index of its first tuple in stream
+    SortedDictionary<int, int> lasts = new SortedDictionary<int, int>(); // Map from block index to line index of its last tuple in stream
+ 
+    firsts[currentIndex] = 0; // By definition, the very first tuple is the first tuple in the first block
     this.blocks[currentIndex] = new IRBlock(currentIndex);
     this.blocks[currentIndex].AppendStatement(tuples[0]);
 
@@ -33,13 +34,14 @@ public class IRGraph
       if(IsTerminator(tuple))
       {
         this.blocks[currentIndex].AppendStatement(tuple);
-        currentIndex++;
+        lasts[currentIndex] = j;
 
         // If we find a statement that closes current block and there is not one obviously opened by the following tuple, create a new block
         if(j != tuples.Count-1 && !IsLeader(tuples[j+1]))
         {
+          currentIndex++;
           this.blocks[currentIndex] = new IRBlock(currentIndex);
-          leaderIndices.Add(j+1);
+          firsts[currentIndex] = j + 1;
         }
 
       }
@@ -48,25 +50,78 @@ public class IRGraph
       {
         if(IsLeader(tuple))
         {
+          lasts[currentIndex] = j-1;
           // If we find a statement that starts a block, create a new block
           currentIndex++;
           this.blocks[currentIndex] = new IRBlock(currentIndex);
-          leaderIndices.Add(j);
+          firsts[currentIndex] = j;
         }
         this.blocks[currentIndex].AppendStatement(tuple);
       }
       j++;
     }
 
-/*
-    Console.WriteLine("Block Leading Statements:");
-    for (int i = 0; i < leaderIndices.Count; i++)
+    /*
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
     {
-      int index = leaderIndices[i];
-      Console.Write("Statement " + index + "\t");
-      tuples[index].Print();
+      Console.WriteLine("Block " + pair.Value.GetIndex() + ":");
+      if (firsts.ContainsKey(pair.Key))
+        Console.WriteLine("Start index: " + firsts[pair.Key]);
+      if (lasts.ContainsKey(pair.Key))
+        Console.WriteLine("End index: " + lasts[pair.Key]);
+      Console.WriteLine();
     }
     */
+
+    // Link successor blocks
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+    {
+      IRBlock block = pair.Value;
+      IRTuple tup = block.GetLast(); // Get last statement in block
+      if(tup.getOp() == IrOp.JMP)
+      {
+        foreach (KeyValuePair<int, IRBlock> pair0 in this.blocks)
+        {
+          IRBlock block0 = pair0.Value;
+          IRTuple tup0 = block0.GetFirst();
+          if(tup0.getOp() == IrOp.LABEL && tup0.getDest() == tup.getDest())
+          {
+            block.AddSuccessor(block0);
+          }
+        }
+      }
+      else if(tup.getOp() == IrOp.JMPF)
+      {
+        foreach (KeyValuePair<int, IRBlock> pair0 in this.blocks)
+        {
+          IRBlock block0 = pair0.Value;
+          IRTuple tup0 = block0.GetFirst();
+          if(tup0.getOp() == IrOp.LABEL && tup0.getDest() == ((IRTupleOneOpIdent)tup).getSrc1())
+          {
+            block.AddSuccessor(block0);
+          }
+          else if(firsts[block0.GetIndex()] == lasts[block.GetIndex()]+1)
+          {
+            block.AddSuccessor(block0);
+          } 
+        }
+
+      }
+      else
+      {
+        foreach (KeyValuePair<int, IRBlock> pair0 in this.blocks)
+        {
+          IRBlock block0 = pair0.Value;
+          if(firsts[block0.GetIndex()] == lasts[block.GetIndex()]+1)
+          {
+            block.AddSuccessor(block0);
+          } 
+        }
+         
+      }
+      // TODO: What about RET?
+    }
+
   }
 
   // Return whether a tuple is of the type that may start a block
