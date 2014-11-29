@@ -668,13 +668,30 @@ Declaration
   | EnumDeclaration
   | StructDeclaration
   | InitializerDeclaration
+  | DeinitializerDeclaration
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+DeclarationSpecifier
+= ( "class"
+  | "mutating"
+  | "nonmutating"
+  | "override"
+  | "static"
+  | "unowned"
+  | "unowned(safe)"
+  | "unowned(unsafe)"
+  | "weak"
   )
   .
 
 /*------------------------------------------------------------------------*/
 
 DeclarationSpecifiers
-=
+= DeclarationSpecifier
+  [DeclarationSpecifiers]
   .
 
 /*------------------------------------------------------------------------*/
@@ -721,6 +738,32 @@ UnionStyleEnumMember
 = ( Declaration
   | UnionStyleEnumCaseClause
   )
+  .
+
+/*------------------------------------------------------------------------*/
+
+  VariableDeclaration
+  = VariableDeclarationHead
+    ( PatternInitializerList
+    | VariableName TypeAnnotation
+    )
+    ( CodeBlock
+    | [Initializer] WillSetDidSetBlock
+    )
+    .
+
+/*------------------------------------------------------------------------*/
+
+VariableDeclarationHead
+= [Attributes]
+  [DeclarationModifiers]
+  "var"
+  .
+
+/*------------------------------------------------------------------------*/
+
+VariableName
+= Identifier
   .
 
 /*------------------------------------------------------------------------*/
@@ -772,13 +815,115 @@ FunctionBody
 /*------------------------------------------------------------------------*/
 
 Initializer
-= Expression
+= '='
+  Expression
+  .
+
+/*------------------------------------------------------------------------*/
+
+Pattern
+= ( WildCardPattern [TypeAnnotation]
+  | IdentifierPattern [TypeAnnotation]
+  | ValueBindingPattern
+  | TuplePattern [TypeAnnotation]
+  | EnumCasePattern
+  | TypeCastingPattern
+  | ExpressionPattern
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+IdentifierPattern
+= Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+TypeAnnotation
+= [Attributes]
+  Type
+  .
+
+/*------------------------------------------------------------------------*/
+
+Type
+= ( ArrayType
+  | FunctionType
+  | TypeIdentifier
+  | TupleType
+  | OptionalType
+  | ImplicitlyUnwrappedOptionalType
+  | ProtocolCompositionType
+  | MetatypeType
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+ArrayType
+= ( Type '[' ']'
+  | ArrayType '[' ']'
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionType
+= Type
+  "->"
+  Type
+  .
+
+/*------------------------------------------------------------------------*/
+
+TypeIdentifier
+= TypeName
+  [GenericArgumentClause]
+  [
+    '.'
+    TypeIdentifier
+  ]
+  .
+
+/*------------------------------------------------------------------------*/
+
+TypeName
+= Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+OptionalType
+= Type
+  '?'
+  .
+
+/*------------------------------------------------------------------------*/
+
+ImplicitlyUnwrappedOptionalType
+= Type
+  '!'
+  .
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+PatternInitializer
+= Pattern
+  [Initializer]
   .
 
 /*------------------------------------------------------------------------*/
 
 PatternInitializerList
-=
+= PatternInitializer
+  [',' PatternInitializerList]
   .
 
 /*------------------------------------------------------------------------*/
