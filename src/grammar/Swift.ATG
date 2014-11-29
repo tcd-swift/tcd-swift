@@ -194,14 +194,14 @@ TypeCastOp
 
 /*------------------------------------------------------------------------*/
 
-Ident
+Identifier
 = ident.
 
 /*------------------------------------------------------------------------*/
 
 IdentifierList
-= Ident
-| Ident ',' IdentifierList
+= Identifier
+| Identifier ',' IdentifierList
 .
 
 /*------------------------------------------------------------------------*/
@@ -234,7 +234,7 @@ PrefixExpression
 /*------------------------------------------------------------------------*/
 
 InOutExpression
-= "&" Ident.
+= "&" Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -255,7 +255,7 @@ BinaryExpressions
 
 PrimaryExpression
 =
-  ( Ident [GenericArgumentClause]
+  ( Identifier [GenericArgumentClause]
   | LiteralExpression
   | SelfExpression
   | SuperclassExpression
@@ -330,7 +330,7 @@ DictionaryLiteralItem
 SelfExpression
 =
   ( "self"
-  | "self" '.' Ident
+  | "self" '.' Identifier
   | "self" '[' Expression ']'
   | "self" '.' "init"
   ).
@@ -346,7 +346,7 @@ SuperclassExpression
 /*------------------------------------------------------------------------*/
 
 SuperclassMethodExpression
-= "super" '.' Ident.
+= "super" '.' Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -391,7 +391,7 @@ CaptureSpecifier
 /*------------------------------------------------------------------------*/
 
 ImplicitMemberExpression
-= '.' Ident.
+= '.' Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -410,7 +410,7 @@ ExpressionElementList
 ExpressionElement
 =
   ( Expression
-  | Ident ':' Expression
+  | Identifier ':' Expression
   ).
 
 /*------------------------------------------------------------------------*/
@@ -455,7 +455,7 @@ InitializerExpression
 ExplicitMemberExpression
 =
   ( PostfixExpression '.' number
-  | PostfixExpression '.' Ident [GenericArgumentClause]
+  | PostfixExpression '.' Identifier [GenericArgumentClause]
   ).
 
 /*------------------------------------------------------------------------*/
@@ -552,7 +552,7 @@ Exponentiative
 
 Factor
 =
-  ( Ident
+  ( Identifier
   | Literal
   | '-' Factor
   ).
@@ -617,7 +617,7 @@ WhileStatement
 
 ForStatement
 = "for"
-  '(' Ident "=" Expression ';' Expression ';' Ident "=" Expression ')'
+  '(' Identifier "=" Expression ';' Expression ';' Identifier "=" Expression ')'
   '{' Statement '}'
 .
 
@@ -641,40 +641,195 @@ Declarations
 
 /*------------------------------------------------------------------------*/
 
-attributes
-=
+Attribute
+= '@'
+  AttributeName
+  [AttributeArgumentClause]
   .
 
 /*------------------------------------------------------------------------*/
 
-constant_declaration
-= [attributes]
-  [declaration_specifiers]
+Attributes
+= Attribute
+  [Attributes]
+  .
+
+/*------------------------------------------------------------------------*/
+
+AttributeName
+=  Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+AttributeArgumentClause
+= '('
+  [BalancedTokens]
+  ')'
+  .
+
+/*------------------------------------------------------------------------*/
+
+BalancedToken
+=
+  ( '('
+    [BalancedTokens]
+    ')'
+  | '['
+    [BalancedTokens]
+    ']'
+  | '{'
+    [BalancedTokens]
+    '}'
+    // “Any identifier, keyword, literal, or operator”
+    // “Any punctuation except (, ), [, ], {, or }”
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+BalancedTokens
+= BalancedToken
+  [BalancedTokens]
+  .
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock
+= '{'
+  [Statements]
+  '}'
+  .
+
+/*------------------------------------------------------------------------*/
+
+ConstantDeclaration
+= [Attributes]
+  [DeclarationSpecifiers]
   "let"
-  pattern_initializer_list
+  PatternInitializerList
   .
 
 /*------------------------------------------------------------------------*/
 
-declaration_specifiers
+Declaration
+= ( ImportDeclaration
+  | ConstantDeclaration
+  | VariableDeclaration
+  | FunctionDeclaration
+  | EnumDeclaration
+  | StructDeclaration
+  | InitializerDeclaration
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+DeclarationSpecifiers
 =
   .
 
 /*------------------------------------------------------------------------*/
 
-expression
-=
+EnumDeclaration
+= [Attributes]
+  ( UnionStyleEnum
+  | RawValueStyleEnum
+  )
   .
 
 /*------------------------------------------------------------------------*/
 
-initializer
-= expression
+EnumName
+= Identifier
   .
 
 /*------------------------------------------------------------------------*/
 
-pattern_initializer_list
+EnumCaseName
+= Identifier
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnum
+= EnumName
+  [GenericParameterClause]
+  '{'
+  [UnionStyleEnumMembers]
+  '}'
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnumMembers
+= UnionStyleEnumMember
+  [UnionStyleEnumMembers]
+  .
+
+/*------------------------------------------------------------------------*/
+
+UnionStyleEnumMember
+= ( Declaration
+  | UnionStyleEnumCaseClause
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionDeclaration
+= FunctionHead
+  FunctionName
+  [GenericParameterClause]
+  FunctionSignature
+  FunctionBody
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionHead
+= [Attributes]
+  [DeclarationSpecifiers]
+  "func"
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionName
+= ( Identifier
+  | Operator
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionSignature
+= ParamterClause
+  [FunctionResult]
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionResult
+= [Attributes]
+  Type
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionBody
+= CodeBlock
+  .
+
+/*------------------------------------------------------------------------*/
+
+Initializer
+= Expression
+  .
+
+/*------------------------------------------------------------------------*/
+
+PatternInitializerList
 =
   .
 
