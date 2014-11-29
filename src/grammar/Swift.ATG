@@ -59,7 +59,7 @@ MultiplicativeOp
 
 /*------------------------------------------------------------------------*/
 
-//Left associative, precednce level 140
+//Left associative, precedence level 140
 
 AdditiveOp
 = ( "+"
@@ -109,7 +109,7 @@ ComparativeOp
 
 //Left associative, precedence level 120
 
-ConjuctiveOp
+ConjunctiveOp
 = "&&".
 
 /*------------------------------------------------------------------------*/
@@ -158,8 +158,7 @@ AssignmentOps
 
 PrefixOps
 =
-  (
-  | "++"
+  ( "++"
   | "--"
   | "!"
   | "~"
@@ -169,8 +168,41 @@ PrefixOps
 
 /*------------------------------------------------------------------------*/
 
+PostfixOps
+= ( "++"
+  | "--"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+AssignmentOp
+= "=".
+
+/*------------------------------------------------------------------------*/
+
+ConditionalOp
+= '?' Expression ':'.
+
+/*------------------------------------------------------------------------*/
+
+TypeCastOp
+=
+  ( "is" Type
+  | "as" Type
+  | "as" '?' Type
+  ).
+
+/*------------------------------------------------------------------------*/
+
 Ident
 = ident.
+
+/*------------------------------------------------------------------------*/
+
+IdentifierList
+= Ident
+| Ident ',' IdentifierList
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -188,7 +220,7 @@ Expression
 ExpressionList
 =
   ( Expression
-  | Expression ExpressionList
+  | Expression ',' ExpressionList
   ).
 
 /*------------------------------------------------------------------------*/
@@ -209,7 +241,7 @@ InOutExpression
 BinaryExpression
 =
   ( BinaryOp PrefixExpression
-  | "=" PrefixExpression
+  | AssignmentOp PrefixExpression
   | ConditionalOp PrefixExpression
   | TypeCastOp
   ).
@@ -228,10 +260,27 @@ PrimaryExpression
   | SelfExpression
   | SuperclassExpression
   | ClosureExpression
-  | ParanthesizedExpression
+  | ParenthesizedExpression
   | ImplicitMemberExpression
   | WildcardExpression
   ).
+
+/*------------------------------------------------------------------------*/
+
+GenericArgumentClause
+= '<' GenericArgumentList '>'.
+
+/*------------------------------------------------------------------------*/
+
+GenericArgumentList
+= ( GenericArgument
+  | GenericArgument ',' GenericArgumentList
+  ).
+
+/*------------------------------------------------------------------------*/
+
+GenericArgument
+= Type.
 
 /*------------------------------------------------------------------------*/
 
@@ -249,7 +298,9 @@ ArrayLiteral = '[' [ArrayLiteralItems] ']'.
 /*------------------------------------------------------------------------*/
 
 ArrayLiteralItems
-= ArrayLiteralItem [',' ArrayLiteralItems].
+= ArrayLiteralItem
+| ArrayLiteralItem ',' ArrayLiteralItems
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -287,11 +338,10 @@ SelfExpression
 /*------------------------------------------------------------------------*/
 
 SuperclassExpression
-=
-  ( SuperclassMethodExpression
-  | SuperclassSubscriptExpression
-  | SuperclassInitializerExpression
-  ).
+= SuperclassMethodExpression
+| SuperclassSubscriptExpression
+| SuperclassInitializerExpression
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -316,13 +366,12 @@ ClosureExpression
 /*------------------------------------------------------------------------*/
 
 ClosureSignature
-=
-  ( ParamterClause [FunctionResult] "in"
-  | IdentifierList [FunctionResult] "in"
-  | CaptureList ParamterClause [FunctionResult] "in"
-  | CaptureList IdentifierList [FunctionResult] "in"
-  | CaptureList "in"
-  ).
+= ParameterClause [FunctionResult] "in"
+| IdentifierList [FunctionResult] "in"
+| CaptureList ParameterClause [FunctionResult] "in"
+| CaptureList IdentifierList [FunctionResult] "in"
+| CaptureList "in"
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -346,13 +395,15 @@ ImplicitMemberExpression
 
 /*------------------------------------------------------------------------*/
 
-ParanthesizedExpression
+ParenthesizedExpression
 = '(' [ExpressionElementList] ')'.
 
 /*------------------------------------------------------------------------*/
 
 ExpressionElementList
-= ExpressionElement [',' ExpressionElementList].
+= ExpressionElement
+| ExpressionElement ',' ExpressionElementList
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -370,26 +421,24 @@ WildcardExpression
 /*------------------------------------------------------------------------*/
 
 PostfixExpression
-=
-  ( PrimaryExpression
-  | PostfixExpression PostfixOp
-  | FunctionCallExpression
-  | InitializerExpression
-  | ExplicitMemberExpression
-  | PostfixSelfExpression
-  | DynamicTypeExtension
-  | SubscriptExpression
-  | ForcedValueExpression
-  | OptionalChainingExpression
-  ).
+= PrimaryExpression
+| PostfixExpression PostfixOps
+| FunctionCallExpression
+| InitializerExpression
+| ExplicitMemberExpression
+| PostfixSelfExpression
+| DynamicTypeExpression
+| SubscriptExpression
+| ForcedValueExpression
+| OptionalChainingExpression
+.
 
 /*------------------------------------------------------------------------*/
 
 FunctionCallExpression
-=
-  ( PostfixExpression ParenthesizedExpression
-  | PostfixExpression [ParenthesizedExpression] TrailingClosure
-  ).
+= PostfixExpression ParenthesizedExpression
+| PostfixExpression [ParenthesizedExpression] TrailingClosure
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -461,7 +510,7 @@ Disjunctive
 
 Conjuctive
 = Comparative
-  { ConjuctiveOp Comparative }.
+  { ConjunctiveOp Comparative }.
 
 /*------------------------------------------------------------------------*/
 
@@ -490,12 +539,12 @@ Additive
 /*------------------------------------------------------------------------*/
 
 Multiplicative
-= Exponetative
-  { MultiplicativeOp Exponetative}.
+= Exponentiative
+  { MultiplicativeOp Exponentiative }.
 
 /*------------------------------------------------------------------------*/
 
-Exponetative
+Exponentiative
 = Factor
   { ExponentiativeOp Factor }.
 
@@ -575,11 +624,14 @@ ForStatement
 /*------------------------------------------------------------------------*/
 
 Statement
+= Expression ';'
+| BranchStatement ';'
+| LoopStatement ';' .
 
-= Ident AssignmentOp Expression';'
-| BranchStatement';'
-| LoopStatement';'
-| '{' { Statement } '}' .
+/*------------------------------------------------------------------------*/
+
+Statements
+= Statement [Statements].
 
 /*------------------------------------------------------------------------*/
 
