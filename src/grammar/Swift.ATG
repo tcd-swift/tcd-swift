@@ -1,6 +1,6 @@
 COMPILER Swift
 
-Stack<IRTuple> Tuples = new Stack<IRTuple>
+List<IRTuple> Tuples = new List<IRTuple>
 
 /*--------------------------------------------------------------------------*/
 
