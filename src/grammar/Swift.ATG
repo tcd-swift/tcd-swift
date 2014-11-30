@@ -33,7 +33,6 @@ PRODUCTIONS
 
 //Temp shit for testing
 ParameterClause = .
-Identifier = .
 ImportDeclaration = .
 StructDeclaration = .
 InitializerDeclaration = .
@@ -352,14 +351,14 @@ TypeCastOp
 
 /*------------------------------------------------------------------------*/
 
-Ident
+Identifier
 = ident.
 
 /*------------------------------------------------------------------------*/
 
 IdentifierList
-= Ident
-| Ident ',' IdentifierList
+= Identifier
+| Identifier ',' IdentifierList
 .
 
 /*------------------------------------------------------------------------*/
@@ -392,7 +391,7 @@ PrefixExpression
 /*------------------------------------------------------------------------*/
 
 InOutExpression
-= "&" Ident.
+= "&" Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -413,7 +412,7 @@ BinaryExpressions
 
 PrimaryExpression
 =
-  ( Ident [GenericArgumentClause]
+  ( Identifier [GenericArgumentClause]
   | LiteralExpression
   | SelfExpression
   | SuperclassExpression
@@ -488,7 +487,7 @@ DictionaryLiteralItem
 SelfExpression
 =
   ( "self"
-  | "self" '.' Ident
+  | "self" '.' Identifier
   | "self" '[' Expression ']'
   | "self" '.' "init"
   ).
@@ -504,7 +503,7 @@ SuperclassExpression
 /*------------------------------------------------------------------------*/
 
 SuperclassMethodExpression
-= "super" '.' Ident.
+= "super" '.' Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -549,7 +548,7 @@ CaptureSpecifier
 /*------------------------------------------------------------------------*/
 
 ImplicitMemberExpression
-= '.' Ident.
+= '.' Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -568,7 +567,7 @@ ExpressionElementList
 ExpressionElement
 =
   ( Expression
-  | Ident ':' Expression
+  | Identifier ':' Expression
   ).
 
 /*------------------------------------------------------------------------*/
@@ -613,7 +612,7 @@ InitializerExpression
 ExplicitMemberExpression
 =
   ( PostfixExpression '.' number
-  | PostfixExpression '.' Ident [GenericArgumentClause]
+  | PostfixExpression '.' Identifier [GenericArgumentClause]
   ).
 
 /*------------------------------------------------------------------------*/
@@ -644,7 +643,7 @@ OptionalChainingExpression
 /*------------------------------------------------------------------------*/
 
 BinaryOp
-= Ident AssignmentOps Expression
+= Identifier AssignmentOps Expression
 | Ternary.
 
 /*------------------------------------------------------------------------*/
@@ -711,7 +710,7 @@ Exponentiative
 
 Factor
 =
-  ( Ident
+  ( Identifier
   | Literal
   | '-' Factor
   ).
@@ -1175,26 +1174,6 @@ IdentifierPattern
 
 /*------------------------------------------------------------------------*/
 
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
 PatternInitializer
 = Pattern
   [Initializer]
@@ -1211,7 +1190,6 @@ PatternInitializerList
 
 Swift
 = Statements
-| Declaration
   .
 
 END Swift.
