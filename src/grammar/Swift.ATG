@@ -1,5 +1,7 @@
 COMPILER Swift
 
+Stack<IRTuple> Tuples = new Stack<IRTuple>
+
 /*--------------------------------------------------------------------------*/
 
 CHARACTERS
@@ -28,6 +30,162 @@ COMMENTS FROM "//" TO lf
 IGNORE cr + lf + tab
 
 PRODUCTIONS
+
+//Temp shit for testing
+ParameterClause = .
+Identifier = .
+ImportDeclaration = .
+StructDeclaration = .
+InitializerDeclaration = .
+DeinitializerDeclaration = .
+RawValueStyleEnum = .
+GenericParameterClause = .
+UnionStyleEnumCaseClause = .
+WillSetDidSetBlock = .
+DeclarationModifiers = .
+Operator = .
+ParamterClause = .
+WildCardPattern = .
+ValueBindingPattern = .
+TuplePattern = .
+EnumCasePattern = .
+TypeCastingPattern = .
+ExpressionPattern = .
+
+/*------------------------------------------------------------------------
+Types
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+Type
+= ArrayType
+| DictionaryType
+| FunctionType
+| TypeIdentifier
+| TupleType
+| OptionalType
+| ImplicitlyUnwrappedOptionalType
+| ProtocolCompositionType
+| MetatypeType
+.
+
+/*------------------------------------------------------------------------*/
+
+TypeAnnotation
+= [Attributes] Type.
+
+/*------------------------------------------------------------------------*/
+
+TypeIdentifier
+= TypeName [GenericArgumentClause]
+| TypeName [GenericArgumentClause] '.' TypeIdentifier
+.
+
+/*------------------------------------------------------------------------*/
+
+TypeName
+= Identifier.
+
+/*------------------------------------------------------------------------*/
+
+TupleType
+= '(' [TupleTypeBody] ')'.
+
+/*------------------------------------------------------------------------*/
+
+TupleTypeBody
+= TupleTypeElementList ["..."].
+
+/*------------------------------------------------------------------------*/
+
+TupleTypeElementList
+= TupleTypeElement
+| TupleTypeElement ',' TupleTypeElementList
+.
+
+/*------------------------------------------------------------------------*/
+
+TupleTypeElement
+= [Attributes] ["inout"] Type
+| ["inout"] ElementName TypeAnnotation
+.
+
+/*------------------------------------------------------------------------*/
+
+ElementName
+= Identifier.
+
+/*------------------------------------------------------------------------*/
+
+FunctionType
+= Type "->" Type.
+
+/*------------------------------------------------------------------------*/
+
+ArrayType
+= '[' Type ']'.
+
+/*------------------------------------------------------------------------*/
+
+DictionaryType
+= '[' Type ':' Type ']'.
+
+/*------------------------------------------------------------------------*/
+
+OptionalType
+= Type '?'.
+
+/*------------------------------------------------------------------------*/
+
+ImplicitlyUnwrappedOptionalType
+= Type '!'.
+
+/*------------------------------------------------------------------------*/
+
+ProtocolCompositionType
+= "protocol" '<' [ProtocolIdentifierList] '>'.
+
+/*------------------------------------------------------------------------*/
+
+ProtocolIdentifierList
+= ProtocolIdentifier
+| ProtocolIdentifier ',' ProtocolIdentifierList
+.
+
+/*------------------------------------------------------------------------*/
+
+ProtocolIdentifier
+= TypeIdentifier.
+
+/*------------------------------------------------------------------------*/
+
+MetatypeType
+= Type '.' "Type"
+| Type '.' "Protocol"
+.
+
+/*------------------------------------------------------------------------*/
+
+TypeInheritcanceClause
+= ':' ClassRequirement ',' TypeInheritanceList
+| ':' ClassRequirement
+| ':' TypeInheritanceList
+.
+
+/*------------------------------------------------------------------------*/
+
+TypeInheritanceList
+= TypeIdentifier
+| TypeIdentifier ',' TypeInheritanceList
+.
+
+/*------------------------------------------------------------------------*/
+
+ClassRequirement
+= "class".
+
+/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------
 Operators
@@ -486,7 +644,8 @@ OptionalChainingExpression
 /*------------------------------------------------------------------------*/
 
 BinaryOp
-= Ternary.
+= Ident AssignmentOps Expression
+| Ternary.
 
 /*------------------------------------------------------------------------*/
 
@@ -571,67 +730,191 @@ Literal
 
 /*------------------------------------------------------------------------*/
 
-BranchStatement = ( IfStatement | SwitchStatement ).
-LoopStatement = ( WhileStatement | ForStatement ).
+/*------------------------------------------------------------------------
+Statements
+------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
-IfStatement
-= "if"
-  '(' Expression ')'
-      Statement
-  [
-    "else" "if"
-    Statement
-  ]
-  [
-    "else"
-    Statement
-  ]
+Statement
+= Expression ';'
+| LoopStatement ';'
+| BranchStatement ';'
+| LabeledStatement ';'
+| ControlTransferStatement ';'
 .
+
 /*------------------------------------------------------------------------*/
 
-SwitchStatement
-= "switch"
-  '(' Expression ')'
-  '{'
+Statements
+= Statement [Statements].
 
-  {
-    "case" [ "where" Expression ]':'
-     Statement
-  }
-
-  "default" ':' Statement
-
-  '}'
-.
 /*------------------------------------------------------------------------*/
 
-WhileStatement
-= "while"
-  '(' Expression ')'
-  '{' Statement '}'
+LoopStatement
+= ForStatement
+| ForInStatement
+| WhileStatement
+| DoWhileStatement
 .
 
 /*------------------------------------------------------------------------*/
 
 ForStatement
 = "for"
-  '(' Ident "=" Expression ';' Expression ';' Ident "=" Expression ')'
-  '{' Statement '}'
+  [ForInit] ';'
+  [Expression] ';'
+  [Expression]
+  CodeBlock
+
+| "for"
+  '('
+  [ForInit] ';'
+  [Expression] ';'
+  [Expression]
+  ')'
+  CodeBlock
+.
+
+ForInit
+= VariableDeclaration
+| ExpressionList
 .
 
 /*------------------------------------------------------------------------*/
 
-Statement
-= Expression ';'
-| BranchStatement ';'
-| LoopStatement ';' .
+ForInStatement
+= "for" Pattern "in" Expression CodeBlock.
 
 /*------------------------------------------------------------------------*/
 
-Statements
-= Statement [Statements].
+WhileStatement
+= "while"
+  WhileCondition
+  CodeBlock.
+
+WhileCondition
+= Expression
+| Declaration
+.
+
+/*------------------------------------------------------------------------*/
+
+DoWhileStatement
+= "do"
+  CodeBlock
+  "while"
+  WhileCondition.
+
+/*------------------------------------------------------------------------*/
+
+BranchStatement
+= IfStatement
+| SwitchStatement
+.
+
+/*------------------------------------------------------------------------*/
+
+IfStatement
+= "if"
+  IfCondition
+  CodeBlock
+  [ElseClause]
+.
+
+IfCondition
+= Expression
+| Declaration
+.
+
+ElseClause
+= "else" CodeBlock
+| "else" IfStatement
+.
+
+/*------------------------------------------------------------------------*/
+
+SwitchStatement
+= "switch"
+  Expression
+  '{'
+  [SwitchCases]
+  '}'
+.
+
+SwitchCases
+= SwitchCase [SwitchCases].
+
+SwitchCase
+=
+  ( CaseLabel
+    Statement
+  | DefaultLabel
+    Statements
+  )
+| ( CaseLabel ';'
+  | DefaultLabel ';'
+  )
+.
+
+CaseLabel
+= "case" CaseItemList ':'.
+
+CaseItemList
+= Pattern [GuardClause]
+| Pattern [GuardClause] ',' CaseItemList
+.
+
+DefaultLabel
+= "default" ':'.
+
+GuardClause
+= "where" GuardExpression.
+
+GuardExpression
+= Expression.
+
+/*------------------------------------------------------------------------*/
+
+LabeledStatement
+= StatementLabel LoopStatement
+| StatementLabel SwitchStatement
+.
+
+StatementLabel
+= LabelName ':'.
+
+LabelName
+= Identifier.
+
+/*------------------------------------------------------------------------*/
+
+ControlTransferStatement
+= BreakStatement
+| ContinueStatement
+| FallthroughStatement
+| ReturnStatement
+.
+
+/*------------------------------------------------------------------------*/
+
+BreakStatement
+= "break" [LabelName].
+
+/*------------------------------------------------------------------------*/
+
+ContinueStatement
+= "continue" [LabelName].
+
+/*------------------------------------------------------------------------*/
+
+FallthroughStatement
+= "fallthrough".
+
+/*------------------------------------------------------------------------*/
+
+ReturnStatement
+= "return" [Expression].
 
 /*------------------------------------------------------------------------*/
 
@@ -671,7 +954,7 @@ AttributeArgumentClause
 /*------------------------------------------------------------------------*/
 
 BalancedToken
-= 
+=
   ( '('
     [BalancedTokens]
     ')'
@@ -892,71 +1175,17 @@ IdentifierPattern
 
 /*------------------------------------------------------------------------*/
 
-TypeAnnotation
-= [Attributes]
-  Type
-  .
+/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
-Type
-= ( ArrayType
-  | FunctionType
-  | TypeIdentifier
-  | TupleType
-  | OptionalType
-  | ImplicitlyUnwrappedOptionalType
-  | ProtocolCompositionType
-  | MetatypeType
-  )
-  .
+/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
-ArrayType
-= ( Type '[' ']'
-  | ArrayType '[' ']'
-  )
-  .
-
 /*------------------------------------------------------------------------*/
 
-FunctionType
-= Type
-  "->"
-  Type
-  .
-
 /*------------------------------------------------------------------------*/
-
-TypeIdentifier
-= TypeName
-  [GenericArgumentClause]
-  [
-    '.'
-    TypeIdentifier
-  ]
-  .
-
-/*------------------------------------------------------------------------*/
-
-TypeName
-= Identifier
-  .
-
-/*------------------------------------------------------------------------*/
-
-OptionalType
-= Type
-  '?'
-  .
-
-/*------------------------------------------------------------------------*/
-
-ImplicitlyUnwrappedOptionalType
-= Type
-  '!'
-  .
 
 /*------------------------------------------------------------------------*/
 
@@ -981,7 +1210,8 @@ PatternInitializerList
 /*------------------------------------------------------------------------*/
 
 Swift
-=
+= Statements
+| Declaration
   .
 
 END Swift.
