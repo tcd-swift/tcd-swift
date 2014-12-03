@@ -51,10 +51,13 @@ MultiplicativeOp
   ( "*"
   | "/"
   | "%"
-  | "&*"
-  | "&/"
-  | "&%"
   | "&"
+    [
+    ( "*"
+    | "/"
+    | "%"
+    )
+    ]
   ).
 
 /*------------------------------------------------------------------------*/
@@ -64,8 +67,10 @@ MultiplicativeOp
 AdditiveOp
 = ( "+"
   | "-"
-  | "&+"
-  | "&-"
+  | "&"
+    ( "+"
+    | "-"
+    )
   | "|"
   | "^"
   ).
@@ -200,24 +205,21 @@ Expressions
 
 /*------------------------------------------------------------------------*/
 
+ExpressionList
+= Expression  [',' ExpressionList]
+.
+
+/*------------------------------------------------------------------------*/
+
 Expression
 = PrefixExpression [BinaryExpressions].
 
 /*------------------------------------------------------------------------*/
 
-ExpressionList
-=
-  ( Expression
-  | Expression ',' ExpressionList
-  ).
-
-/*------------------------------------------------------------------------*/
-
 PrefixExpression
-=
-  ( [PrefixOps] PostfixExpression
-  | InOutExpression
-  ).
+= [PrefixOps] PostfixExpression
+| InOutExpression
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -226,18 +228,20 @@ InOutExpression
 
 /*------------------------------------------------------------------------*/
 
-BinaryExpression
-=
-  ( BinaryOp PrefixExpression
-  | AssignmentOp PrefixExpression
-  | ConditionalOp PrefixExpression
-  /*| TypeCastOp is not defined */
-  ).
+BinaryExpressions
+= BinaryExpression [BinaryExpressions].
 
 /*------------------------------------------------------------------------*/
 
-BinaryExpressions
-= BinaryExpression [BinaryExpressions].
+BinaryExpression
+=
+  ( BinaryOp
+  | AssignmentOp
+  | ConditionalOp
+  )
+  PrefixExpression
+/*| TypeCastOp is not defined */
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -247,7 +251,7 @@ PrimaryExpression
   ( LiteralExpression
   | SelfExpression
   | SuperclassExpression
-  //| ClosureExpression to be defined
+//| ClosureExpression to be defined
   | ParenthesizedExpression
   | ImplicitMemberExpression
   | WildcardExpression
@@ -262,19 +266,18 @@ PrimaryExpression
 LiteralExpression
 =
   ( Literal
-  | ( ArrayLiteral | DictionaryLiteral )
-  | ( "_FILE_" | "_LINE_" | "_COLUMN_" | "_FUNCTION_" )
+  | '[' ( ArrayLiteral | DictionaryLiteral )
+  | "_" ("FILE_" | "LINE_" | "COLUMN_" | "FUNCTION_" )
   ).
 
 /*------------------------------------------------------------------------*/
 
-ArrayLiteral = '[' [ArrayLiteralItems] ']'.
+ArrayLiteral = [ArrayLiteralItems] ']'.
 
 /*------------------------------------------------------------------------*/
 
 ArrayLiteralItems
-= ArrayLiteralItem
-| ArrayLiteralItem ',' ArrayLiteralItems
+= ArrayLiteralItem [',' ArrayLiteralItems]
 .
 
 /*------------------------------------------------------------------------*/
@@ -285,9 +288,8 @@ ArrayLiteralItem
 /*------------------------------------------------------------------------*/
 
 DictionaryLiteral
-=
-  ( '[' DictionaryLiteralItems ']'
-  | "[:]"
+= ( DictionaryLiteralItems ']'
+  | ":]"
   ).
 
 /*------------------------------------------------------------------------*/
@@ -303,35 +305,38 @@ DictionaryLiteralItem
 /*------------------------------------------------------------------------*/
 
 SelfExpression
-=
-  ( "self"
-  | "self" '.' Identifier
-  | "self" '[' Expression ']'
-  | "self" '.' "init"
+= "self"
+  ( '.'
+    ( Identifier
+    | "init"
+    )
+
+  | '[' Expression ']'
   ).
 
 /*------------------------------------------------------------------------*/
 
 SuperclassExpression
-= SuperclassMethodExpression
-| SuperclassSubscriptExpression
-| SuperclassInitializerExpression
-.
+= "super"
+  ( SuperclassMethodExpression
+  | SuperclassSubscriptExpression
+  | SuperclassInitializerExpression
+  ).
 
 /*------------------------------------------------------------------------*/
 
 SuperclassMethodExpression
-= "super" '.' Identifier.
+= '.' Identifier.
 
 /*------------------------------------------------------------------------*/
 
 SuperclassSubscriptExpression
-= "super" '[' Expression ']'.
+= '[' Expression ']'.
 
 /*------------------------------------------------------------------------*/
 
 SuperclassInitializerExpression
-= "super" '.' "init".
+= '.' "init".
 
 /*------------------------------------------------------------------------*/
 
@@ -362,8 +367,7 @@ ParenthesizedExpression
 /*------------------------------------------------------------------------*/
 
 ExpressionElementList
-= ExpressionElement
-| ExpressionElement ',' ExpressionElementList
+= ExpressionElement [',' ExpressionElementList]
 .
 
 /*------------------------------------------------------------------------*/
@@ -383,21 +387,23 @@ WildcardExpression
 
 PostfixExpression
 = PrimaryExpression
-| PostfixExpression PostfixOps
-| FunctionCallExpression
-| InitializerExpression
-| ExplicitMemberExpression
-| PostfixSelfExpression
-| DynamicTypeExpression
-| SubscriptExpression
-| ForcedValueExpression
-| OptionalChainingExpression
+| PostfixExpression
+  ( PostfixOps
+  | FunctionCallExpression
+  | InitializerExpression
+  | ExplicitMemberExpression
+  | PostfixSelfExpression
+  | DynamicTypeExpression
+  | SubscriptExpression
+  | ForcedValueExpression
+  | OptionalChainingExpression
+  )
 .
 
 /*------------------------------------------------------------------------*/
 
 FunctionCallExpression
-= PostfixExpression ParenthesizedExpression
+= ParenthesizedExpression
 //| PostfixExpression [ParenthesizedExpression] TrailingClosure yet to be defined
 .
 
@@ -408,40 +414,40 @@ FunctionCallExpression
 /*------------------------------------------------------------------------*/
 
 InitializerExpression
-= PostfixExpression '.' "init".
+= '.' "init".
 
 /*------------------------------------------------------------------------*/
 
 ExplicitMemberExpression
 =
-  ( PostfixExpression '.' number
-  //| PostfixExpression '.' Identifier [GenericArgumentClause] yet to be defined
+  ( '.' number
+  //| '.' Identifier [GenericArgumentClause] yet to be defined
   ).
 
 /*------------------------------------------------------------------------*/
 
 PostfixSelfExpression
-= PostfixExpression '.' "self".
+= '.' "self".
 
 /*------------------------------------------------------------------------*/
 
 DynamicTypeExpression
-= PostfixExpression '.' "dynamicType".
+= '.' "dynamicType".
 
 /*------------------------------------------------------------------------*/
 
 SubscriptExpression
-= PostfixExpression '[' ExpressionList ']'.
+= '[' ExpressionList ']'.
 
 /*------------------------------------------------------------------------*/
 
 ForcedValueExpression
-= PostfixExpression '!'.
+= '!'.
 
 /*------------------------------------------------------------------------*/
 
 OptionalChainingExpression
-= PostfixExpression '?'.
+= '?'.
 
 /*------------------------------------------------------------------------*/
 
@@ -515,7 +521,7 @@ Factor
 =
   ( Identifier
   | Literal
-  | '-' Factor
+  | '-' Literal
   ).
 
 /*------------------------------------------------------------------------*/
