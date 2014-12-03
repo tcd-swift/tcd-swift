@@ -1,0 +1,127 @@
+ExpressionList -> Expression { comma Expression }
+
+Expression -> PrefixExpression [ BinaryExpressions ]
+
+PrefixExpression -> [ PrefixOps ] PostfixExpression | InOutExpression
+
+InOutExpression -> & Identifier
+
+BinaryExpressions -> BinaryExpression [ BinaryExpressions ]
+
+BinaryExpression -> BinaryOp PrefixExpression | AssignmentOp PrefixExpression | ConditionalOp PrefixExpression
+
+PrimaryExpression -> LiteralExpression | SelfExpression | SuperclassExpression | ParenthesizedExpression | ImplicitMemberExpression | WildcardExpression
+
+LiteralExpression -> Literal | ArrayDict | Qualifier
+
+Qualifier -> __FILE__ | __LINE__ | __COLUMN__ | __FUNCTION__ 
+
+ArrayDict -> lsb ArrayDict' 
+
+ArrayDict' -> ArrayLiteral | DictionaryLiteral
+
+ArrayLiteral -> rsb | ArrayLiterlItems rsb
+
+ArrayLiteralItems -> ArrayLiteralItem { comma ArrayLiteralItems }
+
+ArrayLiteralItem -> Expression
+
+DictionaryLiteral -> DictionaryLiteralItems rsb | :rsb
+
+DictionaryLiteralItems -> DictionaryLiteralItem { comma DictionaryLiteralItems }
+
+DictionaryLiteralItem -> Expression : Expression
+
+SelfExpression -> self [ Self' ]
+Self' -> . PostDotSelf | lsb Expression rsb
+PostDotSelf -> Identifier | init
+
+SuperclassExpression -> super Super' 
+Super' -> lsb Expression rsb | . PostDotSuper
+PostDotSuper -> Identifier | init
+
+ImplicitMemberExpression -> . Identifier
+
+ParenthesizedExpression -> lp [ ExpressionElementList ] rp
+
+ExpressionElementList -> ExpressionElement { comma ExpressionElement }
+
+ExpressionElement -> Expression | Identifier : Expression
+
+WildcardExpression -> _
+
+PostfixExpression -> PrimaryExpression [ Post ]
+
+Post -> PostfixOps | FunctionCallExpression | . PostPostDot | SubscriptExpression | ForcedValueExpression | OptionalChainingExpression
+
+PostPostDot -> InitializerExpression | ExplicitMemberExpression | PostfixSelfExpression | DynamicTypeExpression
+
+FunctionCallExpression -> ParenthesizedExpression
+
+InitializerExpression -> init
+
+ExplicitMemberExpression -> number
+
+PostfixSelfExpression -> self
+
+DynamicTypeExpression -> dynamicType
+
+SubscriptExpression -> lsb ExpressionList rsb
+
+ForcedValueExpression -> !
+
+OptionalChainingExpression -> ?
+
+BinaryOp -> Ternary
+
+Ternary -> NilCoalescing [ TernaryOp Expression : Expression ]
+
+NilCoalescing -> Disjunctive { NilCoalescingOp Disjunctive }
+
+Disjunctive -> Conjuctive { DisjunctiveOp Conjuctive }
+
+Conjuctive -> Comparative { ConjunctiveOp Comparative }
+
+Comparative -> Cast { ComparativeOp Cast }
+
+Cast -> Range { CastOp Range }
+
+Range -> Additive { RangeOp Additive }
+
+Additive -> Multiplicative { AdditiveOp Multiplicative }
+
+Multiplicative -> Exponentiative { MultiplicativeOp Exponentiative }
+
+Exponentiative -> Factor { ExponentiativeOp Factor }
+
+Factor -> Identifier | Literal | - Literal
+
+Literal -> number | string | char | true | false | nil
+
+ExponentiativeOp -> << | >>
+
+MultiplicativeOp -> * | / | % | & | &* | &/ | &%
+
+AdditiveOp -> + | -  | &+ | &- | pipe | ^
+
+RangeOp -> ..< | ...
+
+CastOp -> is | as
+
+ComparativeOp -> == | < | > | <= | >= | != | === | !== | ~=
+
+ConjunctiveOp -> &&
+
+DisjunctiveOp -> doublepipe
+
+NilCoalescingOp -> ??
+
+TernaryOp -> ?
+
+PrefixOps -> ++ | -- | ! | ~ | + | -
+
+PostfixOps -> ++ | --
+
+AssignmentOp -> =
+
+ConditionalOp -> ? Expression :

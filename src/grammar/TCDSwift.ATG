@@ -52,12 +52,9 @@ MultiplicativeOp
   | "/"
   | "%"
   | "&"
-    [
-    ( "*"
-    | "/"
-    | "%"
-    )
-    ]
+  | "&*"
+  | "&/"
+  | "&%"
   ).
 
 /*------------------------------------------------------------------------*/
@@ -67,10 +64,8 @@ MultiplicativeOp
 AdditiveOp
 = ( "+"
   | "-"
-  | "&"
-    ( "+"
-    | "-"
-    )
+  | "&+"
+  | "&-"
   | "|"
   | "^"
   ).
@@ -142,7 +137,7 @@ TernaryOp
 
 //Right associative, precedence level 90
 
-AssignmentOps
+/*AssignmentOps
 =
   ( "="
   | "*="
@@ -152,13 +147,13 @@ AssignmentOps
   | "-="
   | "<<="
   | ">>="
-  | "&="
   | "^="
   | "|="
+  | '&='
   | "&&="
   | "||="
   ).
-
+*/
 /*------------------------------------------------------------------------*/
 
 PrefixOps
@@ -206,18 +201,18 @@ Expressions
 /*------------------------------------------------------------------------*/
 
 ExpressionList
-= Expression  [',' ExpressionList]
+= Expression  { ',' Expression }
 .
 
 /*------------------------------------------------------------------------*/
 
 Expression
-= PrefixExpression [BinaryExpressions].
+= PrefixExpression [ BinaryExpressions ].
 
 /*------------------------------------------------------------------------*/
 
 PrefixExpression
-= [PrefixOps] PostfixExpression
+= [ PrefixOps ] PostfixExpression
 | InOutExpression
 .
 
@@ -229,7 +224,7 @@ InOutExpression
 /*------------------------------------------------------------------------*/
 
 BinaryExpressions
-= BinaryExpression [BinaryExpressions].
+= BinaryExpression [ BinaryExpressions ].
 
 /*------------------------------------------------------------------------*/
 
@@ -266,18 +261,32 @@ PrimaryExpression
 LiteralExpression
 =
   ( Literal
-  | '[' ( ArrayLiteral | DictionaryLiteral )
-  | "_" ("FILE_" | "LINE_" | "COLUMN_" | "FUNCTION_" )
+  | ArrayDictionary
+  | SpecialLiteral
   ).
 
 /*------------------------------------------------------------------------*/
 
-ArrayLiteral = [ArrayLiteralItems] ']'.
+SpecialLiteral
+= "__FILE__"
+| "__LINE__"
+| "__COLUMN__"
+| "__FUNCTION__"
+.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionary
+= '[' ( ArrayLiteral | DictionaryLiteral ).
+
+/*------------------------------------------------------------------------*/
+
+ArrayLiteral = [ ArrayLiteralItems ] ']'.
 
 /*------------------------------------------------------------------------*/
 
 ArrayLiteralItems
-= ArrayLiteralItem [',' ArrayLiteralItems]
+= ArrayLiteralItem { ',' ArrayLiteralItem }
 .
 
 /*------------------------------------------------------------------------*/
@@ -295,7 +304,8 @@ DictionaryLiteral
 /*------------------------------------------------------------------------*/
 
 DictionaryLiteralItems
-= DictionaryLiteralItem [',' DictionaryLiteralItems].
+= DictionaryLiteralItem { ',' DictionaryLiteralItem }
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -306,39 +316,26 @@ DictionaryLiteralItem
 
 SelfExpression
 = "self"
+  [
   ( '.'
     ( Identifier
     | "init"
     )
 
   | '[' Expression ']'
-  ).
+  )
+  ].
 
 /*------------------------------------------------------------------------*/
 
 SuperclassExpression
 = "super"
-  ( SuperclassSubscriptExpression
-  | '.'
-    ( SuperclassMethodExpression
-    | SuperclassInitializerExpression
+  ( '.'
+    ( Identifier
+    | "init"
     )
+  | '[' Expression ']'
   ).
-
-/*------------------------------------------------------------------------*/
-
-SuperclassMethodExpression
-= Identifier.
-
-/*------------------------------------------------------------------------*/
-
-SuperclassSubscriptExpression
-= '[' Expression ']'.
-
-/*------------------------------------------------------------------------*/
-
-SuperclassInitializerExpression
-= "init".
 
 /*------------------------------------------------------------------------*/
 
@@ -364,21 +361,20 @@ ImplicitMemberExpression
 /*------------------------------------------------------------------------*/
 
 ParenthesizedExpression
-= '(' [ExpressionElementList] ')'.
+= '(' [ ExpressionElementList ] ')'.
 
 /*------------------------------------------------------------------------*/
 
 ExpressionElementList
-= ExpressionElement [',' ExpressionElementList]
+= ExpressionElement { ',' ExpressionElement }
 .
 
 /*------------------------------------------------------------------------*/
 
 ExpressionElement
-=
-  ( Expression
-  | Identifier ':' Expression
-  ).
+= Expression
+| Identifier ':' Expression
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -388,18 +384,22 @@ WildcardExpression
 /*------------------------------------------------------------------------*/
 
 PostfixExpression
-= PrimaryExpression
-| PostfixExpression
-  ( PostfixOps
-  | FunctionCallExpression
-  | InitializerExpression
+= PrimaryExpression [Postfix].
+
+/*------------------------------------------------------------------------*/
+
+Postfix
+= PostfixOps
+| FunctionCallExpression
+| '.'
+  ( InitializerExpression
   | ExplicitMemberExpression
   | PostfixSelfExpression
   | DynamicTypeExpression
-  | SubscriptExpression
-  | ForcedValueExpression
-  | OptionalChainingExpression
   )
+| SubscriptExpression
+| ForcedValueExpression
+| OptionalChainingExpression
 .
 
 /*------------------------------------------------------------------------*/
@@ -416,25 +416,25 @@ FunctionCallExpression
 /*------------------------------------------------------------------------*/
 
 InitializerExpression
-= '.' "init".
+= "init".
 
 /*------------------------------------------------------------------------*/
 
 ExplicitMemberExpression
 =
-  ( '.' number
-  //| '.' Identifier [GenericArgumentClause] yet to be defined
+  ( number
+  //| Identifier [GenericArgumentClause] yet to be defined
   ).
 
 /*------------------------------------------------------------------------*/
 
 PostfixSelfExpression
-= '.' "self".
+= "self".
 
 /*------------------------------------------------------------------------*/
 
 DynamicTypeExpression
-= '.' "dynamicType".
+= "dynamicType".
 
 /*------------------------------------------------------------------------*/
 
@@ -454,8 +454,8 @@ OptionalChainingExpression
 /*------------------------------------------------------------------------*/
 
 BinaryOp
-= Identifier AssignmentOps Expression
-| Ternary.
+= Ternary //Identifier AssignmentOps Expression
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -503,7 +503,7 @@ Range
 
 Additive
 = Multiplicative
-  { AdditiveOp Multiplicative}.
+  { AdditiveOp Multiplicative }.
 
 /*------------------------------------------------------------------------*/
 
