@@ -318,15 +318,17 @@ SelfExpression
 
 SuperclassExpression
 = "super"
-  ( SuperclassMethodExpression
-  | SuperclassSubscriptExpression
-  | SuperclassInitializerExpression
+  ( SuperclassSubscriptExpression
+  | '.'
+    ( SuperclassMethodExpression
+    | SuperclassInitializerExpression
+    )
   ).
 
 /*------------------------------------------------------------------------*/
 
 SuperclassMethodExpression
-= '.' Identifier.
+= Identifier.
 
 /*------------------------------------------------------------------------*/
 
@@ -336,7 +338,7 @@ SuperclassSubscriptExpression
 /*------------------------------------------------------------------------*/
 
 SuperclassInitializerExpression
-= '.' "init".
+= "init".
 
 /*------------------------------------------------------------------------*/
 
