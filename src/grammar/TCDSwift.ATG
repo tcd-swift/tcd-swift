@@ -277,39 +277,33 @@ SpecialLiteral
 /*------------------------------------------------------------------------*/
 
 ArrayDictionary
-= '[' ( ArrayLiteral | DictionaryLiteral ).
+= '[' ArrayDictionaryLiteral.
 
 /*------------------------------------------------------------------------*/
 
-ArrayLiteral = [ ArrayLiteralItems ] ']'.
-
-/*------------------------------------------------------------------------*/
-
-ArrayLiteralItems
-= ArrayLiteralItem { ',' ArrayLiteralItem }
+ArrayDictionaryLiteral
+= ArrayDictionaryLiteralItems
+| ":]"
+| ']'
 .
 
 /*------------------------------------------------------------------------*/
 
-ArrayLiteralItem
-= Expression.
+ArrayDictionaryLiteralItems
+= ArrayDictionaryLiteralItem { ',' ArrayDictionaryLiteralItem }.
 
 /*------------------------------------------------------------------------*/
 
-DictionaryLiteral
-= ( DictionaryLiteralItems ']'
-  | ":]"
-  ).
+ArrayDictionaryLiteralItem
+= Expression ( ArrayItem | DictionaryItem ).
 
 /*------------------------------------------------------------------------*/
 
-DictionaryLiteralItems
-= DictionaryLiteralItem { ',' DictionaryLiteralItem }
-.
+ArrayItem = ']'.
 
 /*------------------------------------------------------------------------*/
 
-DictionaryLiteralItem
+DictionaryItem
 = Expression ':' Expression.
 
 /*------------------------------------------------------------------------*/
