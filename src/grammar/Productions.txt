@@ -6,37 +6,33 @@ PrefixExpression -> [ PrefixOps ] PostfixExpression | InOutExpression
 
 InOutExpression -> & Identifier
 
-BinaryExpressions -> BinaryExpression [ BinaryExpressions ]
+BinaryExpressions -> BinaryExpression { BinaryExpression }
 
-BinaryExpression -> BinaryOp PrefixExpression | AssignmentOp PrefixExpression | ConditionalOp PrefixExpression
+BinaryExpression -> ( BinaryOp | AssignmentOp | ConditionalOp ) PrefixExpression
 
 PrimaryExpression -> LiteralExpression | SelfExpression | SuperclassExpression | ParenthesizedExpression | ImplicitMemberExpression | WildcardExpression
 
-LiteralExpression -> Literal | ArrayDict | Qualifier
+LiteralExpression -> Literal | ArrayDictionary | SpecialLiteral
 
-Qualifier -> __FILE__ | __LINE__ | __COLUMN__ | __FUNCTION__ 
+SpecialLiteral -> __FILE__ | __LINE__ | __COLUMN__ | __FUNCTION__
 
-ArrayDict -> lsb ArrayDict' 
+ArrayDictionary -> lsb ArrayDictionaryLiteral
 
-ArrayDict' -> ArrayLiteral | DictionaryLiteral
+ArrayDictionaryLiteral -> ArrayDictionaryLiteralItems | closedict | rsb
 
-ArrayLiteral -> rsb | ArrayLiterlItems rsb
+ArrayDictionaryLiteralItems -> ArrayDictionaryLiteralItem { comma ArrayDictionaryLiteralItem }
 
-ArrayLiteralItems -> ArrayLiteralItem { comma ArrayLiteralItems }
+ArrayDictionaryLiteralItem -> Expression ( ArrayItem | DictionaryItem )
 
-ArrayLiteralItem -> Expression
+ArrayItem -> rsb
 
-DictionaryLiteral -> DictionaryLiteralItems rsb | :rsb
-
-DictionaryLiteralItems -> DictionaryLiteralItem { comma DictionaryLiteralItems }
-
-DictionaryLiteralItem -> Expression : Expression
+DictionaryItem -> colon Expression rsb
 
 SelfExpression -> self [ Self' ]
 Self' -> . PostDotSelf | lsb Expression rsb
 PostDotSelf -> Identifier | init
 
-SuperclassExpression -> super Super' 
+SuperclassExpression -> super Super'
 Super' -> lsb Expression rsb | . PostDotSuper
 PostDotSuper -> Identifier | init
 
