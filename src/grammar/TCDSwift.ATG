@@ -479,7 +479,7 @@ Conjuctive
 
 Comparative
 = Cast
-  { ComparativeOp Cast }.
+  [ ComparativeOp Cast ].
 
 /*------------------------------------------------------------------------*/
 
