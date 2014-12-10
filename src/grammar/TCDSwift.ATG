@@ -30,6 +30,116 @@ IGNORE cr + lf + tab
 PRODUCTIONS
 
 /*------------------------------------------------------------------------
+Types
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+Type
+= "protocol" ProtocolCompositionType
+  | Identifier
+//| TypeIdentifier
+//| TupleType
+  | Type
+    ( '[' ArrayDictionaryType
+    | FunctionType
+    | OptionalType
+    | ImplicitlyUnwrappedOptionalType
+    | MetatypeType
+    )
+.
+
+/*------------------------------------------------------------------------*/
+
+/* No attributes yet
+TypeAnnotation
+= ':' [ Attributes ] Type
+.
+*/
+
+/*------------------------------------------------------------------------*/
+
+//TypeIdentifier
+//= Identifier //[ GenericArgumentClause ] [ '.' TypeIdentifier ] leave as just identifier for now
+//.
+
+/*------------------------------------------------------------------------*/
+/* No tuples due to attributes not implemented and by proxy no annotation
+TupleType
+= '(' [ TupleTypeBody ] ')'
+.
+
+TupleTypeBody
+= TupleTypeElementList [ "..." ]
+.
+
+TupleTypeElementList
+= TupleTypeElement { ',' TupleTypeElement }
+.
+
+TupleTypeElement
+= [ Attributes ] [ "inout" ] Type
+| [ "inout" ] ElementName TypeAnnotation
+.
+
+ElementName
+= Identifier
+.
+*/
+/*------------------------------------------------------------------------*/
+
+FunctionType
+= "->" Type
+.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionaryType
+= ( ']'
+  | ':' Type ']'
+  )
+.
+
+/*------------------------------------------------------------------------*/
+
+OptionalType
+= '?'
+.
+
+/*------------------------------------------------------------------------*/
+
+ImplicitlyUnwrappedOptionalType
+= '!'
+.
+
+/*------------------------------------------------------------------------*/
+
+ProtocolCompositionType
+= '<' [ ProtocolIdentifierList ] '>'
+.
+
+ProtocolIdentifierList
+= ProtocolIdentifier { ',' ProtocolIdentifier }
+.
+
+ProtocolIdentifier
+= Identifier//TypeIdentifier
+.
+
+/*------------------------------------------------------------------------*/
+
+MetatypeType
+= '.'
+  ( "Type"
+  | "Protocol"
+  )
+.
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
 Operators
 ------------------------------------------------------------------------*/
 
@@ -185,7 +295,14 @@ ConditionalOp
 
 /*------------------------------------------------------------------------*/
 
-//TypeCastOp yet to be defined
+TypeCastOp
+=
+  ( "is" Type
+  | "as"
+    ( Type
+    | '?' Type
+    )
+  ).
 
 /*------------------------------------------------------------------------*/
 
@@ -235,7 +352,7 @@ BinaryExpression
   | ConditionalOp
   )
   PrefixExpression
-/*| TypeCastOp is not defined */
+| TypeCastOp
 .
 
 /*------------------------------------------------------------------------*/

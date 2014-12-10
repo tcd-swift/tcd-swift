@@ -3,7 +3,7 @@ CSHARPCOMPILER = dmcs
 all: bin/coco.exe
 	mkdir -p generated
 	mkdir -p bin
-	mono bin/coco.exe -frames src/frames -o generated -namespace TCDSwift src/grammar/TCDSwift.ATG
+	mono bin/coco.exe -frames src/frames -trace F -o generated -namespace TCDSwift src/grammar/TCDSwift.ATG
 	$(CSHARPCOMPILER) src/Main.cs generated/*.cs -out:bin/tcc.exe
 
 bin/coco.exe:
