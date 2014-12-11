@@ -30,6 +30,57 @@ IGNORE cr + lf + tab
 PRODUCTIONS
 
 /*------------------------------------------------------------------------
+Patterns
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+//Some of the productions should have type annotation as optional
+// BUT FUCK TYPES!
+
+Pattern
+= WildcardPattern
+| ValueBindingPattern
+| TuplePattern
+| Identifier [ TuplePattern ] //EnumCasePattern
+//| ExpressionPattern
+.
+
+/*------------------------------------------------------------------------*/
+
+WildcardPattern
+= '_'
+.
+
+/*------------------------------------------------------------------------*/
+
+ValueBindingPattern
+= "var" Pattern
+| "let" Pattern
+.
+
+/*------------------------------------------------------------------------*/
+
+TuplePattern
+= '(' [ TuppePatternElementList ] ')'
+.
+
+TuppePatternElementList
+= TuppePatternElement { ',' TuppePatternElement }
+.
+
+TuppePatternElement
+= Pattern
+.
+
+/*------------------------------------------------------------------------*/
+/*
+ExpressionPattern
+= Expression
+.
+*/
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
 Attributes
 ------------------------------------------------------------------------*/
 
@@ -38,14 +89,14 @@ Attributes
 .
 
 Attribute
-= "@" AttributeName [ AttributArgumentClause ]
+= "@" AttributeName [ AttributeArgumentClause ]
 .
 
 AttributeName
 = Identifier
 .
 
-AttributeArgumnentClause
+AttributeArgumentClause
 = '(' [ BalancedTokens ] ')'
 .
 
@@ -58,6 +109,7 @@ BalancedToken
 | '[' [ BalancedTokens ] ']'
 | '{' [ BalancedTokens ] '}'
 .
+/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------
 Operators
@@ -577,18 +629,13 @@ Declarations
 /*------------------------------------------------------------------------*/
 
 Declaration
-= ImportDeclaration
-| ConstantDeclaration
-| VariableDeclaration
-| TypeAliasDeclaration
-| FunctionDeclaration
-| EnumDeclaration
-| ProtocolDeclaration
-| InitializerDeclaration
-| DeinitializerDeclaration
-| ExtensionDeclaration
-| SubscriptDeclaration
-| OperatorDeclaration
+= [ Attributes ]
+  ( ImportDeclaration
+  | [ DeclarationModifiers ]
+    ( ConstantDeclaration
+    | VariableDeclaration
+    )
+  )
 .
 
 /*------------------------------------------------------------------------*/
@@ -617,7 +664,7 @@ ImportPathIdentifier
 /*------------------------------------------------------------------------*/
 
 ConstantDeclaration
-= [ Attributes ] [ DeclarationModifiers ] "let" PatternInitializerList
+= "let" PatternInitializerList
 .
 
 PatternInitializerList
@@ -637,7 +684,7 @@ Initializer
 VariableDeclaration
 = VariableDeclarationHead
   ( PatternInitializerList
-  | VariableName TypeAnnotation
+  | Identifier //TypeAnnotation
     ( CodeBlock
     | GetterSetterBlock
     | GetterSetterKeywordBlock
@@ -647,11 +694,7 @@ VariableDeclaration
 .
 
 VariableDeclarationHead
-= [ Attributes ] [ DeclarationModifiers ] "var"
-.
-
-VariableName
-= Identifier
+= "var"
 .
 
 /*------------------------------------------------------------------------*/
@@ -665,7 +708,7 @@ GetterSetterBlock
 .
 
 GetterClause
-= [ Attributes ] "get" Codeblock
+= [ Attributes ] "get" CodeBlock
 .
 
 SetterClause
@@ -714,6 +757,7 @@ DidSetClause
 
 /*------------------------------------------------------------------------*/
 
+/*
 TypeAliasDeclaration
 = TypeAliasHead TypeAliasAssignment
 .
@@ -728,17 +772,96 @@ TypeAliasName
 
 TypeAliasAssignment
 = '=' Type.
+*/
+
+/*------------------------------------------------------------------------*/
+/*
+ProtocolDeclaration
+= [ Attributes ] [ AccesLevelModifier ]
+  "protocol" Identifier
+  //[ TypeInheritanceClause ]
+  ProtocolBody
+.
+
+ProtocolBody
+= '{' [ ProtocolMemeberDeclarations ] '}'
+.
+
+ProtocolMemeberDeclarations
+= ProtocolMemeberDeclaration { ProtocolMemeberDeclaration }
+.
+
+ProtocolMemeberDeclaration
+= ProtocolPropertyDeclaration
+| ProtoclMethodDeclaration
+| ProtocolInitializerDeclaration
+| PrtocolAssociatedTypeDeclaration
+.
+*/
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Modifiers
+------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration
-= FunctionHead FunctionName 
+DeclarationModifiers
+= DeclarationModifier { DeclarationModifier }
+.
+
+DeclarationModifier
+= ("class"
+  | "convenience"
+  | "dynamic"
+  | "final"
+  | "infix"
+  | "lazy"
+  | "mutating"
+  | "nonmutating"
+  | "optional"
+  | "override"
+  | "postfix"
+  | "prefix"
+  | "required"
+  | "static"
+  | "unowned"
+  | "unowned" '(' "safe" ')'
+  | "unowned" '(' "unsafe" ')'
+  | "weak"
+  )
+| AccesLevelModifier
+.
+
+/*
+AccesLevelModifiers
+= AccesLevelModifier { AccesLevelModifier }
+.
+*/
+
+AccesLevelModifier
+= ( "internal" [ '(' "set" ')' ] )
+| ( "private" [ '(' "set" ')' ] )
+| ( "public" [ '(' "set" ')' ] )
+.
+
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock
+= '{' [ Statements ] '}'
+.
+
+/*------------------------------------------------------------------------*/
+
+Statements = "statement".
 
 /*------------------------------------------------------------------------*/
 
 TCDSwift
 = "swift"
   '{'
+  Declarations
   ExpressionList
   '}'
   .

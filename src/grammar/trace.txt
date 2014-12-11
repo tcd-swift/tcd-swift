@@ -2,6 +2,98 @@
 First & follow symbols:
 ----------------------
 
+Pattern
+first:   ident "_" "var" "let" "(" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "&" "+" "-" 
+         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
+         "self" "." "super" "true" "false" "nil" "import" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+WildcardPattern
+first:   "_" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "&" "+" "-" 
+         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
+         "self" "." "super" "true" "false" "nil" "import" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+ValueBindingPattern
+first:   "var" "let" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "&" "+" "-" 
+         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
+         "self" "." "super" "true" "false" "nil" "import" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+TuplePattern
+first:   "(" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "&" "+" "-" 
+         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
+         "self" "." "super" "true" "false" "nil" "import" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+Identifier
+first:   ident 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "<<" ">>" "*" "/" "%" "&" "&*" "&/" "&%" "+" "-" "&+" "&-" "|" 
+         "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" "===" "!==" 
+         "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "=" ":" "__FILE__" 
+         "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" 
+         "false" "nil" "import" "get" "set" "willSet" "didSet" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+TuppePatternElementList
+first:   ident "_" "var" "let" "(" 
+follow:  ")" 
+
+TuppePatternElement
+first:   ident "_" "var" "let" "(" 
+follow:  ")" "," 
+
+Attributes
+first:   "@" 
+follow:  "var" "let" "@" "import" "get" "set" "willSet" "didSet" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+Attribute
+first:   "@" 
+follow:  "var" "let" "@" "import" "get" "set" "willSet" "didSet" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+AttributeName
+first:   ident 
+follow:  "var" "let" "(" "@" "import" "get" "set" "willSet" "didSet" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+AttributeArgumentClause
+first:   "(" 
+follow:  "var" "let" "@" "import" "get" "set" "willSet" "didSet" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+BalancedTokens
+first:   "(" "[" "{" 
+follow:  ")" "]" "}" 
+
+BalancedToken
+first:   "(" "[" "{" 
+follow:  "(" ")" "[" "]" "{" "}" 
+
 ExponentiativeOp
 first:   "<<" ">>" 
 follow:  ident number string char "-" "true" "false" "nil" 
@@ -40,333 +132,615 @@ follow:  ident number string char "-" "true" "false" "nil"
 
 TernaryOp
 first:   "?" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 PrefixOps
 first:   "+" "-" "++" "--" "!" "~" 
-follow:  number string char "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-         "[" "self" "." "super" "(" "_" "true" "false" "nil" 
+follow:  number string char "_" "(" "[" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
 
 PostfixOps
 first:   "++" "--" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 AssignmentOp
 first:   "=" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 ConditionalOp
 first:   "?" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 Expression
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" ":" "," "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" "." "super" "(" 
-         ")" "_" "true" "false" "nil" "}" 
-
-Identifier
-first:   ident 
-follow:  ident number string char "<<" ">>" "*" "/" "%" "&" "&*" "&/" "&%" "+" 
-         "-" "&+" "&-" "|" "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" 
-         "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" "}" 
+         "&" "+" "-" "++" "--" "!" "~" ":" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" "import" 
+         "class" "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
 
 ExpressionList
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 follow:  "]" "}" 
 
 PrefixExpression
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 BinaryExpressions
 first:   ident number string char "-" "?" "=" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" ":" "," "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" "." "super" "(" 
-         ")" "_" "true" "false" "nil" "}" 
+follow:  number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" "}" 
+         "&" "+" "-" "++" "--" "!" "~" ":" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" "import" 
+         "class" "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
 
 PostfixExpression
-first:   number string char "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-         "[" "self" "." "super" "(" "_" "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+first:   number string char "_" "(" "[" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 InOutExpression
 first:   "&" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 BinaryExpression
 first:   ident number string char "-" "?" "=" "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 BinaryOp
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 PrimaryExpression
-first:   number string char "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-         "[" "self" "." "super" "(" "_" "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+first:   number string char "_" "(" "[" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 LiteralExpression
-first:   number string char "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-         "[" "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+first:   number string char "[" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "true" "false" "nil" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 SelfExpression
 first:   "self" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 SuperclassExpression
 first:   "super" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ParenthesizedExpression
 first:   "(" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ImplicitMemberExpression
 first:   "." 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 WildcardExpression
 first:   "_" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 Literal
 first:   number string char "true" "false" "nil" 
-follow:  ident number string char "<<" ">>" "*" "/" "%" "&" "&*" "&/" "&%" "+" 
-         "-" "&+" "&-" "|" "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" 
-         "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "<<" ">>" "*" "/" "%" "&" "&*" "&/" "&%" "+" "-" "&+" "&-" "|" 
+         "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" "===" "!==" 
+         "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "=" ":" "__FILE__" 
+         "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" 
+         "false" "nil" "import" "class" "convenience" "dynamic" "final" 
+         "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
 
 ArrayDictionary
 first:   "[" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 SpecialLiteral
 first:   "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ArrayDictionaryLiteral
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" ":]" "]" "self" "." 
-         "super" "(" "_" "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+first:   number string char "_" "(" "[" "]" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" ":]" "self" "." 
+         "super" "true" "false" "nil" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ArrayDictionaryLiteralItems
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ArrayDictionaryLiteralItem
-first:   number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ArrayItem
 first:   "]" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 DictionaryItem
 first:   ":" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ExpressionElementList
-first:   ident number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   ident number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 follow:  ")" 
 
 ExpressionElement
-first:   ident number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+first:   ident number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
-follow:  "," ")" 
+follow:  ")" "," 
 
 Postfix
-first:   "?" "++" "--" "!" "[" "." "(" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+first:   "(" "[" "?" "++" "--" "!" "." 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 FunctionCallExpression
 first:   "(" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 InitializerExpression
 first:   "init" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ExplicitMemberExpression
 first:   number 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 PostfixSelfExpression
 first:   "self" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 DynamicTypeExpression
 first:   "dynamicType" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 SubscriptExpression
 first:   "[" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 ForcedValueExpression
 first:   "!" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 OptionalChainingExpression
 first:   "?" 
-follow:  ident number string char "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" 
-         "," "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "]" "self" 
-         "." "super" "(" ")" "_" "true" "false" "nil" "}" 
+follow:  ident number string char "_" "var" "let" "(" ")" "," "@" "[" "]" "{" 
+         "}" "&" "+" "-" "?" "++" "--" "!" "~" "=" ":" "__FILE__" "__LINE__" 
+         "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
+         "import" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
 
 Ternary
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 NilCoalescing
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "?" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "?" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 Disjunctive
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "??" "?" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "??" "?" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 Conjuctive
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "||" "??" "?" "++" "--" "!" "~" 
-         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." 
-         "super" "(" "_" "true" "false" "nil" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "||" "??" "?" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" 
 
 Comparative
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "&&" "||" "??" "?" "++" "--" "!" "~" 
-         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." 
-         "super" "(" "_" "true" "false" "nil" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "&&" "||" "??" "?" "++" 
+         "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" 
+         "." "super" "true" "false" "nil" 
 
 Cast
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "==" "<" ">" "<=" ">=" "!=" "===" 
-         "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" "__LINE__" 
-         "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" "true" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "==" "<" ">" "<=" ">=" 
+         "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" 
+         "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" 
          "false" "nil" 
 
 Range
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "is" "as" "==" "<" ">" "<=" ">=" "!=" 
-         "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "is" "as" "==" "<" ">" 
+         "<=" ">=" "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
 
 Additive
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "..<" "..." "is" "as" "==" "<" ">" 
-         "<=" ">=" "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" 
-         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." 
-         "super" "(" "_" "true" "false" "nil" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "..<" "..." "is" "as" "==" 
+         "<" ">" "<=" ">=" "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" 
 
 Multiplicative
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "&" "+" "-" "&+" "&-" "|" "^" "..<" "..." "is" 
-         "as" "==" "<" ">" "<=" ">=" "!=" "===" "!==" "~=" "&&" "||" "??" "?" 
-         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
-         "[" "self" "." "super" "(" "_" "true" "false" "nil" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "&+" "&-" "|" "^" "..<" 
+         "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" "===" "!==" "~=" "&&" 
+         "||" "??" "?" "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" 
+         "__FUNCTION__" "self" "." "super" "true" "false" "nil" 
 
 Exponentiative
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "*" "/" "%" "&" "&*" "&/" "&%" "+" "-" "&+" "&-" 
-         "|" "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" "===" "!==" 
-         "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" "__LINE__" 
-         "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" "true" 
+follow:  number string char "_" "(" "[" "*" "/" "%" "&" "&*" "&/" "&%" "+" "-" 
+         "&+" "&-" "|" "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" 
+         "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" 
+         "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" "true" 
          "false" "nil" 
 
 Factor
 first:   ident number string char "-" "true" "false" "nil" 
-follow:  number string char "<<" ">>" "*" "/" "%" "&" "&*" "&/" "&%" "+" "-" 
-         "&+" "&-" "|" "^" "..<" "..." "is" "as" "==" "<" ">" "<=" ">=" "!=" 
-         "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" "__FILE__" 
-         "__LINE__" "__COLUMN__" "__FUNCTION__" "[" "self" "." "super" "(" "_" 
+follow:  number string char "_" "(" "[" "<<" ">>" "*" "/" "%" "&" "&*" "&/" 
+         "&%" "+" "-" "&+" "&-" "|" "^" "..<" "..." "is" "as" "==" "<" ">" 
+         "<=" ">=" "!=" "===" "!==" "~=" "&&" "||" "??" "?" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
          "true" "false" "nil" 
+
+Declarations
+first:   "var" "let" "@" "import" "class" "convenience" "dynamic" "final" 
+         "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+follow:  number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
+         "true" "false" "nil" 
+
+Declaration
+first:   "var" "let" "@" "import" "class" "convenience" "dynamic" "final" 
+         "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+ImportDeclaration
+first:   "@" "import" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+DeclarationModifiers
+first:   "class" "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+follow:  "var" "let" 
+
+ConstantDeclaration
+first:   "let" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+VariableDeclaration
+first:   "var" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+ImportKind
+first:   "var" "typealias" "enum" "protocol" "func" 
+follow:  ident number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" 
+         "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" 
+         "." "super" "true" "false" "nil" "import" "class" "convenience" 
+         "dynamic" "final" "infix" "lazy" "mutating" "nonmutating" "optional" 
+         "override" "postfix" "prefix" "required" "static" "unowned" "weak" 
+         "internal" "private" "public" 
+
+ImportPath
+first:   ident 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+ImportPathIdentifier
+first:   ident 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+PatternInitializerList
+first:   ident "_" "var" "let" "(" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+PatternInitializer
+first:   ident "_" "var" "let" "(" 
+follow:  number string char "_" "var" "let" "(" "," "@" "[" "&" "+" "-" "++" 
+         "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" 
+         "." "super" "true" "false" "nil" "import" "class" "convenience" 
+         "dynamic" "final" "infix" "lazy" "mutating" "nonmutating" "optional" 
+         "override" "postfix" "prefix" "required" "static" "unowned" "weak" 
+         "internal" "private" "public" 
+
+Initializer
+first:   number string char "_" "(" "[" "&" "+" "-" "++" "--" "!" "~" 
+         "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." "super" 
+         "true" "false" "nil" 
+follow:  number string char "_" "var" "let" "(" "," "@" "[" "{" "&" "+" "-" 
+         "++" "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" 
+         "self" "." "super" "true" "false" "nil" "import" "class" 
+         "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+
+VariableDeclarationHead
+first:   "var" 
+follow:  ident "_" "var" "let" "(" 
+
+CodeBlock
+first:   "{" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "}" "&" "+" "-" "++" 
+         "--" "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" 
+         "." "super" "true" "false" "nil" "import" "get" "set" "willSet" 
+         "didSet" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
+
+GetterSetterBlock
+first:   "{" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+GetterSetterKeywordBlock
+first:   "{" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+WillSetDidSetBlock
+first:   "{" 
+follow:  number string char "_" "var" "let" "(" "@" "[" "&" "+" "-" "++" "--" 
+         "!" "~" "__FILE__" "__LINE__" "__COLUMN__" "__FUNCTION__" "self" "." 
+         "super" "true" "false" "nil" "import" "class" "convenience" "dynamic" 
+         "final" "infix" "lazy" "mutating" "nonmutating" "optional" "override" 
+         "postfix" "prefix" "required" "static" "unowned" "weak" "internal" 
+         "private" "public" 
+
+GetterClause
+first:   "@" "get" 
+follow:  "@" "}" "set" 
+
+SetterClause
+first:   "@" "set" 
+follow:  "@" "}" "get" 
+
+SetterName
+first:   "(" 
+follow:  "{" 
+
+GetterKeywordClause
+first:   "@" "get" 
+follow:  "@" "}" "set" 
+
+SetterKeywordClause
+first:   "@" "set" 
+follow:  "@" "}" "get" 
+
+WillSetClause
+first:   "@" "willSet" 
+follow:  "@" "}" "didSet" 
+
+DidSetClause
+first:   "@" "didSet" 
+follow:  "@" "}" "willSet" 
+
+DeclarationModifier
+first:   "class" "convenience" "dynamic" "final" "infix" "lazy" "mutating" 
+         "nonmutating" "optional" "override" "postfix" "prefix" "required" 
+         "static" "unowned" "weak" "internal" "private" "public" 
+follow:  "var" "let" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
+
+AccesLevelModifier
+first:   "internal" "private" "public" 
+follow:  "var" "let" "class" "convenience" "dynamic" "final" "infix" "lazy" 
+         "mutating" "nonmutating" "optional" "override" "postfix" "prefix" 
+         "required" "static" "unowned" "weak" "internal" "private" "public" 
+
+Statements
+first:   "statement" 
+follow:  "}" 
 
 TCDSwift
 first:   "swift" 
