@@ -38,8 +38,6 @@ Types
 Type
 = "protocol" ProtocolCompositionType
   | Identifier
-//| TypeIdentifier
-//| TupleType
   | Type
     ( '[' ArrayDictionaryType
     | FunctionType
@@ -47,6 +45,9 @@ Type
     | ImplicitlyUnwrappedOptionalType
     | MetatypeType
     )
+
+//| TypeIdentifier
+//| TupleType
 .
 
 /*------------------------------------------------------------------------*/
