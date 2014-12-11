@@ -30,6 +30,71 @@ IGNORE cr + lf + tab
 PRODUCTIONS
 
 /*------------------------------------------------------------------------
+Generic Parameters and Arguments
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+GenericParameterClause
+= '<' GenericParameterList [ RequirementClause ] '>'
+.
+
+GenericParameterList
+= GenericParameter { ',' GenericParameter }
+.
+
+GenericParameter
+= Identifier
+  [ ':'
+    ( TypeIdentifier
+    | ProtocolCompositionType
+    )
+  ]
+.
+
+RequirementClause
+= "where" RequirementList
+.
+
+RequirementList
+= Requirement { ',' Requirement }
+.
+
+Requirement
+= TypeIdentifier
+  ( ConformanceRequirement
+  | SameTypeRequirement
+  )
+.
+
+
+ConformanceRequirement
+= ':'
+  ( TypeIdentifier | ProtocolCompositionType )
+.
+
+
+SameTypeRequirement
+= "==" TypeIdentifier
+.
+
+/*------------------------------------------------------------------------*/
+
+GenericArgumentClause
+= '<' GenericArgumentList '>'
+.
+
+GenericArgumentList
+= GenericArgument { ',' GenericArgument }
+.
+
+GenericArgument
+= Type
+.
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
 Types
 ------------------------------------------------------------------------*/
 
@@ -60,9 +125,9 @@ TypeAnnotation
 
 /*------------------------------------------------------------------------*/
 
-//TypeIdentifier
-//= Identifier //[ GenericArgumentClause ] [ '.' TypeIdentifier ] leave as just identifier for now
-//.
+TypeIdentifier
+= Identifier [ GenericArgumentClause ] ['.' TypeIdentifier]
+.
 
 /*------------------------------------------------------------------------*/
 /* No tuples due to attributes not implemented and by proxy no annotation
@@ -124,7 +189,7 @@ ProtocolIdentifierList
 .
 
 ProtocolIdentifier
-= Identifier//TypeIdentifier
+= TypeIdentifier
 .
 
 /*------------------------------------------------------------------------*/
@@ -656,6 +721,7 @@ TCDSwift
 = "swift"
   '{'
   ExpressionList
+  GenericParameterClause
   '}'
   .
 
