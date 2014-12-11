@@ -30,6 +30,36 @@ IGNORE cr + lf + tab
 PRODUCTIONS
 
 /*------------------------------------------------------------------------
+Attributes
+------------------------------------------------------------------------*/
+
+Attributes
+= Attribute { Attribute }
+.
+
+Attribute
+= "@" AttributeName [ AttributArgumentClause ]
+.
+
+AttributeName
+= Identifier
+.
+
+AttributeArgumnentClause
+= '(' [ BalancedTokens ] ')'
+.
+
+BalancedTokens
+= BalancedToken { BalancedToken }
+.
+
+BalancedToken
+= '(' [ BalancedTokens ] ')'
+| '[' [ BalancedTokens ] ']'
+| '{' [ BalancedTokens ] '}'
+.
+
+/*------------------------------------------------------------------------
 Operators
 ------------------------------------------------------------------------*/
 
@@ -531,6 +561,178 @@ Literal
   | "false"
   | "nil"
   ).
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Declarations
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+Declarations
+= Declaration { Declaration }
+.
+
+/*------------------------------------------------------------------------*/
+
+Declaration
+= ImportDeclaration
+| ConstantDeclaration
+| VariableDeclaration
+| TypeAliasDeclaration
+| FunctionDeclaration
+| EnumDeclaration
+| ProtocolDeclaration
+| InitializerDeclaration
+| DeinitializerDeclaration
+| ExtensionDeclaration
+| SubscriptDeclaration
+| OperatorDeclaration
+.
+
+/*------------------------------------------------------------------------*/
+
+ImportDeclaration
+= [ Attributes ] "import" [ ImportKind ] [ ImportPath ]
+.
+
+ImportKind
+= "typealias"
+| "enum"
+| "protocol"
+| "var"
+| "func"
+.
+
+ImportPath
+= ImportPathIdentifier [ '.' ImportPath ]
+.
+
+ImportPathIdentifier
+= Identifier
+//| Operator
+.
+
+/*------------------------------------------------------------------------*/
+
+ConstantDeclaration
+= [ Attributes ] [ DeclarationModifiers ] "let" PatternInitializerList
+.
+
+PatternInitializerList
+= PatternInitializer { ',' PatternInitializer }
+.
+
+PatternInitializer
+= Pattern [ Initializer ]
+.
+
+Initializer
+= Expression
+.
+
+/*------------------------------------------------------------------------*/
+
+VariableDeclaration
+= VariableDeclarationHead
+  ( PatternInitializerList
+  | VariableName TypeAnnotation
+    ( CodeBlock
+    | GetterSetterBlock
+    | GetterSetterKeywordBlock
+    | [Initializer] WillSetDidSetBlock
+    )
+  )
+.
+
+VariableDeclarationHead
+= [ Attributes ] [ DeclarationModifiers ] "var"
+.
+
+VariableName
+= Identifier
+.
+
+/*------------------------------------------------------------------------*/
+
+GetterSetterBlock
+= '{'
+  ( GetterClause [ SetterClause ]
+  | SetterClause GetterClause
+  )
+  '}'
+.
+
+GetterClause
+= [ Attributes ] "get" Codeblock
+.
+
+SetterClause
+= [ Attributes ] "set" [ SetterName ] CodeBlock
+.
+
+SetterName
+= '(' Identifier ')'
+.
+
+/*------------------------------------------------------------------------*/
+
+GetterSetterKeywordBlock
+= '{'
+  ( GetterKeywordClause [ SetterKeywordClause ]
+  | SetterKeywordClause GetterKeywordClause
+  )
+  '}'
+.
+
+GetterKeywordClause
+= [ Attributes ] "get"
+.
+
+SetterKeywordClause
+= [ Attributes ] "set"
+.
+
+/*------------------------------------------------------------------------*/
+
+WillSetDidSetBlock
+= '{'
+  ( WillSetClause [ DidSetClause ]
+  | DidSetClause WillSetClause
+  )
+  '}'
+.
+
+WillSetClause
+= [ Attributes ] "willSet" [ SetterName ] CodeBlock
+.
+
+DidSetClause
+= [ Attributes ] "didSet" [ SetterName ] CodeBlock
+.
+
+/*------------------------------------------------------------------------*/
+
+TypeAliasDeclaration
+= TypeAliasHead TypeAliasAssignment
+.
+
+TypeAliasHead
+= [ Attributes ] [ AccessLevelModifier ] "typealias" TypeAliasName
+.
+
+TypeAliasName
+= Identifier
+.
+
+TypeAliasAssignment
+= '=' Type.
+
+/*------------------------------------------------------------------------*/
+
+FunctionDeclaration
+= FunctionHead FunctionName 
 
 /*------------------------------------------------------------------------*/
 
