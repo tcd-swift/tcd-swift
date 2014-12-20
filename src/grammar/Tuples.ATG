@@ -1,0 +1,133 @@
+COMPILER TCDSwift
+
+enum SwiftType : int
+{
+  String,
+  Int,
+  UInt,
+  Float,
+  Double,
+  Bool,
+  Undefined
+};
+
+// using Instruction = string;
+class Program : List<Instruction> {}
+class Yoke : Stack<IRTuple> {}
+Program program = new Program();
+Yoke yoke = new Yoke();
+
+/*--------------------------------------------------------------------------*/
+
+CHARACTERS
+  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  digit = "0123456789".
+  cr  = '\r'.
+  lf  = '\n'.
+  tab = '\t'.
+  space = '\u0020'.
+  singleQuote = '\''.
+  doubleQuote = '\"'.
+  dot = '.'.
+  characters = ANY - cr - lf - singleQuote.
+  ascii = ANY - cr - lf - doubleQuote.
+
+TOKENS
+  ident  = letter {letter | digit | dot}.
+  number = digit {digit}.
+  string = '"' {ascii} '"'.
+  char   = '\'' [characters] '\''.
+
+COMMENTS FROM "/*" TO "*/" NESTED
+COMMENTS FROM "//" TO lf
+
+IGNORE cr + lf + tab
+
+PRODUCTIONS
+
+/* 
+ * All productions have been way over simplified for testing sake.
+ * All skipped productions etc. are commented with "// Should be"
+ * for easy finding so we don't forget to go back and implement them!
+ */
+
+Declaration
+= VariableDeclaration
+  .
+
+VariableDeclaration
+= "var" // Should be VariableDeclarationHead
+  PatternInitializer // Should be PatternInitializerList
+  .
+
+PatternInitializer                (.  IRTuple tuple;  .)
+= Pattern<out name, out type>
+  [Initializer]                   (.
+                                      switch(type)
+                                      {
+                                        case SwiftType.String:
+
+                                          break;
+                                        case SwiftType.Int:
+                                          tuple = new IRTupleOneOpImm<int>(IrOp.STORE, name, );
+                                          break;
+                                        case SwiftType.UInt:
+                                          tuple = new IRTupleOneOpImm<uint>(IrOp.STORE, name, );
+                                          break;
+                                        case SwiftType.Float:
+                                          tuple = new IRTupleOneOpImm<float>(IrOp.STORE, name, );
+                                          break;
+                                        case SwiftType.Double:
+                                          tuple = new IRTupleOneOpImm<double>(IrOp.STORE, name, );
+                                          break;
+                                        case SwiftType.Bool:
+                                          tuple = new IRTupleOneOpImm<bool>(IrOp.STORE, name, );
+                                          break;
+                                      }
+
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, name, yoke.Peek().getDest());
+                                  .)
+  .
+
+Pattern<out string name, out SwiftType type>
+= IdentifierPattern<out name>
+  TypeAnnotation<out type>
+  .
+
+IdentifierPattern<out string name>
+= Identifier<out name>
+  .
+
+Initializer
+= '='
+  Expression
+  .
+
+TypeAnnotation<out SwiftType type>
+= ':'
+  Type<out type> // Should be [Attributes] Type
+  .
+
+Type<out SwiftType type>  // Should be waaaay more comprehensive!
+= Identifier<out typeName>      (.  
+                                    try
+                                    {
+                                      type = (SwiftType)Enum.Parse(typeof(SwiftType), typeName);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                      SemErr("Undefined type: " + typeName);
+                                      type = SwiftType.Undefined;
+                                    }
+                                .)
+  .
+
+Identifier<out string name>
+= ident                         (.  name = t.val; .)
+  .
+
+TCDSwift
+=
+  .
+
+END TCDSwift.
