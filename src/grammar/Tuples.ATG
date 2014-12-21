@@ -11,11 +11,18 @@ enum SwiftType : int
   Undefined
 };
 
-// using Instruction = string;
-class Program : List<Instruction> {}
-class Yoke : Stack<IRTuple> {}
+class Program : List<string> {}
+class TupleStack : Stack<IRTuple> {}
+
 Program program = new Program();
-Yoke yoke = new Yoke();
+TupleStack tempStack = new TupleStack();
+
+int temporarySeed = 0;
+
+string generateTemporary()
+{
+  return "T$"+temporarySeed++;
+}
 
 /*--------------------------------------------------------------------------*/
 
@@ -35,7 +42,7 @@ CHARACTERS
 TOKENS
   ident  = letter {letter | digit | dot}.
   number = digit {digit}.
-  string = '"' {ascii} '"'.
+  stringToken = '"' {ascii} '"'.
   char   = '\'' [characters] '\''.
 
 COMMENTS FROM "/*" TO "*/" NESTED
@@ -44,6 +51,120 @@ COMMENTS FROM "//" TO lf
 IGNORE cr + lf + tab
 
 PRODUCTIONS
+
+/************************************************
+ *  Literals
+ ************************************************/
+
+Literal<out string value, out SwiftType type>
+=                                 (.  type = SwiftType.Undefined; value = "NULL"; .)
+  ( number                        (.  type = SwiftType.Int;       value = t.val;  .)
+  | stringToken                   (.  type = SwiftType.String;    value = t.val;  .)
+  | "true"                        (.  type = SwiftType.Bool;      value = t.val;  .)
+  | "false"                       (.  type = SwiftType.Bool;      value = t.val;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Operators
+ ************************************************/
+
+// Left associative, precedence level 150
+
+MultiplicativeOp<out IrOp op>
+=                                 (.  op = IrOp.MUL;  .)
+  ( "*"
+  | "/"                           (.  op = IrOp.DIV;  .)
+  | "&"                           (.  op = IrOp.AND;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 140
+
+AdditiveOp<out IrOp op>
+=                                 (.  op = IrOp.ADD;  .)
+  ( "+"
+  | "-"                           (.  op = IrOp.SUB;  .)
+  | "|"                           (.  op = IrOp.OR;   .)
+  | "^"                           (.  op = IrOp.XOR;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 130
+
+ComparativeOp<out IrOp op>
+=                                 (.  op = IrOp.EQU;  .)
+  ( "=="
+  | "<"                           (.  op = IrOp.LT;   .)
+  | ">"                           (.  op = IrOp.GT;   .)
+  | "<="                          (.  op = IrOp.LTE;  .)
+  | ">="                          (.  op = IrOp.GTE;  .)
+  | "!="                          (.  op = IrOp.NEQ;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+AssignmentOperator
+= "=".
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Expressions
+ ************************************************/
+
+/*------------------------------------------------------------------------*/
+
+Expression                        (.  IrOp op;  .)
+= SimpleExpression
+  [
+    ComparativeOp<out op>
+    SimpleExpression
+  ]
+  .
+
+/*------------------------------------------------------------------------*/
+
+SimpleExpression                    (.  IrOp op;  .)
+= Term
+  {
+    AdditiveOp<out op>
+    Term                            (.
+                                        IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                        IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                        tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                        program.Add(tempStack.Peek().toString());
+                                    .)
+  }
+  .
+
+/*------------------------------------------------------------------------*/
+
+Term                                (.  SwiftType type1, type2; IrOp op;  .)
+= PrimaryExpression<out type1>
+  {
+    MultiplicativeOp<out op>
+    PrimaryExpression<out type2>
+  }
+  .
+
+/*------------------------------------------------------------------------*/
+// Treat like Factor
+PrimaryExpression<out SwiftType type> (. SwiftType _type; string name, value; .)
+=                                     (.  type = SwiftType.Undefined; .)
+  ( Identifier<out name>            (.  tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));  .)    // look up ident to find if variable is declared
+  | Literal<out value, out _type>    (.
+                                        tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
+                                        program.Add(tempStack.Peek().toString());
+                                        type = _type;
+                                    .) 
+  ).
+
+/*------------------------------------------------------------------------*/
 
 /* 
  * All productions have been way over simplified for testing sake.
@@ -55,60 +176,54 @@ Declaration
 = VariableDeclaration
   .
 
+/*------------------------------------------------------------------------*/
+
 VariableDeclaration
 = "var" // Should be VariableDeclarationHead
   PatternInitializer // Should be PatternInitializerList
   .
 
-PatternInitializer                (.  IRTuple tuple;  .)
+/*------------------------------------------------------------------------*/
+
+PatternInitializer                (.  string name; SwiftType type;  .)
 = Pattern<out name, out type>
   [Initializer]                   (.
-                                      switch(type)
-                                      {
-                                        case SwiftType.String:
-
-                                          break;
-                                        case SwiftType.Int:
-                                          tuple = new IRTupleOneOpImm<int>(IrOp.STORE, name, );
-                                          break;
-                                        case SwiftType.UInt:
-                                          tuple = new IRTupleOneOpImm<uint>(IrOp.STORE, name, );
-                                          break;
-                                        case SwiftType.Float:
-                                          tuple = new IRTupleOneOpImm<float>(IrOp.STORE, name, );
-                                          break;
-                                        case SwiftType.Double:
-                                          tuple = new IRTupleOneOpImm<double>(IrOp.STORE, name, );
-                                          break;
-                                        case SwiftType.Bool:
-                                          tuple = new IRTupleOneOpImm<bool>(IrOp.STORE, name, );
-                                          break;
-                                      }
-
-                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, name, yoke.Peek().getDest());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
                                   .)
   .
 
-Pattern<out string name, out SwiftType type>
-= IdentifierPattern<out name>
-  TypeAnnotation<out type>
+/*------------------------------------------------------------------------*/
+
+Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type; .)
+= IdentifierPattern<out _name>                (. name = _name;  .)
+  TypeAnnotation<out _type>                   (. type = _type;  .)
   .
 
-IdentifierPattern<out string name>
-= Identifier<out name>
+/*------------------------------------------------------------------------*/
+
+IdentifierPattern<out string name>  (. string _name;  .)
+= Identifier<out _name>             (. name = _name;  .)
   .
+
+/*------------------------------------------------------------------------*/
 
 Initializer
-= '='
+= AssignmentOperator
   Expression
   .
 
-TypeAnnotation<out SwiftType type>
+/*------------------------------------------------------------------------*/
+
+TypeAnnotation<out SwiftType type>  (. SwiftType _type; .)
 = ':'
-  Type<out type> // Should be [Attributes] Type
+  Type<out _type>                    (. type = _type;    .) // Should be [Attributes] Type
   .
 
-Type<out SwiftType type>  // Should be waaaay more comprehensive!
+/*------------------------------------------------------------------------*/
+
+Type<out SwiftType type>        (.  string typeName; .)  // Should be waaaay more comprehensive!
 = Identifier<out typeName>      (.  
                                     try
                                     {
@@ -122,12 +237,19 @@ Type<out SwiftType type>  // Should be waaaay more comprehensive!
                                 .)
   .
 
+/*------------------------------------------------------------------------*/
+
 Identifier<out string name>
 = ident                         (.  name = t.val; .)
   .
 
+/*------------------------------------------------------------------------*/
+
 TCDSwift
-=
+= Declaration
+  {Declaration}
   .
+
+/*------------------------------------------------------------------------*/
 
 END TCDSwift.

@@ -30,8 +30,6 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 
-using Instruction = string;
-
 -->namespace
 
 public class Parser {
@@ -70,12 +68,8 @@ public class Parser {
 
   public void Write (string filename) {
     List<string> output = new List<string>();
-    foreach (Instruction i in header) {
-      if (i.Item1 != "") {
-        output.Add(i.Item1 + ": " + i.Item2);
-      } else {
-        output.Add(i.Item2);
-      }
+    foreach (string i in program) {
+      output.Add(i);
     }
     File.WriteAllLines(filename, output.ToArray());
   }

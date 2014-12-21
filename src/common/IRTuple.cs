@@ -4,6 +4,9 @@ using System.Collections.Generic;
 // Type of an Ident; leaving this as string for now
 using Ident = System.String;
 
+namespace TCDSwift
+{
+
 /*
  * The different internal types for IR tuples
  * Some of them like LABEL are not really ops
@@ -70,7 +73,7 @@ public class IRTuple
 
   public virtual string toString()
   {
-    return ("{{0}, {1}}", Enum.GetName(typeof(IrOp), this.op), this.dest);
+    return string.Format("{{0}, {1}}", Enum.GetName(typeof(IrOp), this.op), this.dest);
   }
 }
 
@@ -98,7 +101,7 @@ public class IRTupleOneOpIdent : IRTuple
 
   public override string toString()
   {
-    return ("{{0}, {1}, {2}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
+    return string.Format("{{0}, {1}, {2}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
   }
 }
 
@@ -126,7 +129,7 @@ public class IRTupleOneOpImm<T> : IRTuple
 
   public override string toString()
   {
-    return ("{{0}, {1}, {2}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
+    return string.Format("{{0}, {1}, {2}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
   }
 }
 
@@ -155,7 +158,9 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
 
   public override string toString()
   {
-    return ("{{0}, {1}, {2}, {3}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1, this.src2);
+    return string.Format("{{0}, {1}, {2}, {3}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1, this.src2);
   }
+}
+
 }
 
