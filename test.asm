@@ -12,3 +12,10 @@
 {MUL, T$9, T$7, T$8}
 {ADD, T$10, T$6, T$9}
 {STORE, z, T$10}
+{STORE, T$11, 210}
+{STORE, w, T$11}
+{STORE, T$12, 2}
+{MUL, T$13, w, T$12}
+{STORE, w, T$13}
+{STORE, T$14, "Hello World!"}
+{STORE, s, T$14}

@@ -137,8 +137,39 @@ ComparativeOp<out IrOp op>
 
 /*------------------------------------------------------------------------*/
 
-AssignmentOperator
-= "=".
+/************************************************
+ *  Statements
+ ************************************************/
+
+/*------------------------------------------------------------------------*/
+
+Statement                         (. string name; .)
+= ( Identifier<out name> 
+    "="
+    Expression                    (.
+                                      Symbol sym = lookup(openScopes, name);
+
+                                      if (sym == null)
+                                      {
+                                        SemErr("Use of undefined variable " + name);
+                                      }
+                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                      {
+                                        SemErr(name + " is a constant, can't reassign a value");
+                                      }
+
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                  .)
+  )
+  | Declaration
+  // | LoopStatement
+  // | BranchStatement
+  // | LabeledStatement
+  // | ControlTransferStatement
+  [";"]
+  .
 
 /*------------------------------------------------------------------------*/
 
@@ -191,9 +222,18 @@ Term                                (.  SwiftType type1, type2; IrOp op;  .)
 /*------------------------------------------------------------------------*/
 // Treat like Factor
 PrimaryExpression
-<out SwiftType type>                  (.  SwiftType _type; string name, value; .)
-=                                     (.  type = SwiftType.Undefined; .)
-  ( Identifier<out name>              (.  tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));  .)
+<out SwiftType type>                  (.  SwiftType _type; string name, value;  .)
+=                                     (.  type = SwiftType.Undefined;           .)
+  ( Identifier<out name>              (.  
+                                          Symbol sym = lookup(openScopes, name);
+                                          if (sym == null)
+                                          {
+                                            SemErr("Use of undefined variable: " + name);
+                                          }
+
+                                          type = (SwiftType)sym.Item3;
+                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));
+                                      .)
   | Literal<out value, out _type>     (.
                                           tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
                                           program.Add(tempStack.Peek().toString());
@@ -256,7 +296,7 @@ IdentifierPattern<out string name>  (. string _name;  .)
 /*------------------------------------------------------------------------*/
 
 Initializer
-= AssignmentOperator
+= "="
   Expression
   .
 
@@ -264,7 +304,7 @@ Initializer
 
 TypeAnnotation<out SwiftType type>  (. SwiftType _type; .)
 = ':'
-  Type<out _type>                    (. type = _type;    .) // Should be [Attributes] Type
+  Type<out _type>                    (. type = _type;   .) // Should be [Attributes] Type
   .
 
 /*------------------------------------------------------------------------*/
@@ -293,8 +333,7 @@ Identifier<out string name>
 
 TCDSwift
 =                             (.  openScopes.Push(new Scope()); .)
-  Declaration
-  {Declaration}
+  {Statement}
                               (.
                                   if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
                                   openScopes.Pop();
