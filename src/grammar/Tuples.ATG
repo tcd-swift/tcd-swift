@@ -148,7 +148,13 @@ Term                                (.  SwiftType type1, type2; IrOp op;  .)
 = PrimaryExpression<out type1>
   {
     MultiplicativeOp<out op>
-    PrimaryExpression<out type2>
+    PrimaryExpression<out type2>    (.
+                                        IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                        IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                        tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                        program.Add(tempStack.Peek().toString());
+                                    .)
   }
   .
 
