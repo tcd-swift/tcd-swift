@@ -11,17 +11,47 @@ enum SwiftType : int
   Undefined
 };
 
+enum SwiftKind : int
+{
+  Var,
+  Const,
+  Proc
+};
+
+// using Symbol = System.Tuple<string, int, int>
+/*
+  Symbol:
+    * Symbol.Item1 -> name
+    * Symbol.Item2 -> kind
+    * Symbol.Item3 -> type
+*/
+
+class Scope : Stack<Symbol> {}
 class Program : List<string> {}
 class TupleStack : Stack<IRTuple> {}
 
 Program program = new Program();
 TupleStack tempStack = new TupleStack();
+Stack<Scope> openScopes = new Stack<Scope>();
 
 int temporarySeed = 0;
 
 string generateTemporary()
 {
   return "T$"+temporarySeed++;
+}
+
+Symbol lookup(Stack<Scope> scopes, string name)
+{
+  foreach (Scope scope in scopes)
+  {
+    foreach (Symbol s in scope)
+    {
+      if (s.Item1 == name) return s;
+    }
+  }
+
+  return null; // if the name wasn't found in any open scopes.
 }
 
 /*--------------------------------------------------------------------------*/
@@ -160,14 +190,15 @@ Term                                (.  SwiftType type1, type2; IrOp op;  .)
 
 /*------------------------------------------------------------------------*/
 // Treat like Factor
-PrimaryExpression<out SwiftType type> (. SwiftType _type; string name, value; .)
+PrimaryExpression
+<out SwiftType type>                  (.  SwiftType _type; string name, value; .)
 =                                     (.  type = SwiftType.Undefined; .)
-  ( Identifier<out name>            (.  tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));  .)    // look up ident to find if variable is declared
-  | Literal<out value, out _type>    (.
-                                        tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
-                                        program.Add(tempStack.Peek().toString());
-                                        type = _type;
-                                    .) 
+  ( Identifier<out name>              (.  tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));  .)
+  | Literal<out value, out _type>     (.
+                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
+                                          program.Add(tempStack.Peek().toString());
+                                          type = _type;
+                                      .) 
   ).
 
 /*------------------------------------------------------------------------*/
@@ -184,20 +215,29 @@ Declaration
 
 /*------------------------------------------------------------------------*/
 
-VariableDeclaration
-= "var" // Should be VariableDeclarationHead
-  PatternInitializer // Should be PatternInitializerList
+VariableDeclaration                       (.  string name; SwiftType type;  .)
+= "var"
+  PatternInitializer<out name, out type>  (.
+                                              if (lookup(openScopes, name) != null)
+                                              {
+                                                SemErr("Redefinition of variable: " + name);
+                                              }
+
+                                              openScopes.Peek().Push(new Symbol(name, (int)SwiftKind.Var, (int)type));
+                                          .)
   .
 
 /*------------------------------------------------------------------------*/
 
-PatternInitializer                (.  string name; SwiftType type;  .)
-= Pattern<out name, out type>
-  [Initializer]                   (.
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
-                                      program.Add(tuple.toString());
-                                      tempStack.Pop();
-                                  .)
+PatternInitializer
+<out string name, out SwiftType type>   (.  string _name; SwiftType _type;  .)
+= 
+  Pattern<out _name, out _type>         (.  name = _name; type = _type; .)
+  [Initializer]                         (.
+                                            IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                            program.Add(tuple.toString());
+                                            tempStack.Pop();
+                                        .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -252,8 +292,13 @@ Identifier<out string name>
 /*------------------------------------------------------------------------*/
 
 TCDSwift
-= Declaration
+=                             (.  openScopes.Push(new Scope()); .)
+  Declaration
   {Declaration}
+                              (.
+                                  if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
+                                  openScopes.Pop();
+                              .)
   .
 
 /*------------------------------------------------------------------------*/
