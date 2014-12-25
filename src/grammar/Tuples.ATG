@@ -33,12 +33,19 @@ class TupleStack : Stack<IRTuple> {}
 Program program = new Program();
 TupleStack tempStack = new TupleStack();
 Stack<Scope> openScopes = new Stack<Scope>();
+Stack<string> openLabels = new Stack<string>();
 
 int temporarySeed = 0;
+int labelSeed = 0;
 
 string generateTemporary()
 {
   return "T$"+temporarySeed++;
+}
+
+string generateLabel()
+{
+  return "L$"+labelSeed++;
 }
 
 Symbol lookup(Stack<Scope> scopes, string name)
@@ -143,33 +150,100 @@ ComparativeOp<out IrOp op>
 
 /*------------------------------------------------------------------------*/
 
-Statement                         (. string name; .)
-= ( Identifier<out name> 
-    "="
-    Expression                    (.
-                                      Symbol sym = lookup(openScopes, name);
+Statements
+= Statement
+  [Statements]
+  .
 
-                                      if (sym == null)
-                                      {
-                                        SemErr("Use of undefined variable " + name);
-                                      }
-                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
-                                      {
-                                        SemErr(name + " is a constant, can't reassign a value");
-                                      }
+/*------------------------------------------------------------------------*/
 
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
-                                      program.Add(tuple.toString());
-                                      tempStack.Pop();
-                                  .)
+Statement                           (. string name; .)
+= (
+    ( Identifier<out name> 
+      "="
+      Expression                    (.
+                                        Symbol sym = lookup(openScopes, name);
+
+                                        if (sym == null)
+                                        {
+                                          SemErr("Use of undefined variable " + name);
+                                        }
+                                        if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                        {
+                                          SemErr(name + " is a constant, can't reassign a value");
+                                        }
+
+                                        IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                        program.Add(tuple.toString());
+                                        tempStack.Pop();
+                                    .)
+    )
+    | Declaration
+    | BranchStatement
   )
-  | Declaration
   // | LoopStatement
-  // | BranchStatement
   // | LabeledStatement
   // | ControlTransferStatement
   [";"]
   .
+
+/*------------------------------------------------------------------------*/
+
+BranchStatement
+= ( IfStatement
+  // | SwitchStatement
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+IfStatement
+= "if"
+  IfCondition                         (.
+                                          openLabels.Push(generateLabel());
+
+                                          IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                          program.Add(tuple.toString());
+                                          tempStack.Pop();
+                                      .)
+  CodeBlock                           (.
+                                          IRTuple startOfElse = new IRTuple(IrOp.LABEL, openLabels.Pop());
+
+                                          openLabels.Push(generateLabel());
+                                          program.Add(new IRTuple(IrOp.JMP, openLabels.Peek()).toString());
+                                          program.Add(startOfElse.toString());
+                                      .)
+  [ElseClause]
+                                      (.  program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+IfCondition
+= ( "(" Expression ")"
+  | Expression
+  | Declaration
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+ElseClause
+= "else"
+  ( CodeBlock
+  | IfStatement
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock = "{" [Statements] "}".
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
@@ -183,7 +257,13 @@ Expression                        (.  IrOp op;  .)
 = SimpleExpression
   [
     ComparativeOp<out op>
-    SimpleExpression
+    SimpleExpression              (.
+                                      IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                      IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                      tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                      program.Add(tempStack.Peek().toString());
+                                  .)
   ]
   .
 
@@ -333,7 +413,7 @@ Identifier<out string name>
 
 TCDSwift
 =                             (.  openScopes.Push(new Scope()); .)
-  {Statement}
+  Statements
                               (.
                                   if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
                                   openScopes.Pop();

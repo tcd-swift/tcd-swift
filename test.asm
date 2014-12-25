@@ -19,3 +19,19 @@
 {STORE, w, T$13}
 {STORE, T$14, "Hello World!"}
 {STORE, s, T$14}
+{EQU, T$15, x, y}
+{STORE, b, T$15}
+{JMPF, b, L$0}
+{STORE, T$16, "if (b)"}
+{STORE, s1, T$16}
+{JMP, L$1}
+{LABEL, L$0}
+{JMPF, b, L$2}
+{STORE, T$17, "else if b"}
+{STORE, s2, T$17}
+{JMP, L$3}
+{LABEL, L$2}
+{STORE, T$18, "else"}
+{STORE, s3, T$18}
+{LABEL, L$3}
+{LABEL, L$1}
