@@ -96,7 +96,7 @@ public class IRGraph
         {
           IRBlock block0 = pair0.Value;
           IRTuple tup0 = block0.GetFirst();
-          if(tup0.getOp() == IrOp.LABEL && tup0.getDest() == ((IRTupleOneOpIdent)tup).getSrc1())
+          if(tup0.getOp() == IrOp.LABEL && tup0.getDest() == ((IRTupleOneOpIdent)tup).getDest())
           {
             block.AddSuccessor(block0);
           }

@@ -17,7 +17,7 @@ public class IRBlockTest
 
     IRBlock block3 = new IRBlock(3);
     block3.AppendStatement(new IRTupleTwoOp(IrOp.LTE, "t2", "b", "c"));
-    block3.AppendStatement(new IRTupleOneOpIdent(IrOp.JMPF, "t2", "l2"));
+    block3.AppendStatement(new IRTupleOneOpIdent(IrOp.JMPF, "l2", "t2"));
 
     IRBlock block4 = new IRBlock(4);
     block4.AppendStatement(new IRTuple(IrOp.JMP, "l3"));

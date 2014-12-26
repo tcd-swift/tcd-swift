@@ -1,3 +1,5 @@
 bin/
 generated/
 .DS_Store
+
+*.exe

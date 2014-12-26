@@ -15,7 +15,7 @@ public class IRGraphTest
     irstream.Add(new IRTuple(IrOp.LABEL, "l1"));
     irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "t1", 0));
     irstream.Add(new IRTupleTwoOp(IrOp.GT, "t2", "temp", "t1"));
-    irstream.Add(new IRTupleOneOpIdent(IrOp.JMPF, "t2", "l2"));
+    irstream.Add(new IRTupleOneOpIdent(IrOp.JMPF, "l2", "t2"));
     irstream.Add(new IRTupleTwoOp(IrOp.ADD, "result", "result", "op1"));
     irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "t3", 1));
     irstream.Add(new IRTupleTwoOp(IrOp.SUB, "temp", "temp", "t3"));
