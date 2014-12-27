@@ -8,7 +8,7 @@ public class IRBlockTest
   public static void Main(string [] args)
   {
     IRBlock block1 = new IRBlock(1);
-    block1.AppendStatement(new IRTuple(IrOp.FUNC, "F$1"));
+    block1.AppendStatement(new IRTuple(IrOp.LABEL, "F$1"));
     block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "T", "R$2"));
     block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "A", "R$0"));
     block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "B", "R$1"));
@@ -39,29 +39,12 @@ public class IRBlockTest
 
     foreach (IRBlock irb in blocks)
     {
+      irb.ComputeLiveuseDef();
       Console.WriteLine("B" + irb.GetIndex() + ":");
       irb.PrintStatements();
       irb.PrintSuccessors();
-
-      Console.Write("Variables: ");
-      HashSet<Ident> vars = irb.GetVarNames();
-      foreach (Ident ident in vars)
-        Console.Write(ident + " ");
+      irb.PrintLiveuseDef();
       Console.WriteLine();
-
-      HashSet<Ident> liveuse, def;
-      irb.ComputeLiveuseDef(out liveuse, out def);
-
-      Console.Write("LiveUse: ");
-      foreach (Ident ident in liveuse)
-        Console.Write(ident + " ");
-      Console.WriteLine();
-
-      Console.Write("Def: ");
-      foreach (Ident ident in def)
-        Console.Write(ident + " ");
-      Console.WriteLine("\n");
-
     }
 
   }

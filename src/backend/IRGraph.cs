@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic; // For SortedDictionary
 
-// Type of an IRStream; we can change this if we need something more sophisticated later
 using IRStream = System.Collections.Generic.List<IRTuple>;
+using Ident = System.String;
 
 public class IRGraph
 {
@@ -43,7 +43,6 @@ public class IRGraph
           this.blocks[currentIndex] = new IRBlock(currentIndex);
           firsts[currentIndex] = j + 1;
         }
-
       }
 
       else
@@ -59,6 +58,8 @@ public class IRGraph
         this.blocks[currentIndex].AppendStatement(tuple);
       }
       j++;
+      if(j == tuples.Count)
+        lasts[currentIndex] = j-1;
     }
 
     /*
@@ -117,11 +118,14 @@ public class IRGraph
             block.AddSuccessor(block0);
           } 
         }
-         
       }
       // TODO: What about RET?
     }
 
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      pair.Value.ComputeLiveuseDef();
+
+    this.ComputeLiveness();
   }
 
   // Return whether a tuple is of the type that may start a block
@@ -136,13 +140,34 @@ public class IRGraph
     return (tuple.getOp() == IrOp.JMP || tuple.getOp() == IrOp.JMPF || tuple.getOp() == IrOp.RET);
   }
 
+  // Compute LiveIn and LiveOut for each block in this graph
+  public void ComputeLiveness()
+  {
+    bool converged = true;
+    do{
+      converged = true;
+      foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      {
+        IRBlock block = pair.Value;
+        HashSet<Ident> oldlivein = new HashSet<Ident>(block.GetLiveIn());
+        HashSet<Ident> oldliveout = new HashSet<Ident>(block.GetLiveOut());
+        block.UpdateLiveness();
+        if(!block.GetLiveIn().SetEquals(oldlivein) || !block.GetLiveOut().SetEquals(oldliveout))
+          converged = false;
+      }
+    } while(!converged);
+  }
+
   public void Print()
   {
     foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
     {
-      Console.WriteLine("Block " + pair.Value.GetIndex() + ":");
-      pair.Value.PrintStatements();
-      pair.Value.PrintSuccessors();
+      IRBlock block = pair.Value;
+      Console.WriteLine("Block " + block.GetIndex() + ":");
+      block.PrintStatements();
+      block.PrintSuccessors();
+      block.PrintLiveuseDef();
+      block.PrintLiveInOut();
       Console.WriteLine();
     }
   }
