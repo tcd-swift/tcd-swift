@@ -355,6 +355,7 @@ Expression<out SwiftType type>    (.  IrOp op; SwiftType simpType; .)
 
                                             tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
                                             program.Add(tempStack.Peek().toString());
+                                            type = SwiftType.Bool;
                                         }else{
                                             SemErr("Incompatipable types in comparative");
                                         }
