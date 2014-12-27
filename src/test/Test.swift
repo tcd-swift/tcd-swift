@@ -39,7 +39,7 @@ switch x
 {
     case x:
         x = x + y;
-    case y:
+    case y + 1:
         x = x - y;
     default:
         x = x + 1;
