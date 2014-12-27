@@ -1,0 +1,869 @@
+COMPILER TCDSwift
+
+/*--------------------------------------------------------------------------*/
+
+CHARACTERS
+  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  digit = "0123456789".
+  cr  = '\r'.
+  lf  = '\n'.
+  tab = '\t'.
+  space = '\u0020'.
+  singleQuote = '\''.
+  doubleQuote = '\"'.
+  dot = '.'.
+  characters = ANY - cr - lf - singleQuote.
+  ascii = ANY - cr - lf - doubleQuote.
+
+
+TOKENS
+  ident  = letter {letter | digit | dot}.
+  number = digit {digit}.
+  string = '"' {ascii} '"'.
+  char   = '\'' [characters] '\''.
+
+COMMENTS FROM "/*" TO "*/" NESTED
+COMMENTS FROM "//" TO lf
+
+IGNORE cr + lf + tab
+
+PRODUCTIONS
+
+/*------------------------------------------------------------------------
+Patterns
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+//Some of the productions should have type annotation as optional
+// BUT FUCK TYPES!
+
+Pattern
+= WildcardPattern
+| ValueBindingPattern
+| TuplePattern
+| Identifier [ TuplePattern ] //EnumCasePattern
+//| ExpressionPattern
+.
+
+/*------------------------------------------------------------------------*/
+
+WildcardPattern
+= '_'
+.
+
+/*------------------------------------------------------------------------*/
+
+ValueBindingPattern
+= "var" Pattern
+| "let" Pattern
+.
+
+/*------------------------------------------------------------------------*/
+
+TuplePattern
+= '(' [ TuppePatternElementList ] ')'
+.
+
+TuppePatternElementList
+= TuppePatternElement { ',' TuppePatternElement }
+.
+
+TuppePatternElement
+= Pattern
+.
+
+/*------------------------------------------------------------------------*/
+/*
+ExpressionPattern
+= Expression
+.
+*/
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Attributes
+------------------------------------------------------------------------*/
+
+Attributes
+= Attribute { Attribute }
+.
+
+Attribute
+= "@" AttributeName [ AttributeArgumentClause ]
+.
+
+AttributeName
+= Identifier
+.
+
+AttributeArgumentClause
+= '(' [ BalancedTokens ] ')'
+.
+
+BalancedTokens
+= BalancedToken { BalancedToken }
+.
+
+BalancedToken
+= '(' [ BalancedTokens ] ')'
+| '[' [ BalancedTokens ] ']'
+| '{' [ BalancedTokens ] '}'
+.
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Operators
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 160
+
+ExponentiativeOp
+= ( "<<"
+  | ">>"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 150
+
+MultiplicativeOp
+=
+  ( "*"
+  | "/"
+  | "%"
+  | "&"
+  | "&*"
+  | "&/"
+  | "&%"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 140
+
+AdditiveOp
+= ( "+"
+  | "-"
+  | "&+"
+  | "&-"
+  | "|"
+  | "^"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 135
+
+RangeOp
+= ( "..<"
+  | "..."
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 132
+
+CastOp
+= ( "is"
+  | "as"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 130
+
+ComparativeOp
+=
+  ( "=="
+  | "<"
+  | ">"
+  | "<="
+  | ">="
+  | "!="
+  | "==="
+  | "!=="
+  | "~="
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 120
+
+ConjunctiveOp
+= "&&".
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 110
+
+DisjunctiveOp
+= "||".
+
+/*------------------------------------------------------------------------*/
+
+//Right associative, precedence level 110
+
+NilCoalescingOp
+= "??".
+
+/*------------------------------------------------------------------------*/
+
+//Right associative, precedence level 100
+
+TernaryOp
+= "?".
+
+/*------------------------------------------------------------------------*/
+
+//Right associative, precedence level 90
+
+/*AssignmentOps
+=
+  ( "="
+  | "*="
+  | "/="
+  | "%="
+  | "+="
+  | "-="
+  | "<<="
+  | ">>="
+  | "^="
+  | "|="
+  | '&='
+  | "&&="
+  | "||="
+  ).
+*/
+/*------------------------------------------------------------------------*/
+
+PrefixOps
+=
+  ( "++"
+  | "--"
+  | "!"
+  | "~"
+  | "+"
+  | "-"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+PostfixOps
+= ( "++"
+  | "--"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+AssignmentOp
+= "=".
+
+/*------------------------------------------------------------------------*/
+
+ConditionalOp
+= '?' Expression ':'.
+
+/*------------------------------------------------------------------------*/
+
+//TypeCastOp yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+Identifier
+= ident.
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Expressions
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+ExpressionList
+= Expression  { ',' Expression }
+.
+
+/*------------------------------------------------------------------------*/
+
+Expression
+= PrefixExpression [ BinaryExpressions ].
+
+/*------------------------------------------------------------------------*/
+
+PrefixExpression
+= [ PrefixOps ] PostfixExpression
+| InOutExpression
+.
+
+/*------------------------------------------------------------------------*/
+
+InOutExpression
+= "&" Identifier.
+
+/*------------------------------------------------------------------------*/
+
+BinaryExpressions
+= BinaryExpression { BinaryExpression }.
+
+/*------------------------------------------------------------------------*/
+
+BinaryExpression
+=
+  ( BinaryOp
+  | AssignmentOp
+  | ConditionalOp
+  )
+  PrefixExpression
+/*| TypeCastOp is not defined */
+.
+
+/*------------------------------------------------------------------------*/
+
+PrimaryExpression
+=
+  // Identifier [GenericArgumentClause] to be defined
+  ( LiteralExpression
+  | SelfExpression
+  | SuperclassExpression
+//| ClosureExpression to be defined
+  | ParenthesizedExpression
+  | ImplicitMemberExpression
+  | WildcardExpression
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//GenericArgumentClause and it's sub expression yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+LiteralExpression
+=
+  ( Literal
+  | ArrayDictionary
+  | SpecialLiteral
+  ).
+
+/*------------------------------------------------------------------------*/
+
+SpecialLiteral
+= "__FILE__"
+| "__LINE__"
+| "__COLUMN__"
+| "__FUNCTION__"
+.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionary
+= '[' ArrayDictionaryLiteral.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionaryLiteral
+= ArrayDictionaryLiteralItems
+| ":]"
+| ']'
+.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionaryLiteralItems
+= ArrayDictionaryLiteralItem { ',' ArrayDictionaryLiteralItem }.
+
+/*------------------------------------------------------------------------*/
+
+ArrayDictionaryLiteralItem
+= Expression ( ArrayItem | DictionaryItem ).
+
+/*------------------------------------------------------------------------*/
+
+ArrayItem = ']'.
+
+/*------------------------------------------------------------------------*/
+
+DictionaryItem
+= ':' Expression ']'.
+
+/*------------------------------------------------------------------------*/
+
+SelfExpression
+= "self"
+  [
+  ( '.'
+    ( Identifier
+    | "init"
+    )
+
+  | '[' Expression ']'
+  )
+  ].
+
+/*------------------------------------------------------------------------*/
+
+SuperclassExpression
+= "super"
+  ( '.'
+    ( Identifier
+    | "init"
+    )
+  | '[' Expression ']'
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//ClosureExpression yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+//ClosureSignature yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+//CaptureList yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+//CaptureSpecifier yet to be defined
+
+/*------------------------------------------------------------------------*/
+
+ImplicitMemberExpression
+= '.' Identifier.
+
+/*------------------------------------------------------------------------*/
+
+ParenthesizedExpression
+= '(' [ ExpressionElementList ] ')'.
+
+/*------------------------------------------------------------------------*/
+
+ExpressionElementList
+= ExpressionElement { ',' ExpressionElement }
+.
+
+/*------------------------------------------------------------------------*/
+
+ExpressionElement
+= Expression
+| Identifier ':' Expression
+.
+
+/*------------------------------------------------------------------------*/
+
+WildcardExpression
+= "_".
+
+/*------------------------------------------------------------------------*/
+
+PostfixExpression
+= PrimaryExpression [ Postfix ].
+
+/*------------------------------------------------------------------------*/
+
+Postfix
+= PostfixOps
+| FunctionCallExpression
+| '.'
+  ( InitializerExpression
+  | ExplicitMemberExpression
+  | PostfixSelfExpression
+  | DynamicTypeExpression
+  )
+| SubscriptExpression
+| ForcedValueExpression
+| OptionalChainingExpression
+.
+
+/*------------------------------------------------------------------------*/
+
+FunctionCallExpression
+= ParenthesizedExpression
+//| PostfixExpression [ParenthesizedExpression] TrailingClosure yet to be defined
+.
+
+/*------------------------------------------------------------------------*/
+
+//TrailingClosure to be defined
+
+/*------------------------------------------------------------------------*/
+
+InitializerExpression
+= "init".
+
+/*------------------------------------------------------------------------*/
+
+ExplicitMemberExpression
+=
+  ( number
+  //| Identifier [GenericArgumentClause] yet to be defined
+  ).
+
+/*------------------------------------------------------------------------*/
+
+PostfixSelfExpression
+= "self".
+
+/*------------------------------------------------------------------------*/
+
+DynamicTypeExpression
+= "dynamicType".
+
+/*------------------------------------------------------------------------*/
+
+SubscriptExpression
+= '[' ExpressionList ']'.
+
+/*------------------------------------------------------------------------*/
+
+ForcedValueExpression
+= '!'.
+
+/*------------------------------------------------------------------------*/
+
+OptionalChainingExpression
+= '?'.
+
+/*------------------------------------------------------------------------*/
+
+BinaryOp
+= Ternary //Identifier AssignmentOps Expression
+.
+
+/*------------------------------------------------------------------------*/
+
+Ternary
+= NilCoalescing
+  [ TernaryOp Expression ":" Expression ].
+
+/*------------------------------------------------------------------------*/
+
+NilCoalescing
+= Disjunctive
+  { NilCoalescingOp Disjunctive }.
+
+/*------------------------------------------------------------------------*/
+
+Disjunctive
+= Conjuctive
+  { DisjunctiveOp Conjuctive }.
+
+/*------------------------------------------------------------------------*/
+
+Conjuctive
+= Comparative
+  { ConjunctiveOp Comparative }.
+
+/*------------------------------------------------------------------------*/
+
+Comparative
+= Cast
+  [ ComparativeOp Cast ].
+
+/*------------------------------------------------------------------------*/
+
+Cast
+= Range
+  { CastOp Range }.
+
+/*------------------------------------------------------------------------*/
+
+Range
+= Additive
+  { RangeOp Additive }.
+
+/*------------------------------------------------------------------------*/
+
+Additive
+= Multiplicative
+  { AdditiveOp Multiplicative }.
+
+/*------------------------------------------------------------------------*/
+
+Multiplicative
+= Exponentiative
+  { MultiplicativeOp Exponentiative }.
+
+/*------------------------------------------------------------------------*/
+
+Exponentiative
+= Factor
+  { ExponentiativeOp Factor }.
+
+/*------------------------------------------------------------------------*/
+
+Factor
+=
+  ( Identifier
+  | Literal
+  | '-' Literal
+  ).
+
+/*------------------------------------------------------------------------*/
+
+Literal
+=
+  ( number
+  | string
+  | char
+  | "true"
+  | "false"
+  | "nil"
+  ).
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Declarations
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+Declarations
+= Declaration { Declaration }
+.
+
+/*------------------------------------------------------------------------*/
+
+Declaration
+= [ Attributes ]
+  ( ImportDeclaration
+  | [ DeclarationModifiers ]
+    ( ConstantDeclaration
+    | VariableDeclaration
+    )
+  )
+.
+
+/*------------------------------------------------------------------------*/
+
+ImportDeclaration
+= [ Attributes ] "import" [ ImportKind ] [ ImportPath ]
+.
+
+ImportKind
+= "typealias"
+| "enum"
+| "protocol"
+| "var"
+| "func"
+.
+
+ImportPath
+= ImportPathIdentifier [ '.' ImportPath ]
+.
+
+ImportPathIdentifier
+= Identifier
+//| Operator
+.
+
+/*------------------------------------------------------------------------*/
+
+ConstantDeclaration
+= "let" PatternInitializerList
+.
+
+PatternInitializerList
+= PatternInitializer { ',' PatternInitializer }
+.
+
+PatternInitializer
+= Pattern [ Initializer ]
+.
+
+Initializer
+= Expression
+.
+
+/*------------------------------------------------------------------------*/
+
+VariableDeclaration
+= VariableDeclarationHead
+  ( PatternInitializerList
+  | Identifier //TypeAnnotation
+    ( CodeBlock
+    | GetterSetterBlock
+    | GetterSetterKeywordBlock
+    | [Initializer] WillSetDidSetBlock
+    )
+  )
+.
+
+VariableDeclarationHead
+= "var"
+.
+
+/*------------------------------------------------------------------------*/
+
+GetterSetterBlock
+= '{'
+  ( GetterClause [ SetterClause ]
+  | SetterClause GetterClause
+  )
+  '}'
+.
+
+GetterClause
+= [ Attributes ] "get" CodeBlock
+.
+
+SetterClause
+= [ Attributes ] "set" [ SetterName ] CodeBlock
+.
+
+SetterName
+= '(' Identifier ')'
+.
+
+/*------------------------------------------------------------------------*/
+
+GetterSetterKeywordBlock
+= '{'
+  ( GetterKeywordClause [ SetterKeywordClause ]
+  | SetterKeywordClause GetterKeywordClause
+  )
+  '}'
+.
+
+GetterKeywordClause
+= [ Attributes ] "get"
+.
+
+SetterKeywordClause
+= [ Attributes ] "set"
+.
+
+/*------------------------------------------------------------------------*/
+
+WillSetDidSetBlock
+= '{'
+  ( WillSetClause [ DidSetClause ]
+  | DidSetClause WillSetClause
+  )
+  '}'
+.
+
+WillSetClause
+= [ Attributes ] "willSet" [ SetterName ] CodeBlock
+.
+
+DidSetClause
+= [ Attributes ] "didSet" [ SetterName ] CodeBlock
+.
+
+/*------------------------------------------------------------------------*/
+
+/*
+TypeAliasDeclaration
+= TypeAliasHead TypeAliasAssignment
+.
+
+TypeAliasHead
+= [ Attributes ] [ AccessLevelModifier ] "typealias" TypeAliasName
+.
+
+TypeAliasName
+= Identifier
+.
+
+TypeAliasAssignment
+= '=' Type.
+*/
+
+/*------------------------------------------------------------------------*/
+/*
+ProtocolDeclaration
+= [ Attributes ] [ AccesLevelModifier ]
+  "protocol" Identifier
+  //[ TypeInheritanceClause ]
+  ProtocolBody
+.
+
+ProtocolBody
+= '{' [ ProtocolMemeberDeclarations ] '}'
+.
+
+ProtocolMemeberDeclarations
+= ProtocolMemeberDeclaration { ProtocolMemeberDeclaration }
+.
+
+ProtocolMemeberDeclaration
+= ProtocolPropertyDeclaration
+| ProtoclMethodDeclaration
+| ProtocolInitializerDeclaration
+| PrtocolAssociatedTypeDeclaration
+.
+*/
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------
+Modifiers
+------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+DeclarationModifiers
+= DeclarationModifier { DeclarationModifier }
+.
+
+DeclarationModifier
+= ("class"
+  | "convenience"
+  | "dynamic"
+  | "final"
+  | "infix"
+  | "lazy"
+  | "mutating"
+  | "nonmutating"
+  | "optional"
+  | "override"
+  | "postfix"
+  | "prefix"
+  | "required"
+  | "static"
+  | "unowned"
+  | "unowned" '(' "safe" ')'
+  | "unowned" '(' "unsafe" ')'
+  | "weak"
+  )
+| AccesLevelModifier
+.
+
+/*
+AccesLevelModifiers
+= AccesLevelModifier { AccesLevelModifier }
+.
+*/
+
+AccesLevelModifier
+= ( "internal" [ '(' "set" ')' ] )
+| ( "private" [ '(' "set" ')' ] )
+| ( "public" [ '(' "set" ')' ] )
+.
+
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock
+= '{' [ Statements ] '}'
+.
+
+/*------------------------------------------------------------------------*/
+
+Statements = "statement".
+
+/*------------------------------------------------------------------------*/
+
+TCDSwift
+= "swift"
+  '{'
+  Declarations
+  ExpressionList
+  '}'
+  .
+
+END TCDSwift.
