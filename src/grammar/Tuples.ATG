@@ -180,12 +180,53 @@ Statement                           (. string name; SwiftType type; .)
     )
     | Declaration
     | BranchStatement
+    | LoopStatement
   )
   // | LoopStatement
   // | LabeledStatement
   // | ControlTransferStatement
   [";"]
   .
+
+/*------------------------------------------------------------------------*/
+
+LoopStatement
+= ( WhileLoop
+  | DoWhileLoop
+  )
+  .  
+
+/*------------------------------------------------------------------------*/
+
+WhileLoop
+= "while"
+  IfCondition (.
+                openLabels.Push(generateLabel());
+                IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                program.Add(tuple.toString());
+                tempStack.Pop();
+              .)
+  CodeBlock   (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
+  .
+
+
+/*------------------------------------------------------------------------*/
+
+DoWhileLoop
+= "do"        (.
+                openLabels.Push(generateLabel());
+                program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
+              .)
+  CodeBlock
+  "while"
+  IfCondition (.
+                IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, tempStack.Peek().getDest(), openLabels.Peek());
+                program.Add(tuple.toString());
+                tempStack.Pop();
+                openLabels.Pop();
+              .)
+  .
+
 
 /*------------------------------------------------------------------------*/
 

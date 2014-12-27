@@ -21,3 +21,10 @@ else
 {
     var s3: String = "else"
 }
+while b {
+  x = x + y
+}
+
+do {
+ y = y + z    
+} while b
