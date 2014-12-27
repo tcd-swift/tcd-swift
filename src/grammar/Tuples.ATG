@@ -421,9 +421,12 @@ PatternInitializer
 
 /*------------------------------------------------------------------------*/
 
-Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type; .)
+Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type = SwiftType.Undefined; .)
 = IdentifierPattern<out _name>                (. name = _name;  .)
-  TypeAnnotation<out _type>                   (. type = _type;  .)
+  [ TypeAnnotation<out _type>
+  ]                                           (. 
+                                                type = _type;
+                                              .)
   .
 
 /*------------------------------------------------------------------------*/
