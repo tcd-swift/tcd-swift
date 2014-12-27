@@ -11,32 +11,32 @@ public class input{
     public static List<string> livein;
 
     public static void Main(){
-        registers = 4;
+        registers = 3;
 
         List<string>[] input = new List<string>[10];
-        input[0] = new List<string>(){"T","R1","R2","T"};
-        input[1] = new List<string>(){"A","R2","A","T"};
+        input[0] = new List<string>(){"T","R0","R1","T"};
+        input[1] = new List<string>(){"A","R1","A","T"};
         input[2] = new List<string>(){"B","A","B","T"};
         input[3] = new List<string>(){"C","A","B","C","T"};
         input[4] = new List<string>(){"D","B","C","D","T"};
         input[5] = new List<string>(){"C","B","C","D","T"};
         input[6] = new List<string>(){"D","B","C","D","T"};
         input[7] = new List<string>(){"D","B","C","D","T"};
-        input[8] = new List<string>(){"R1","R1","T"};
-        input[9] = new List<string>(){"R3","R1","R3"};
+        input[8] = new List<string>(){"R0","R0","T"};
+        input[9] = new List<string>(){"R2","R0","R2"};
 
         string[,] moves = new string[6,2]{
-            {"T","R3"},
-            {"A","R1"},
-            {"B","R2"},
+            {"T","R2"},
+            {"A","R0"},
+            {"B","R1"},
             {"D","A"},
-            {"R1","C"},
-            {"R3","T"}
+            {"R0","C"},
+            {"R2","T"}
         };
         
         graph = new Graph();
 
-        livein = new List<string>(){"R1","R2","R3"};
+        livein = new List<string>(){"R0","R1","R2"};
 
         Console.Write("\nLive In:");
         for(int i = 0; i < livein.Count; i++){
@@ -123,6 +123,7 @@ public class input{
 
         List<List<string>> result = new List<List<string>>();
         List<int> degrees = new List<int>();
+        Node n;
         for(int i = 0; i < graph.Count; i++){
             if(graph.Get(i).isRegister){
                 degrees.Add(-1); //causes nodes that are already registers to be ignored when simplifying
@@ -136,7 +137,7 @@ public class input{
             Console.WriteLine("k = " + k);
             if(degrees.Contains(k)){
                 int index = degrees.IndexOf(k);
-                Node n = graph.Get(index);
+                n = graph.Get(index);
                 graph.Remove(n);
                 Console.WriteLine("Simplifying, removing " + n.id);
                 result = simplify(graph);
@@ -146,7 +147,13 @@ public class input{
             }
             k--;
         }
-        return null; 
+        n = graph.GetHighestDegreeNode();
+        graph.Remove(n);
+        result = simplify(graph);
+        if(result == null) return null;
+        graph.Add(n);
+        result.Add(new List<string>(){n.id,"MEM["+n.id+"]"});
+        return result;
     }
 
     public static List<List<string>> assign(Graph graph){
@@ -243,6 +250,21 @@ public class Graph{
         //if node does not exist create and add
         Node n = new Node(s);
         this.Add(n);
+        return n;
+    }
+    
+    public Node GetHighestDegreeNode(){
+        Node n;
+        int index = 0;
+        while(nodes[index].isRegister){
+            index++;
+        }
+        n = nodes[index];
+        for(int i = 1; i < this.nodes.Count; i++){
+            if(!this.nodes[i].isRegister && this.nodes[i].getDegree() > n.getDegree()){
+                n = this.nodes[i];
+            }
+        }
         return n;
     }
 }
