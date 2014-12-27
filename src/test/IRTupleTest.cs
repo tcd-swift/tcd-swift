@@ -34,9 +34,9 @@ public class IRTupleTest
         Console.Write(ident + " ");
       }
 
-      usedvars = irt.GetDefinedVars();
+      HashSet<Ident> definedvars = irt.GetDefinedVars();
       Console.Write("\tDefines: ");
-      foreach (Ident ident in usedvars)
+      foreach (Ident ident in definedvars)
       {
         Console.Write(ident + " ");
       }

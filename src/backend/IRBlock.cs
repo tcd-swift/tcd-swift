@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 
+using Ident = System.String;
+
 /* A basic block of IR */
 public class IRBlock
 {
@@ -79,6 +81,46 @@ public class IRBlock
   public IRBlock GetSuccessor(int index)
   {
     return this.successors[index];
+  }
+
+  // Return a set of all identifiers used or defined in this block
+  public HashSet<Ident> GetVarNames()
+  {
+    HashSet<Ident> vars = new HashSet<Ident>();
+    foreach (IRTuple irt in this.statements)
+    {
+      vars.UnionWith(irt.GetUsedVars());
+      vars.UnionWith(irt.GetDefinedVars());
+    }
+    return vars;
+  }
+
+  // Compute event(LiveUse) and anti-event(Def) sets for this block
+  public void ComputeLiveuseDef(out HashSet<Ident> liveuse, out HashSet<Ident> def)
+  {
+    liveuse = new HashSet<Ident>();
+    def = new HashSet<Ident>();
+    HashSet<Ident> used = new HashSet<Ident>();
+    HashSet<Ident> defined = new HashSet<Ident>();
+
+    foreach (IRTuple irt in this.statements)
+    {
+      HashSet<Ident> usedvars = irt.GetUsedVars();
+      foreach (Ident ident in usedvars)
+      {
+        if(!defined.Contains(ident))
+          liveuse.Add(ident); // Add to liveuse any variables used before they are defined
+        used.Add(ident);
+      }
+
+      HashSet<Ident> definedvars = irt.GetDefinedVars();
+      foreach (Ident ident in definedvars)
+      {
+        if(!used.Contains(ident))
+          def.Add(ident); // Add to def any variables defined before they are used
+        defined.Add(ident);
+      }
+    }
   }
 
   public void PrintStatements()
