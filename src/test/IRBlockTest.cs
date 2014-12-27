@@ -40,10 +40,12 @@ public class IRBlockTest
     foreach (IRBlock irb in blocks)
     {
       irb.ComputeLiveuseDef();
+      irb.ComputeLiveouts();
       Console.WriteLine("B" + irb.GetIndex() + ":");
       irb.PrintStatements();
       irb.PrintSuccessors();
       irb.PrintLiveuseDef();
+      irb.PrintLiveouts();
       Console.WriteLine();
     }
 

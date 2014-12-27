@@ -126,6 +126,9 @@ public class IRGraph
       pair.Value.ComputeLiveuseDef();
 
     this.ComputeLiveness();
+
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      pair.Value.ComputeLiveouts();    
   }
 
   // Return whether a tuple is of the type that may start a block
@@ -168,6 +171,7 @@ public class IRGraph
       block.PrintSuccessors();
       block.PrintLiveuseDef();
       block.PrintLiveInOut();
+      block.PrintLiveouts();
       Console.WriteLine();
     }
   }

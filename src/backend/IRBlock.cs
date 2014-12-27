@@ -13,6 +13,7 @@ public class IRBlock
   private HashSet<Ident> def;
   private HashSet<Ident> livein;
   private HashSet<Ident> liveout;
+  private List<List<string>> liveouts;
 
   public IRBlock(int ind)
   {
@@ -24,6 +25,8 @@ public class IRBlock
     this.def = new HashSet<Ident>();
     this.livein = new HashSet<Ident>();
     this.liveout = new HashSet<Ident>();
+
+    this.liveouts = new List<List<string>>();
   }
 
   public int GetIndex()
@@ -153,6 +156,64 @@ public class IRBlock
     return this.liveout;
   }
 
+  // Backward pass to determine liveness at each point in the block
+  public void ComputeLiveouts()
+  {
+    Stack<List<string>> reversed = new Stack<List<string>>(); // Because this is a backward pass, lists will be found in reverse
+    HashSet<Ident> lo = new HashSet<Ident>(this.liveout);
+
+    // Extract liveness information for last statement in block
+    IRTuple last = this.statements[this.statements.Count-1];
+
+    HashSet<Ident> prevdef = last.GetDefinedVars();
+    string deflabel = "";
+    foreach (Ident ident in prevdef)
+      deflabel = ident;
+
+    HashSet<Ident> prevused = last.GetUsedVars();
+
+    List<string> lastliveout = new List<string>();
+    lastliveout.Add(deflabel);
+    foreach (Ident ident in lo)
+      lastliveout.Add(ident);
+
+    reversed.Push(lastliveout);
+
+    Console.WriteLine();
+    for(int i = this.statements.Count-2; i >= 0; i--) // Start from second-last statement, as we already have liveout for last one
+    {
+      IRTuple tup = this.statements[i];
+
+      if(lo.Contains(deflabel))
+        lo.Remove(deflabel); // Remove whatever is defined in the next statement
+
+      foreach (Ident ident in prevused)
+      {
+        if(!lo.Contains(ident))
+        lo.Add(ident); // Add whatever is used in the next statement
+      }
+
+      deflabel = "";
+      prevdef = tup.GetDefinedVars();
+      foreach (Ident ident in prevdef)
+        deflabel = ident;
+
+      prevused = tup.GetUsedVars();
+
+      List<string> currentliveout = new List<string>();
+      currentliveout.Add(deflabel);
+
+      foreach (Ident ident in lo)
+        currentliveout.Add(ident);
+      reversed.Push(currentliveout);
+    }
+
+    while(reversed.Count > 0)
+    {
+      this.liveouts.Add(reversed.Pop());
+    }
+  }
+
   public void PrintStatements()
   {
     foreach (IRTuple irt in this.statements)
@@ -212,5 +273,17 @@ public class IRBlock
       Console.Write(ident + " ");
     Console.WriteLine();
   }
-}
 
+  public void PrintLiveouts()
+  {
+    Console.WriteLine("LiveOuts:");
+    foreach (List<string> lo in this.liveouts)
+    {
+      Console.Write("\t");
+      foreach (string s in lo)
+        Console.Write(s + " ");
+      Console.WriteLine();
+    }
+
+  }
+}
