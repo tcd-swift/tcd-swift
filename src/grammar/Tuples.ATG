@@ -220,8 +220,16 @@ IfStatement
 /*------------------------------------------------------------------------*/
 
 IfCondition (. SwiftType type; .)
-= ( "(" Expression<out type> ")"
-  | Expression<out type>
+= ( "(" Expression<out type> ")"    (. if(type != SwiftType.Bool)
+                                       {
+                                            SemErr("If condition must be of boolean type");
+                                       }
+                                    .)
+  | Expression<out type>            (. if(type != SwiftType.Bool)
+                                       {
+                                            SemErr("If condition must be of boolean type");
+                                       }
+                                    .)
   | Declaration
   )
   .
