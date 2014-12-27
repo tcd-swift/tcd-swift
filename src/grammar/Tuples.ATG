@@ -220,8 +220,8 @@ WhileLoop                           (. string loopStartLabel; .)
                                       program.Add(tuple.toString());
                                       tempStack.Pop();
                                     .)
-  CodeBlock                         (. 
-                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());  
+  CodeBlock                         (.
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());
                                       program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
                                     .)
   .
@@ -255,12 +255,12 @@ ForLoop
 
 /*------------------------------------------------------------------------*/
 
-TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>(); 
+TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>();
                                        Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
 = "for"
   (Identifier <out name>
    "="
-   Expression <out type>            (. 
+   Expression <out type>            (.
                                       sym = lookup(openScopes, name);
 
                                       if (sym == null)
@@ -281,7 +281,7 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       Console.WriteLine("TODO: Scope this");
                                     .)
   )
-  ";"                               (. 
+  ";"                               (.
                                       loopStartLabel = generateLabel();
                                       program.Add(new IRTuple(IrOp.LABEL, loopStartLabel).toString());
                                       openLabels.Push(generateLabel()); // second label is for the loop end
@@ -292,9 +292,9 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       tempStack.Pop();
                                     .)
   ";"
-  Identifier <out exprname>            
+  Identifier <out exprname>
   "="
-  Expression <out exprtype>          (. 
+  Expression <out exprtype>          (.
                                       sym = lookup(openScopes, exprname);
 
                                       if (sym == null)
@@ -310,12 +310,12 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       ins_list.Add(tuple.toString());
                                       tempStack.Pop();
                                     .)
-  CodeBlock                         (. 
+  CodeBlock                         (.
                                       for (int i = 0; i < ins_list.Count; i++) {
                                         program.Add(ins_list[i]); // add the instructions from the instruction list to the program now
                                       }
-                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString()); 
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); 
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
                                     .)
   .
 
@@ -390,7 +390,6 @@ SwitchCases (. string finishLabel = generateLabel(); openLabels.Push(finishLabel
   {
   (.
     program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
-    //openLabels.Push(finishLabel);
   .)
   Case (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
   }
