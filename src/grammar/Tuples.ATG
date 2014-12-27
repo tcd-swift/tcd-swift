@@ -63,15 +63,15 @@ Symbol lookup(Stack<Scope> scopes, string name)
 
 // Find the scope of a symbol
 Scope findScope(string name) {
-    foreach(Scope scope in openScopes) {
-        foreach(Symbol s in scope) {
-            if (s.Item1 == name) {
-                return scope;
-            }
-        }
+  
+  foreach(Scope scope in openScopes) {
+    foreach(Symbol s in scope) {
+      if (s.Item1 == name) {
+        return scope;
+      }
     }
-
-    return null;
+  }
+  return null;
 }
 
 /*--------------------------------------------------------------------------*/
