@@ -110,7 +110,7 @@ ComparativeOp
 //Left associative, precedence level 120
 
 ConjuctiveOp
-= ( "&&""
+= ( "&&"
   ).
   
 /*------------------------------------------------------------------------*/
@@ -161,7 +161,7 @@ AssignmentOps
 /*------------------------------------------------------------------------*/
 
 Ident
-= ident
+= ident.
 
 /*------------------------------------------------------------------------*/
 
@@ -172,7 +172,7 @@ Expressions
 /*------------------------------------------------------------------------*/
 
 Expressions
-= Ternary
+= Ternary.
 
 /*------------------------------------------------------------------------*/
 
@@ -259,7 +259,7 @@ IfStatement
   '(' Expression ')'
       Statement
   [ 
-    "else if"
+    "else""if"
     Statement
   ]
   [
@@ -304,7 +304,7 @@ ForStatement
 Statement
 
 = Ident AssignmentOp Expression';'
-| BranchStatement';
+| BranchStatement';'
 | LoopStatement';'
 | '{' { Statement } '}' .
 

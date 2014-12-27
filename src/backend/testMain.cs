@@ -44,6 +44,11 @@ public class CodeGen{
         if(IR.getOp() == IrOp.NEG){
             return "Neg " + IR.getDest();
         }
+        if(IR.getOp() == IrOp.ADD){
+            if(Object.ReferenceEquals(IR.GetType(), typeof(IRTupleTwoOp))){
+                return "ADD " + IR.getDest() +", "+ ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            }
+        }
         return "";
     }
 }
@@ -151,7 +156,10 @@ public class testMain{
     {
         IRTuple testNeg = new IRTuple(IrOp.NEG, "R1");
         testNeg.Print();
+        IRTupleTwoOp testAdd = new IRTupleTwoOp(IrOp.ADD, "R1","R1","R2");
+        testAdd.Print();
         System.Console.WriteLine("\n"+CodeGen.IRToARM(testNeg));
+        System.Console.WriteLine("\n"+CodeGen.IRToARM(testAdd));
         return 0;
     }
 }
