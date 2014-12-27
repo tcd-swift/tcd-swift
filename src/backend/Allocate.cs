@@ -4,12 +4,14 @@ using System.Collections.Generic;
 
 public class input{
 
-    public static List<Node> nodes;
+    public static Graph graph;
 
     public static int registers;
 
+    public static List<string> livein;
+
     public static void Main(){
-        registers = 12;
+        registers = 6;
 
         List<string>[] input = new List<string>[10];
         input[0] = new List<string>(){"T","R1","R2","T"};
@@ -32,17 +34,17 @@ public class input{
             {"R3","T"}
         };
         
-        nodes = new List<Node>();
+        graph = new Graph();
 
-        List<string> livein = new List<string>(){"R1","R2","R3"};
+        livein = new List<string>(){"R1","R2","R3"};
 
         Console.Write("\nLive In:");
         for(int i = 0; i < livein.Count; i++){
-            Node n = getNode(livein[i]);
+            Node n = graph.getNode(livein[i]);
             Console.Write(" " + n.id);
             Node m;
             for(int j = i+1; j < livein.Count; j++){
-                m = getNode(livein[j]);
+                m = graph.getNode(livein[j]);
                 n.link(m);
             }
         }
@@ -54,78 +56,165 @@ public class input{
             string output = string.Join(",", line.ToArray());
             Console.WriteLine(output);
             
-            Node n = getNode(line[0]);
+            Node n = graph.getNode(line[0]);
             Node m;
             for(int j = 1; j < line.Count; j++){
-                m = getNode(line[j]);
+                m = graph.getNode(line[j]);
                 n.link(m);
             }
-
         }
 
         for(int i = 0; i < moves.GetLength(0); i++){
-            Node n = getNode(moves[i,0]);
-            Node m = getNode(moves[i,1]);
+            Node n = graph.getNode(moves[i,0]);
+            Node m = graph.getNode(moves[i,1]);
             n.movelink(m);
         }
 
-        printGraph(nodes);
+        graph.print();
 
-        List<string> results = assign(nodes, livein);
+        List<List<string>> results = assign(graph);
+        
         Console.WriteLine();
         for(int i = 0; i < results.Count; i++){
-            Console.WriteLine(results[i]);
+            Console.WriteLine(results[i][0] + " : " + results[i][1]);
         }
         Console.WriteLine();
 
         return;
     }
-
-    public static void printGraph(List<Node> graph){
-        Console.WriteLine();
-        for(int i = 0; i < graph.Count; i++){
-            Console.WriteLine(graph[i].toString());
-        }
-        Console.WriteLine();
-    }
     
-    //returns a node given an id
-    public static Node getNode(string s){
-        for(int i = 0; i < nodes.Count; i++){
-            if(nodes[i].id == s){
-                return nodes[i];
+    public static List<string> getRegisters(){
+        List<string> regs = new List<string>();
+        for(int i = 0; i < input.registers; i++){
+            string reg = "R" + i;
+            regs.Add(reg);       
+        }
+        return regs;
+    }
+
+    public static List<List<string>> appendToAllocated(List<List<string>> alloc, Node n){
+        List<string> regs = getRegisters();
+        for(int i = 0; i < alloc.Count; i++){
+            if(n.contains(alloc[i][0])){
+                regs.Remove(alloc[i][1]);
             }
         }
-        //if node does not exist create and add
-        Node n = new Node(s);
-        nodes.Add(n);
-        return n;
+        alloc.Add(new List<string>(){n.id,regs[0]});
+        return alloc;
     }
 
-    public static List<string> assign(List<Node> graph, List<string> livein){
+    public static List<List<string>> simplify(Graph graph){
+        List<List<string>> result = new List<List<string>>();
+        List<int> degrees = new List<int>();
+        for(int i = 0; i < graph.Count; i++){
+            degrees.Add(graph.Get(i).getDegree());
+        }
+        int k = input.registers - 1;
+        while(k > 0){
+            if(degrees.Contains(k)){
+                int index = degrees.IndexOf(k);
+                Node n = graph.Get(index);
+                graph.Remove(n);
+                result = assign(graph);
+                graph.Add(n);
+                return appendToAllocated(result, n);
+            }
+            k--;
+        }
+        return null; 
+    }
 
+    public static List<List<string>> assign(Graph graph){
+        Console.WriteLine("Current number of nodes: " + graph.Count);
         if(graph.Count <= registers){
-            List<string> assigned = new List<string>();
+        
+            List<List<string>> assigned = new List<List<string>>();
             List<string> available = new List<string>();
+            
+            //list of free registers
             for(int i = 0; i < input.registers; i++){
                 string reg = "R" + i;
                 if(!livein.Contains(reg)){
                     available.Add(reg);
                 }
             }
-
+            
+            //assign registers
             for(int i = 0; i < graph.Count; i++){
-                if(graph[i].isRegister){
-                    assigned.Add(graph[i].id + " : " + graph[i].id);
+                if(graph.Get(i).isRegister){
+                    assigned.Add(new List<string>(){graph.Get(i).id,graph.Get(i).id});
                 }
                 else{
-                    assigned.Add(graph[i].id + " : " + available[0]);
+                    assigned.Add(new List<string>(){graph.Get(i).id,available[0]});
                     available.Remove(available[0]);
                 }
             }
+            Node n = graph.Get(0);
+            graph.Remove(n);
+            graph.print();
+            graph.Add(n);
+            graph.print();
             return assigned;
         }
-        return null;
+        return simplify(graph);
+    }
+}
+
+public class Graph{
+    public List<Node> nodes;
+    public int Count;
+    
+    public Graph(){
+        nodes = new List<Node>();
+        this.Count = 0;
+    }
+    
+    public Node Get(int i){
+        return this.nodes[i];
+    }
+    
+    public void Add(Node n){
+        this.nodes.Add(n);
+        for(int i = 0; i < n.interfere.Count; i++){
+            if(nodes.Contains(n.interfere[i])){
+                n.interfere[i].link(n);
+            }
+        }
+        for(int i = 0; i < n.move.Count; i++){
+            if(nodes.Contains(n.move[i])){
+                n.move[i].movelink(n);
+            }
+        }
+        Count++;
+    }
+    
+    public void Remove(Node n){
+        this.nodes.Remove(n);
+        for(int i = 0; i < this.nodes.Count; i++){
+            nodes[i].Remove(n);
+        }
+        Count--;
+    }
+    
+    public void print(){
+        Console.WriteLine();
+        for(int i = 0; i < this.nodes.Count; i++){
+            Console.WriteLine(this.nodes[i].toString());
+        }
+        Console.WriteLine();
+    }
+    
+    //returns a node given an id
+    public Node getNode(string s){
+        for(int i = 0; i < this.nodes.Count; i++){
+            if(this.nodes[i].id == s){
+                return this.nodes[i];
+            }
+        }
+        //if node does not exist create and add
+        Node n = new Node(s);
+        this.Add(n);
+        return n;
     }
 }
 
@@ -143,6 +232,18 @@ public class Node{
         Regex regex = new Regex(@"R\d?\d");
         this.isRegister = regex.IsMatch(id);
         this.moveRelated = false;
+    }
+
+    public int getDegree(){
+        return this.interfere.Count;
+    }
+    
+    public void Remove(Node n){
+        interfere.Remove(n);
+        move.Remove(n);
+        if(move.Count == 0){
+            moveRelated = false;
+        }
     }
 
     public string toString(){
@@ -172,9 +273,13 @@ public class Node{
     }
 
     public void link(Node n){
-        if(this.id != n.id && !this.contains(n.id)){    
-            this.interfere.Add(n);
-            n.interfere.Add(this);
+        if(this.id != n.id){
+            if(!this.contains(n.id)){    
+                this.interfere.Add(n);
+            }
+            if(!n.contains(this.id)){
+                n.interfere.Add(this);
+            }
         }
     }
 
@@ -188,11 +293,15 @@ public class Node{
     }
 
     public void movelink(Node n){
-        if(this.id != n.id && !this.related(n.id)){    
-            this.move.Add(n);
-            this.moveRelated = true;
-            n.move.Add(this);
-            n.moveRelated = true;
+        if(this.id != n.id){
+            if(!this.related(n.id)){
+                this.move.Add(n);
+                this.moveRelated = true;
+            }
+            if(!n.related(this.id)){
+                n.move.Add(this);
+                n.moveRelated = true;
+            }
         }
     }
 }

@@ -21,10 +21,26 @@ else
 {
     var s3: String = "else"
 }
+
 while x == y {
   x = x + y
 }
 
 do {
- y = y + z    
+ y = y + z
 } while z == y
+
+
+for var i = 0; i < 10; i = i + 1 {
+    x = x + 1
+}
+
+switch x
+{
+    case x:
+        x = x + y;
+    case y + 1:
+        x = x - y;
+    default:
+        x = x + 1;
+}
