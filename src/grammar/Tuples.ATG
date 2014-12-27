@@ -61,23 +61,17 @@ Symbol lookup(Stack<Scope> scopes, string name)
   return null; // if the name wasn't found in any open scopes.
 }
 
-Symbol lookup(Stack<Scope> scopes, string name) {
-  int stackFrameOffset = 0;
-  int variableOffset = 0;
-
-  foreach (Scope scope in scopes) {
-    foreach (Symbol s in scope) {
-      if (s.Item1 == name) {
-        return s;
-      }
-      else {
-        variableOffset += 1;
-      }
+// Find the scope of a symbol
+Scope findScope(string name) {
+    foreach(Scope scope in openScopes) {
+        foreach(Symbol s in scope) {
+            if (s.Item1 == name) {
+                return scope;
+            }
+        }
     }
-    stackFrameOffset += 1;
-    variableOffset = 0;
-  }
-  return null; // if the name wasn't found in any open scopes.
+
+    return null;
 }
 
 /*--------------------------------------------------------------------------*/
