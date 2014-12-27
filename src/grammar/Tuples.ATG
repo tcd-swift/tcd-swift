@@ -417,12 +417,11 @@ CaseLabel
 = "case" CaseItemList ':'
 .
 
-CaseItemList (. string _name; SwiftType _type; .)
-= Pattern<out _name, out _type> (.
-                                    IRTupleOneOpIdent pattern = new IRTupleOneOpIdent(IrOp.LOAD, generateTemporary(), _name);
-                                    IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), tempStack.Peek().getDest(), pattern.getDest());
+CaseItemList (. SwiftType type; .)
+= Expression<out type>       (.
+                                    var expr = tempStack.Pop();
+                                    IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), expr.getDest(), tempStack.Peek().getDest());
 
-                                    program.Add(pattern.toString());
                                     program.Add(checkCase.toString());
 
                                     string nextCase = generateLabel();
@@ -430,7 +429,7 @@ CaseItemList (. string _name; SwiftType _type; .)
                                     IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
 
                                     program.Add(tuple.toString());
-                                .)
+                            .)
   [ ',' CaseItemList ]
 .
 
