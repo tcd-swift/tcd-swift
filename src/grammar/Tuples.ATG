@@ -157,11 +157,11 @@ Statements
 
 /*------------------------------------------------------------------------*/
 
-Statement                           (. string name; .)
+Statement                           (. string name; SwiftType type; .)
 = (
-    ( Identifier<out name> 
+    ( Identifier<out name>
       "="
-      Expression                    (.
+      Expression<out type>          (.
                                         Symbol sym = lookup(openScopes, name);
 
                                         if (sym == null)
@@ -191,7 +191,7 @@ Statement                           (. string name; .)
 
 BranchStatement
 = ( IfStatement
-  // | SwitchStatement
+  | SwitchStatement
   )
   .
 
@@ -219,9 +219,9 @@ IfStatement
 
 /*------------------------------------------------------------------------*/
 
-IfCondition
-= ( "(" Expression ")"
-  | Expression
+IfCondition (. SwiftType type; .)
+= ( "(" Expression<out type> ")"
+  | Expression<out type>
   | Declaration
   )
   .
@@ -234,6 +234,47 @@ ElseClause
   | IfStatement
   )
   .
+
+/*------------------------------------------------------------------------*/
+
+SwitchStatement (. SwiftType type; .)
+= "switch" Expression<out type>
+ '{' [ SwitchCases ] '}'
+.
+
+/*------------------------------------------------------------------------*/
+
+SwitchCases
+= Cases { Cases } [DefaultCase]
+.
+
+Cases
+= CaseLabel ( Statements | ';' )
+.
+
+DefaultCase
+= DefaultLabel ( Statements | ';' )
+.
+
+/*------------------------------------------------------------------------*/
+
+CaseLabel
+= "case" CaseItemList ':'
+.
+
+CaseItemList (. string _name; SwiftType _type; .)
+= Pattern<out _name, out _type> [ GuardClause ] [ ',' CaseItemList ]
+.
+
+DefaultLabel
+= "default" ':'
+.
+
+/*------------------------------------------------------------------------*/
+
+GuardClause (. SwiftType type; .)
+= "where" Expression<out type>
+.
 
 /*------------------------------------------------------------------------*/
 
@@ -253,43 +294,53 @@ CodeBlock = "{" [Statements] "}".
 
 /*------------------------------------------------------------------------*/
 
-Expression                        (.  IrOp op;  .)
-= SimpleExpression
+Expression<out SwiftType type>    (.  IrOp op; SwiftType simpType; .)
+= SimpleExpression<out type>
   [
     ComparativeOp<out op>
-    SimpleExpression              (.
-                                      IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
-                                      IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+    SimpleExpression<out simpType>  (.
+                                        if(type == simpType)
+                                        {
+                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
 
-                                      tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
-                                      program.Add(tempStack.Peek().toString());
-                                  .)
+                                            tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                            program.Add(tempStack.Peek().toString());
+                                        }else{
+                                            SemErr("Incompatipable types in comparative");
+                                        }
+                                   .)
   ]
   .
 
 /*------------------------------------------------------------------------*/
 
-SimpleExpression                    (.  IrOp op;  .)
-= Term
+SimpleExpression<out SwiftType type> (.  IrOp op; SwiftType termType; .)
+= Term<out type>
   {
     AdditiveOp<out op>
-    Term                            (.
-                                        IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
-                                        IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+    Term<out termType>               (.
+                                        if(type == termType)
+                                        {
+                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
 
-                                        tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
-                                        program.Add(tempStack.Peek().toString());
-                                    .)
+                                            tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                            program.Add(tempStack.Peek().toString());
+                                        }else{
+                                            SemErr("Incompatipable types");
+                                        }
+                                     .)
   }
   .
 
 /*------------------------------------------------------------------------*/
 
-Term                                (.  SwiftType type1, type2; IrOp op;  .)
-= PrimaryExpression<out type1>
+Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
+= PrimaryExpression<out type>
   {
     MultiplicativeOp<out op>
-    PrimaryExpression<out type2>    (.
+    PrimaryExpression<out primType> (.
                                         IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
                                         IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
 
@@ -304,7 +355,7 @@ Term                                (.  SwiftType type1, type2; IrOp op;  .)
 PrimaryExpression
 <out SwiftType type>                  (.  SwiftType _type; string name, value;  .)
 =                                     (.  type = SwiftType.Undefined;           .)
-  ( Identifier<out name>              (.  
+  ( Identifier<out name>              (.
                                           Symbol sym = lookup(openScopes, name);
                                           if (sym == null)
                                           {
@@ -318,12 +369,12 @@ PrimaryExpression
                                           tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
                                           program.Add(tempStack.Peek().toString());
                                           type = _type;
-                                      .) 
+                                      .)
   ).
 
 /*------------------------------------------------------------------------*/
 
-/* 
+/*
  * All productions have been way over simplified for testing sake.
  * All skipped productions etc. are commented with "// Should be"
  * for easy finding so we don't forget to go back and implement them!
@@ -351,7 +402,7 @@ VariableDeclaration                       (.  string name; SwiftType type;  .)
 
 PatternInitializer
 <out string name, out SwiftType type>   (.  string _name; SwiftType _type;  .)
-= 
+=
   Pattern<out _name, out _type>         (.  name = _name; type = _type; .)
   [Initializer]                         (.
                                             IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
@@ -375,9 +426,9 @@ IdentifierPattern<out string name>  (. string _name;  .)
 
 /*------------------------------------------------------------------------*/
 
-Initializer
+Initializer (. SwiftType type; .)
 = "="
-  Expression
+  Expression<out type>
   .
 
 /*------------------------------------------------------------------------*/
@@ -390,7 +441,7 @@ TypeAnnotation<out SwiftType type>  (. SwiftType _type; .)
 /*------------------------------------------------------------------------*/
 
 Type<out SwiftType type>        (.  string typeName; .)  // Should be waaaay more comprehensive!
-= Identifier<out typeName>      (.  
+= Identifier<out typeName>      (.
                                     try
                                     {
                                       type = (SwiftType)Enum.Parse(typeof(SwiftType), typeName);
