@@ -185,6 +185,12 @@ Statement                           (. string name; SwiftType type; .)
                                         {
                                           SemErr(name + " is a constant, can't reassign a value");
                                         }
+                                        if (type != (SwiftType)sym.Item3)
+                                        {
+                                          string error = string.Format("Variable '{0}' of type '{1}' is assigned a value of type '{2}'",
+                                            name, Enum.GetName(typeof(SwiftType), sym.Item3), Enum.GetName(typeof(SwiftType), type));
+                                          SemErr(error);
+                                        }
 
                                         IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
                                         program.Add(tuple.toString());
@@ -194,9 +200,9 @@ Statement                           (. string name; SwiftType type; .)
     | Declaration<out name, out type>
     | BranchStatement
     | LoopStatement
-  )
   // | LabeledStatement
   // | ControlTransferStatement
+  )
   [";"]
   .
 
@@ -351,18 +357,9 @@ IfStatement
 
 /*------------------------------------------------------------------------*/
 
-IfCondition (. string name; SwiftType type; .)
-= ( "(" Expression<out type> ")"    (. if(type != SwiftType.Bool)
-                                       {
-                                            SemErr("If condition must be of boolean type");
-                                       }
-                                    .)
-  | Expression<out type>            (. if(type != SwiftType.Bool)
-                                       {
-                                            SemErr("If condition must be of boolean type");
-                                       }
-                                    .)
-  | Declaration<out name, out type>
+IfCondition                         (.  string name; SwiftType type;  .)
+= ( Expression<out type>            (.  if (type != SwiftType.Bool) SemErr("If condition must be of boolean type");  .)
+  | Declaration<out name, out type> (.  if (type != SwiftType.Bool) SemErr("If condition must be of boolean type");  .)
   )
   .
 
@@ -517,7 +514,8 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
 PrimaryExpression
 <out SwiftType type>                  (.  SwiftType _type; string name, value;  .)
 =                                     (.  type = SwiftType.Undefined;           .)
-  ( Identifier<out name>              (.
+  ( "(" Expression<out _type> ")"     (.  type = _type;                         .)
+  | Identifier<out name>              (.
                                           Symbol sym = lookup(openScopes, name);
                                           if (sym == null)
                                           {
