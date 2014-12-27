@@ -37,9 +37,9 @@ for var i = 0; i < 10; i = i + 1 {
 
 switch x
 {
-    case x: Int:
+    case x:
         x = x + y;
-    case y: Int:
+    case y:
         x = x - y;
     default:
         x = x + 1;

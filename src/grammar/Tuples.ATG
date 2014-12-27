@@ -583,7 +583,11 @@ PatternInitializer
 /*------------------------------------------------------------------------*/
 
 Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type = SwiftType.Undefined; .)
-= IdentifierPattern<out _name>                (. name = _name;  .)
+= IdentifierPattern<out _name>                (.
+                                                name = _name;
+                                                Symbol symbol = lookup(openScopes, name);
+                                                if(symbol != null) _type = (SwiftType)symbol.Item3;
+                                              .)
   [ TypeAnnotation<out _type>
   ]                                           (.
                                                 type = _type;
