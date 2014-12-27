@@ -540,9 +540,11 @@ PrimaryExpression
  * for easy finding so we don't forget to go back and implement them!
  */
 
-Declaration<out string name, out SwiftType type>  (. string _name; SwiftType _type; .)
-= VariableDeclaration<out _name, out _type>       (. name = _name; type = _type; .)
-  .
+Declaration<out string name, out SwiftType type>  (. string _name = null; SwiftType _type = SwiftType.Undefined; .)
+= ( VariableDeclaration<out _name, out _type>
+  | ConstantDeclaration<out _name, out _type>
+  )                                               (. name = _name; type = _type; .)
+  .                                              
 
 /*------------------------------------------------------------------------*/
 
@@ -555,6 +557,21 @@ VariableDeclaration<out string name, out SwiftType type>  (.  string _name; Swif
                                               }
 
                                               openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type));
+                                              name = _name; type = _type;
+                                          .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+ConstantDeclaration<out string name, out SwiftType type>  (.  string _name; SwiftType _type;  .)
+= "let"
+  PatternInitializer<out _name, out _type>  (.
+                                              if (lookup(openScopes, _name) != null)
+                                              {
+                                                SemErr("Redefinition of constant: " + _name);
+                                              }
+
+                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Const, (int)_type));
                                               name = _name; type = _type;
                                           .)
   .

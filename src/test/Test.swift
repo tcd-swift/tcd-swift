@@ -2,6 +2,8 @@ var x = 420
 var y: Int = 400 + 40 / 2
 var z: Int = (10 + 200) * 2
 
+let c = ((400 + 40) / 2)
+
 var w: Int = 210
 w = w * 2
 
