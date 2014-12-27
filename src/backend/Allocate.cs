@@ -11,7 +11,7 @@ public class input{
     public static List<string> livein;
 
     public static void Main(){
-        registers = 8;
+        registers = 6;
 
         List<string>[] input = new List<string>[10];
         input[0] = new List<string>(){"T","R1","R2","T"};
@@ -82,8 +82,29 @@ public class input{
 
         return;
     }
+    
+    public static List<string> getRegisters(){
+        List<string> regs = new List<string>();
+        for(int i = 0; i < input.registers; i++){
+            string reg = "R" + i;
+            regs.Add(reg);       
+        }
+        return regs;
+    }
+
+    public static List<List<string>> appendToAllocated(List<List<string>> alloc, Node n){
+        List<string> regs = getRegisters();
+        for(int i = 0; i < alloc.Count; i++){
+            if(n.contains(alloc[i][0])){
+                regs.Remove(alloc[i][1]);
+            }
+        }
+        alloc.Add(new List<string>(){n.id,regs[0]});
+        return alloc;
+    }
 
     public static List<List<string>> simplify(Graph graph){
+        List<List<string>> result = new List<List<string>>();
         List<int> degrees = new List<int>();
         for(int i = 0; i < graph.Count; i++){
             degrees.Add(graph.Get(i).getDegree());
@@ -92,6 +113,11 @@ public class input{
         while(k > 0){
             if(degrees.Contains(k)){
                 int index = degrees.IndexOf(k);
+                Node n = graph.Get(index);
+                graph.Remove(n);
+                result = assign(graph);
+                graph.Add(n);
+                return appendToAllocated(result, n);
             }
             k--;
         }
@@ -130,7 +156,7 @@ public class input{
             graph.print();
             return assigned;
         }
-        return null;//simplify(graph);
+        return simplify(graph);
     }
 }
 
