@@ -63,7 +63,7 @@ Symbol lookup(Stack<Scope> scopes, string name)
 
 // Find the scope of a symbol
 Scope findScope(string name) {
-  
+
   foreach(Scope scope in openScopes) {
     foreach(Symbol s in scope) {
       if (s.Item1 == name) {
@@ -207,7 +207,7 @@ LoopStatement
   | DoWhileLoop
   | ForLoop
   )
-  .  
+  .
 
 /*------------------------------------------------------------------------*/
 
@@ -380,20 +380,36 @@ ElseClause
 SwitchStatement (. SwiftType type; .)
 = "switch" Expression<out type>
  '{' [ SwitchCases ] '}'
+ (. tempStack.Pop(); .)
 .
 
 /*------------------------------------------------------------------------*/
 
-SwitchCases
-= Cases { Cases } [DefaultCase]
+SwitchCases (. string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
+= Case (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
+  {
+  (.
+    program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+    //openLabels.Push(finishLabel);
+  .)
+  Case (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
+  }
+
+  [ (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
+    DefaultCase
+    (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
+  ]
+  (. program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString()); .)
 .
 
-Cases
-= CaseLabel ( Statements | ';' )
+Case
+= CaseLabel
+  ( Statements | ';' )
 .
 
 DefaultCase
-= DefaultLabel ( Statements | ';' )
+= DefaultLabel
+  ( Statements | ';' )
 .
 
 /*------------------------------------------------------------------------*/
@@ -403,17 +419,24 @@ CaseLabel
 .
 
 CaseItemList (. string _name; SwiftType _type; .)
-= Pattern<out _name, out _type> [ GuardClause ] [ ',' CaseItemList ]
+= Pattern<out _name, out _type> (.
+                                    IRTupleOneOpIdent pattern = new IRTupleOneOpIdent(IrOp.LOAD, generateTemporary(), _name);
+                                    IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), tempStack.Peek().getDest(), pattern.getDest());
+
+                                    program.Add(pattern.toString());
+                                    program.Add(checkCase.toString());
+
+                                    string nextCase = generateLabel();
+                                    openLabels.Push(nextCase);
+                                    IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
+
+                                    program.Add(tuple.toString());
+                                .)
+  [ ',' CaseItemList ]
 .
 
 DefaultLabel
 = "default" ':'
-.
-
-/*------------------------------------------------------------------------*/
-
-GuardClause (. SwiftType type; .)
-= "where" Expression<out type> (. if(type != SwiftType.Bool) SemErr("Guard Clause must be of type boolean"); .)
 .
 
 /*------------------------------------------------------------------------*/
@@ -563,7 +586,7 @@ PatternInitializer
 Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type = SwiftType.Undefined; .)
 = IdentifierPattern<out _name>                (. name = _name;  .)
   [ TypeAnnotation<out _type>
-  ]                                           (. 
+  ]                                           (.
                                                 type = _type;
                                               .)
   .
