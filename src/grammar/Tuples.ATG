@@ -182,7 +182,6 @@ Statement                           (. string name; SwiftType type; .)
     | BranchStatement
     | LoopStatement
   )
-  // | LoopStatement
   // | LabeledStatement
   // | ControlTransferStatement
   [";"]
@@ -193,6 +192,7 @@ Statement                           (. string name; SwiftType type; .)
 LoopStatement
 = ( WhileLoop
   | DoWhileLoop
+//  | ForLoop
   )
   .  
 
@@ -200,34 +200,59 @@ LoopStatement
 
 WhileLoop
 = "while"
-  IfCondition (.
-                openLabels.Push(generateLabel());
-                IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
-                program.Add(tuple.toString());
-                tempStack.Pop();
-              .)
-  CodeBlock   (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
+  IfCondition                       (.
+                                      openLabels.Push(generateLabel());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  CodeBlock                         (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
   .
 
 
 /*------------------------------------------------------------------------*/
 
 DoWhileLoop
-= "do"        (.
-                openLabels.Push(generateLabel());
-                program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
-              .)
+= "do"                              (.
+                                      openLabels.Push(generateLabel());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
+                                    .)
   CodeBlock
   "while"
-  IfCondition (.
-                IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, tempStack.Peek().getDest(), openLabels.Peek());
-                program.Add(tuple.toString());
-                tempStack.Pop();
-                openLabels.Pop();
-              .)
+  IfCondition                       (.
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                      openLabels.Pop();
+                                    .)
   .
 
-
+/*------------------------------------------------------------------------*/
+/*
+ForLoop
+= //(
+  TradForLoop
+//  | ForInLoop
+//  )
+.
+*/
+/*------------------------------------------------------------------------*/
+/*
+TradForLoop
+= "for"
+  (Identifier <out name>
+   "="
+   Expression <out type>
+  |
+  Declaration<out name, out type>
+  )
+  ";"
+  IfCondition
+  ";"
+  Increment
+  CodeBlock
+  .
+*/
 /*------------------------------------------------------------------------*/
 
 BranchStatement
