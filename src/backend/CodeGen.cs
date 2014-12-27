@@ -19,22 +19,30 @@ public class CodeGen{
         // RET
         // DIV
 
-        // Whats an EQU?
         if(IR.getOp() == IrOp.EQU){
-            //return 
+            string str =  "CMP " + IR.getSrc1() + ", " + IR.getSrc2()  +'\n';
+            str += "MOVEQ " + IR.getDest() + ", #1";
+            str += "MOVNE " + IR.getDest() + ", #0";
+            return str;
+        }
+        if(IR.getOp() == IrOp.EQU){
+            string str =  "CMP " + IR.getSrc1() + ", " + IR.getSrc2()  +'\n';
+            str += "MOVEQ " + IR.getDest() + ", #0";
+            str += "MOVNE " + IR.getDest() + ", #1";
+            return str;
         }
         // Floating point everything
         // JMPing and Labels
         // MOD
         // NEQ
         if(IR.getOp() == IrOp.NOT){
-            return "NOT " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
+            return "MVN " + IR.getDest() + ", " + IR.getSrc1();
         }
         if(IR.getOp() == IrOp.OR){
-            return "OR " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
+            return "ORR " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
         }
         if(IR.getOp() == IrOp.XOR){
-            return "XOR " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
+            return "EOR " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
         }
         return "";
     }
