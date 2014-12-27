@@ -281,7 +281,7 @@ DefaultLabel
 /*------------------------------------------------------------------------*/
 
 GuardClause (. SwiftType type; .)
-= "where" Expression<out type>
+= "where" Expression<out type> (. if(type != SwiftType.Bool) SemErr("Guard Clause must be of type boolean"); .)
 .
 
 /*------------------------------------------------------------------------*/
