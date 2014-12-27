@@ -409,10 +409,15 @@ VariableDeclaration                       (.  string name; SwiftType type;  .)
 /*------------------------------------------------------------------------*/
 
 PatternInitializer
-<out string name, out SwiftType type>   (.  string _name; SwiftType _type;  .)
+<out string name, out SwiftType type>   (.  string _name; SwiftType _type; SwiftType _expr_type; .)
 =
   Pattern<out _name, out _type>         (.  name = _name; type = _type; .)
-  [Initializer]                         (.
+  [Initializer<out _expr_type>          (.
+                                            if (type == SwiftType.Undefined) {
+                                              type = _expr_type;
+                                            }
+                                        .)
+  ]                                     (.
                                             IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
                                             program.Add(tuple.toString());
                                             tempStack.Pop();
@@ -437,9 +442,9 @@ IdentifierPattern<out string name>  (. string _name;  .)
 
 /*------------------------------------------------------------------------*/
 
-Initializer (. SwiftType type; .)
+Initializer<out SwiftType type> (. SwiftType _type; .)
 = "="
-  Expression<out type>
+  Expression<out _type>         (. type = _type; .)
   .
 
 /*------------------------------------------------------------------------*/
