@@ -11,7 +11,7 @@ public class input{
     public static List<string> livein;
 
     public static void Main(){
-        registers = 6;
+        registers = 4;
 
         List<string>[] input = new List<string>[10];
         input[0] = new List<string>(){"T","R1","R2","T"};
@@ -73,13 +73,16 @@ public class input{
         graph.print();
 
         List<List<string>> results = assign(graph);
-        
-        Console.WriteLine();
-        for(int i = 0; i < results.Count; i++){
-            Console.WriteLine(results[i][0] + " : " + results[i][1]);
+        if(results == null){
+            Console.WriteLine("Couldn't allocate registers, get your shit together Darragh");
         }
-        Console.WriteLine();
-
+        else{
+            Console.WriteLine();
+            for(int i = 0; i < results.Count; i++){
+                Console.WriteLine(results[i][0] + " : " + results[i][1]);
+            }
+            Console.WriteLine();
+        }
         return;
     }
     
@@ -95,27 +98,49 @@ public class input{
     public static List<List<string>> appendToAllocated(List<List<string>> alloc, Node n){
         List<string> regs = getRegisters();
         for(int i = 0; i < alloc.Count; i++){
-            if(n.contains(alloc[i][0])){
+            if(n.interferes(alloc[i][0])){
                 regs.Remove(alloc[i][1]);
             }
         }
-        alloc.Add(new List<string>(){n.id,regs[0]});
-        return alloc;
+        if(regs.Count > 0){
+            alloc.Add(new List<string>(){n.id,regs[0]});
+            return alloc;
+        }
+        Console.WriteLine();
+        for(int i = 0; i < alloc.Count; i++){
+            Console.WriteLine(alloc[i][0] + " : " + alloc[i][1]);
+        }
+        Console.WriteLine();
+        Console.WriteLine("No registers left to allocate to :( - This should be possible at this point");
+        return null;
     }
 
     public static List<List<string>> simplify(Graph graph){
+    
+        if(graph.Count < 3 || graph.isRegisters()){
+            return assign(graph);
+        }
+
         List<List<string>> result = new List<List<string>>();
         List<int> degrees = new List<int>();
         for(int i = 0; i < graph.Count; i++){
-            degrees.Add(graph.Get(i).getDegree());
+            if(graph.Get(i).isRegister){
+                degrees.Add(-1); //causes nodes that are already registers to be ignored when simplifying
+            }
+            else{
+                degrees.Add(graph.Get(i).getDegree());
+            }
         }
         int k = input.registers - 1;
-        while(k > 0){
+        while(k >= 0){
+            Console.WriteLine("k = " + k);
             if(degrees.Contains(k)){
                 int index = degrees.IndexOf(k);
                 Node n = graph.Get(index);
                 graph.Remove(n);
-                result = assign(graph);
+                Console.WriteLine("Simplifying, removing " + n.id);
+                result = simplify(graph);
+                if(result == null) return null;
                 graph.Add(n);
                 return appendToAllocated(result, n);
             }
@@ -131,7 +156,7 @@ public class input{
             List<List<string>> assigned = new List<List<string>>();
             List<string> available = new List<string>();
             
-            //list of free registers
+            //build list of available registers
             for(int i = 0; i < input.registers; i++){
                 string reg = "R" + i;
                 if(!livein.Contains(reg)){
@@ -149,11 +174,6 @@ public class input{
                     available.Remove(available[0]);
                 }
             }
-            Node n = graph.Get(0);
-            graph.Remove(n);
-            graph.print();
-            graph.Add(n);
-            graph.print();
             return assigned;
         }
         return simplify(graph);
@@ -202,6 +222,15 @@ public class Graph{
             Console.WriteLine(this.nodes[i].toString());
         }
         Console.WriteLine();
+    }
+    
+    public bool isRegisters(){
+        for(int i = 0; i < this.nodes.Count; i++){
+            if(!this.nodes[i].isRegister){
+                return false;
+            }
+        }
+        return true;
     }
     
     //returns a node given an id
@@ -263,7 +292,7 @@ public class Node{
         return output;
     }
 
-    public bool contains(string s){
+    public bool interferes(string s){
         for(int i = 0; i < this.interfere.Count; i++){
             if(this.interfere[i].id == s){
                 return true;
@@ -274,10 +303,10 @@ public class Node{
 
     public void link(Node n){
         if(this.id != n.id){
-            if(!this.contains(n.id)){    
+            if(!this.interferes(n.id)){    
                 this.interfere.Add(n);
             }
-            if(!n.contains(this.id)){
+            if(!n.interferes(this.id)){
                 n.interfere.Add(this);
             }
         }
