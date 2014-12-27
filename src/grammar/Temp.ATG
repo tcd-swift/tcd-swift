@@ -1,0 +1,62 @@
+//Temp expression productions which depend on other productions not yet defined
+/*------------------------------------------------------------------------*/
+
+TypeCastOp
+=
+  ( "is" Type
+  | "as" Type
+  | "as" '?' Type
+  ).
+
+/*------------------------------------------------------------------------*/
+
+GenericArgumentClause
+= '<' GenericArgumentList '>'.
+
+/*------------------------------------------------------------------------*/
+
+GenericArgumentList
+= ( GenericArgument
+  | GenericArgument ',' GenericArgumentList
+  ).
+
+/*------------------------------------------------------------------------*/
+
+GenericArgument
+= Type.
+
+/*------------------------------------------------------------------------*/
+
+TrailingClosure
+= ClosureExpression.
+
+/*------------------------------------------------------------------------*/
+
+ClosureExpression
+= '{' [ClosureSignature] Statements '}'.
+
+/*------------------------------------------------------------------------*/
+
+ClosureSignature
+= ParameterClause [FunctionResult] "in"
+| IdentifierList [FunctionResult] "in"
+| CaptureList ParameterClause [FunctionResult] "in"
+| CaptureList IdentifierList [FunctionResult] "in"
+| CaptureList "in"
+.
+
+/*------------------------------------------------------------------------*/
+
+CaptureList = '[' CaptureSpecifier Expression ']'.
+
+/*------------------------------------------------------------------------*/
+
+CaptureSpecifier
+=
+  ( "weak"
+  | "unowned"
+  | "unowned(safe)"
+  | "unowned(unsafe)"
+  ).
+
+/*------------------------------------------------------------------------*/

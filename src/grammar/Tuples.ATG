@@ -1,0 +1,626 @@
+COMPILER TCDSwift
+
+enum SwiftType : int
+{
+  String,
+  Int,
+  UInt,
+  Float,
+  Double,
+  Bool,
+  Undefined
+};
+
+enum SwiftKind : int
+{
+  Var,
+  Const,
+  Proc
+};
+
+// using Symbol = System.Tuple<string, int, int>
+/*
+  Symbol:
+    * Symbol.Item1 -> name
+    * Symbol.Item2 -> kind
+    * Symbol.Item3 -> type
+*/
+
+class Scope : Stack<Symbol> {}
+class Program : List<string> {}
+class TupleStack : Stack<IRTuple> {}
+
+Program program = new Program();
+TupleStack tempStack = new TupleStack();
+Stack<Scope> openScopes = new Stack<Scope>();
+Stack<string> openLabels = new Stack<string>();
+
+int temporarySeed = 0;
+int labelSeed = 0;
+
+string generateTemporary()
+{
+  return "T$"+temporarySeed++;
+}
+
+string generateLabel()
+{
+  return "L$"+labelSeed++;
+}
+
+Symbol lookup(Stack<Scope> scopes, string name)
+{
+  foreach (Scope scope in scopes)
+  {
+    foreach (Symbol s in scope)
+    {
+      if (s.Item1 == name) return s;
+    }
+  }
+
+  return null; // if the name wasn't found in any open scopes.
+}
+
+// Find the scope of a symbol
+Scope findScope(string name) {
+  
+  foreach(Scope scope in openScopes) {
+    foreach(Symbol s in scope) {
+      if (s.Item1 == name) {
+        return scope;
+      }
+    }
+  }
+  return null;
+}
+
+/*--------------------------------------------------------------------------*/
+
+CHARACTERS
+  letter = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".
+  digit = "0123456789".
+  cr  = '\r'.
+  lf  = '\n'.
+  tab = '\t'.
+  space = '\u0020'.
+  singleQuote = '\''.
+  doubleQuote = '\"'.
+  dot = '.'.
+  characters = ANY - cr - lf - singleQuote.
+  ascii = ANY - cr - lf - doubleQuote.
+
+TOKENS
+  ident  = letter {letter | digit | dot}.
+  number = digit {digit}.
+  stringToken = '"' {ascii} '"'.
+  char   = '\'' [characters] '\''.
+
+COMMENTS FROM "/*" TO "*/" NESTED
+COMMENTS FROM "//" TO lf
+
+IGNORE cr + lf + tab
+
+PRODUCTIONS
+
+/************************************************
+ *  Literals
+ ************************************************/
+
+Literal<out string value, out SwiftType type>
+=                                 (.  type = SwiftType.Undefined; value = "NULL"; .)
+  ( number                        (.  type = SwiftType.Int;       value = t.val;  .)
+  | stringToken                   (.  type = SwiftType.String;    value = t.val;  .)
+  | "true"                        (.  type = SwiftType.Bool;      value = t.val;  .)
+  | "false"                       (.  type = SwiftType.Bool;      value = t.val;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Operators
+ ************************************************/
+
+// Left associative, precedence level 150
+
+MultiplicativeOp<out IrOp op>
+=                                 (.  op = IrOp.MUL;  .)
+  ( "*"
+  | "/"                           (.  op = IrOp.DIV;  .)
+  | "&"                           (.  op = IrOp.AND;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//Left associative, precedence level 140
+
+AdditiveOp<out IrOp op>
+=                                 (.  op = IrOp.ADD;  .)
+  ( "+"
+  | "-"                           (.  op = IrOp.SUB;  .)
+  | "|"                           (.  op = IrOp.OR;   .)
+  | "^"                           (.  op = IrOp.XOR;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+//No associativity, precedence level 130
+
+ComparativeOp<out IrOp op>
+=                                 (.  op = IrOp.EQU;  .)
+  ( "=="
+  | "<"                           (.  op = IrOp.LT;   .)
+  | ">"                           (.  op = IrOp.GT;   .)
+  | "<="                          (.  op = IrOp.LTE;  .)
+  | ">="                          (.  op = IrOp.GTE;  .)
+  | "!="                          (.  op = IrOp.NEQ;  .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Statements
+ ************************************************/
+
+/*------------------------------------------------------------------------*/
+
+Statements
+= Statement
+  [Statements]
+  .
+
+/*------------------------------------------------------------------------*/
+
+Statement                           (. string name; SwiftType type; .)
+= (
+    ( Identifier<out name>
+      "="
+      Expression<out type>          (.
+                                        Symbol sym = lookup(openScopes, name);
+
+                                        if (sym == null)
+                                        {
+                                          SemErr("Use of undefined variable " + name);
+                                        }
+                                        if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                        {
+                                          SemErr(name + " is a constant, can't reassign a value");
+                                        }
+
+                                        IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                        program.Add(tuple.toString());
+                                        tempStack.Pop();
+                                    .)
+    )
+    | Declaration<out name, out type>
+    | BranchStatement
+    | LoopStatement
+  )
+  // | LabeledStatement
+  // | ControlTransferStatement
+  [";"]
+  .
+
+/*------------------------------------------------------------------------*/
+
+LoopStatement
+= ( WhileLoop
+  | DoWhileLoop
+  | ForLoop
+  )
+  .  
+
+/*------------------------------------------------------------------------*/
+
+WhileLoop                           (. string loopStartLabel; .)
+= "while"
+  IfCondition                       (.
+                                      loopStartLabel = generateLabel();
+                                      openLabels.Push(generateLabel());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  CodeBlock                         (. 
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());  
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                    .)
+  .
+
+
+/*------------------------------------------------------------------------*/
+
+DoWhileLoop
+= "do"                              (.
+                                      openLabels.Push(generateLabel());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
+                                    .)
+  CodeBlock
+  "while"
+  IfCondition                       (.
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                      openLabels.Pop();
+                                    .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+ForLoop
+= //(
+  TradForLoop
+//  | ForInLoop
+//  )
+.
+
+/*------------------------------------------------------------------------*/
+
+TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>(); 
+                                       Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
+= "for"
+  (Identifier <out name>
+   "="
+   Expression <out type>            (. 
+                                      sym = lookup(openScopes, name);
+
+                                      if (sym == null)
+                                      {
+                                        SemErr("Use of undefined variable " + name);
+                                      }
+                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                      {
+                                        SemErr(name + " is a constant, can't reassign a value");
+                                      }
+
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  |
+  Declaration<out name, out type>   (.
+                                      Console.WriteLine("TODO: Scope this");
+                                    .)
+  )
+  ";"                               (. 
+                                      loopStartLabel = generateLabel();
+                                      program.Add(new IRTuple(IrOp.LABEL, loopStartLabel).toString());
+                                      openLabels.Push(generateLabel()); // second label is for the loop end
+                                    .)
+  IfCondition                       (.
+                                      tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  ";"
+  Identifier <out exprname>            
+  "="
+  Expression <out exprtype>          (. 
+                                      sym = lookup(openScopes, exprname);
+
+                                      if (sym == null)
+                                      {
+                                        SemErr("Use of undefined variable " + exprname);
+                                      }
+                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                      {
+                                        SemErr(exprname + " is a constant, can't reassign a value");
+                                      }
+
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, exprname, tempStack.Peek().getDest());
+                                      ins_list.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  CodeBlock                         (. 
+                                      for (int i = 0; i < ins_list.Count; i++) {
+                                        program.Add(ins_list[i]); // add the instructions from the instruction list to the program now
+                                      }
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString()); 
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); 
+                                    .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+BranchStatement
+= ( IfStatement
+  | SwitchStatement
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+IfStatement
+= "if"
+  IfCondition                         (.
+                                          openLabels.Push(generateLabel());
+
+                                          IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                          program.Add(tuple.toString());
+                                          tempStack.Pop();
+                                      .)
+  CodeBlock                           (.
+                                          IRTuple startOfElse = new IRTuple(IrOp.LABEL, openLabels.Pop());
+
+                                          openLabels.Push(generateLabel());
+                                          program.Add(new IRTuple(IrOp.JMP, openLabels.Peek()).toString());
+                                          program.Add(startOfElse.toString());
+                                      .)
+  [ElseClause]
+                                      (.  program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+IfCondition (. string name; SwiftType type; .)
+= ( "(" Expression<out type> ")"    (. if(type != SwiftType.Bool)
+                                       {
+                                            SemErr("If condition must be of boolean type");
+                                       }
+                                    .)
+  | Expression<out type>            (. if(type != SwiftType.Bool)
+                                       {
+                                            SemErr("If condition must be of boolean type");
+                                       }
+                                    .)
+  | Declaration<out name, out type>
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+ElseClause
+= "else"
+  ( CodeBlock
+  | IfStatement
+  )
+  .
+
+/*------------------------------------------------------------------------*/
+
+SwitchStatement (. SwiftType type; .)
+= "switch" Expression<out type>
+ '{' [ SwitchCases ] '}'
+.
+
+/*------------------------------------------------------------------------*/
+
+SwitchCases
+= Cases { Cases } [DefaultCase]
+.
+
+Cases
+= CaseLabel ( Statements | ';' )
+.
+
+DefaultCase
+= DefaultLabel ( Statements | ';' )
+.
+
+/*------------------------------------------------------------------------*/
+
+CaseLabel
+= "case" CaseItemList ':'
+.
+
+CaseItemList (. string _name; SwiftType _type; .)
+= Pattern<out _name, out _type> [ GuardClause ] [ ',' CaseItemList ]
+.
+
+DefaultLabel
+= "default" ':'
+.
+
+/*------------------------------------------------------------------------*/
+
+GuardClause (. SwiftType type; .)
+= "where" Expression<out type> (. if(type != SwiftType.Bool) SemErr("Guard Clause must be of type boolean"); .)
+.
+
+/*------------------------------------------------------------------------*/
+
+CodeBlock = "{" [Statements] "}".
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Expressions
+ ************************************************/
+
+/*------------------------------------------------------------------------*/
+
+Expression<out SwiftType type>    (.  IrOp op; SwiftType simpType; .)
+= SimpleExpression<out type>
+  [
+    ComparativeOp<out op>
+    SimpleExpression<out simpType>  (.
+                                        if(type == simpType)
+                                        {
+                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                            tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                            program.Add(tempStack.Peek().toString());
+                                            type = SwiftType.Bool;
+                                        }else{
+                                            SemErr("Incompatipable types in comparative");
+                                        }
+                                   .)
+  ]
+  .
+
+/*------------------------------------------------------------------------*/
+
+SimpleExpression<out SwiftType type> (.  IrOp op; SwiftType termType; .)
+= Term<out type>
+  {
+    AdditiveOp<out op>
+    Term<out termType>               (.
+                                        if(type == termType)
+                                        {
+                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                            tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                            program.Add(tempStack.Peek().toString());
+                                        }else{
+                                            SemErr("Incompatipable types");
+                                        }
+                                     .)
+  }
+  .
+
+/*------------------------------------------------------------------------*/
+
+Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
+= PrimaryExpression<out type>
+  {
+    MultiplicativeOp<out op>
+    PrimaryExpression<out primType> (.
+                                        IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)tempStack.Pop();
+                                        IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)tempStack.Pop();
+
+                                        tempStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
+                                        program.Add(tempStack.Peek().toString());
+                                    .)
+  }
+  .
+
+/*------------------------------------------------------------------------*/
+// Treat like Factor
+PrimaryExpression
+<out SwiftType type>                  (.  SwiftType _type; string name, value;  .)
+=                                     (.  type = SwiftType.Undefined;           .)
+  ( Identifier<out name>              (.
+                                          Symbol sym = lookup(openScopes, name);
+                                          if (sym == null)
+                                          {
+                                            SemErr("Use of undefined variable: " + name);
+                                          }
+
+                                          type = (SwiftType)sym.Item3;
+                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));
+                                      .)
+  | Literal<out value, out _type>     (.
+                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
+                                          program.Add(tempStack.Peek().toString());
+                                          type = _type;
+                                      .)
+  ).
+
+/*------------------------------------------------------------------------*/
+
+/*
+ * All productions have been way over simplified for testing sake.
+ * All skipped productions etc. are commented with "// Should be"
+ * for easy finding so we don't forget to go back and implement them!
+ */
+
+Declaration<out string name, out SwiftType type>  (. string _name; SwiftType _type; .)
+= VariableDeclaration<out _name, out _type>       (. name = _name; type = _type; .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+VariableDeclaration<out string name, out SwiftType type>  (.  string _name; SwiftType _type;  .)
+= "var"
+  PatternInitializer<out _name, out _type>  (.
+                                              if (lookup(openScopes, _name) != null)
+                                              {
+                                                SemErr("Redefinition of variable: " + _name);
+                                              }
+
+                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type));
+                                              name = _name; type = _type;
+                                          .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+PatternInitializer
+<out string name, out SwiftType type>   (.  string _name; SwiftType _type; SwiftType _expr_type; .)
+=
+  Pattern<out _name, out _type>         (.  name = _name; type = _type; .)
+  [Initializer<out _expr_type>          (.
+                                            if (type == SwiftType.Undefined) {
+                                              type = _expr_type;
+                                            }
+                                        .)
+  ]                                     (.
+                                            IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                            program.Add(tuple.toString());
+                                            tempStack.Pop();
+                                        .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type = SwiftType.Undefined; .)
+= IdentifierPattern<out _name>                (. name = _name;  .)
+  [ TypeAnnotation<out _type>
+  ]                                           (. 
+                                                type = _type;
+                                              .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+IdentifierPattern<out string name>  (. string _name;  .)
+= Identifier<out _name>             (. name = _name;  .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+Initializer<out SwiftType type> (. SwiftType _type; .)
+= "="
+  Expression<out _type>         (. type = _type; .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+TypeAnnotation<out SwiftType type>  (. SwiftType _type; .)
+= ':'
+  Type<out _type>                    (. type = _type;   .) // Should be [Attributes] Type
+  .
+
+/*------------------------------------------------------------------------*/
+
+Type<out SwiftType type>        (.  string typeName; .)  // Should be waaaay more comprehensive!
+= Identifier<out typeName>      (.
+                                    try
+                                    {
+                                      type = (SwiftType)Enum.Parse(typeof(SwiftType), typeName);
+                                    }
+                                    catch (Exception ex)
+                                    {
+                                      SemErr("Undefined type: " + typeName);
+                                      type = SwiftType.Undefined;
+                                    }
+                                .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+Identifier<out string name>
+= ident                         (.  name = t.val; .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+TCDSwift
+=                             (.  openScopes.Push(new Scope()); .)
+  Statements
+                              (.
+                                  if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
+                                  openScopes.Pop();
+                              .)
+  .
+
+/*------------------------------------------------------------------------*/
+
+END TCDSwift.
