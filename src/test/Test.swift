@@ -28,3 +28,8 @@ while x == y {
 do {
  y = y + z    
 } while z == y
+
+
+for var i = 0; i < 10; i = i + 1 {
+    x = x + 1
+}

@@ -191,7 +191,7 @@ Statement                           (. string name; SwiftType type; .)
                                         tempStack.Pop();
                                     .)
     )
-    | Declaration
+    | Declaration<out name, out type>
     | BranchStatement
     | LoopStatement
   )
@@ -205,21 +205,25 @@ Statement                           (. string name; SwiftType type; .)
 LoopStatement
 = ( WhileLoop
   | DoWhileLoop
-//  | ForLoop
+  | ForLoop
   )
   .  
 
 /*------------------------------------------------------------------------*/
 
-WhileLoop
+WhileLoop                           (. string loopStartLabel; .)
 = "while"
   IfCondition                       (.
+                                      loopStartLabel = generateLabel();
                                       openLabels.Push(generateLabel());
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
                                       program.Add(tuple.toString());
                                       tempStack.Pop();
                                     .)
-  CodeBlock                         (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
+  CodeBlock                         (. 
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());  
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                    .)
   .
 
 
@@ -241,31 +245,80 @@ DoWhileLoop
   .
 
 /*------------------------------------------------------------------------*/
-/*
+
 ForLoop
 = //(
   TradForLoop
 //  | ForInLoop
 //  )
 .
-*/
+
 /*------------------------------------------------------------------------*/
-/*
-TradForLoop
+
+TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>(); 
+                                       Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
 = "for"
   (Identifier <out name>
    "="
-   Expression <out type>
+   Expression <out type>            (. 
+                                      sym = lookup(openScopes, name);
+
+                                      if (sym == null)
+                                      {
+                                        SemErr("Use of undefined variable " + name);
+                                      }
+                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                      {
+                                        SemErr(name + " is a constant, can't reassign a value");
+                                      }
+
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
   |
-  Declaration<out name, out type>
+  Declaration<out name, out type>   (.
+                                      Console.WriteLine("TODO: Scope this");
+                                    .)
   )
+  ";"                               (. 
+                                      loopStartLabel = generateLabel();
+                                      program.Add(new IRTuple(IrOp.LABEL, loopStartLabel).toString());
+                                      openLabels.Push(generateLabel()); // second label is for the loop end
+                                    .)
+  IfCondition                       (.
+                                      tuple = new IRTupleOneOpIdent(IrOp.JMPF, tempStack.Peek().getDest(), openLabels.Peek());
+                                      program.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
   ";"
-  IfCondition
-  ";"
-  Increment
-  CodeBlock
+  Identifier <out exprname>            
+  "="
+  Expression <out exprtype>          (. 
+                                      sym = lookup(openScopes, exprname);
+
+                                      if (sym == null)
+                                      {
+                                        SemErr("Use of undefined variable " + exprname);
+                                      }
+                                      if (SwiftKind.Var != (SwiftKind)sym.Item2)
+                                      {
+                                        SemErr(exprname + " is a constant, can't reassign a value");
+                                      }
+
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, exprname, tempStack.Peek().getDest());
+                                      ins_list.Add(tuple.toString());
+                                      tempStack.Pop();
+                                    .)
+  CodeBlock                         (. 
+                                      for (int i = 0; i < ins_list.Count; i++) {
+                                        program.Add(ins_list[i]); // add the instructions from the instruction list to the program now
+                                      }
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString()); 
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); 
+                                    .)
   .
-*/
+
 /*------------------------------------------------------------------------*/
 
 BranchStatement
@@ -298,7 +351,7 @@ IfStatement
 
 /*------------------------------------------------------------------------*/
 
-IfCondition (. SwiftType type; .)
+IfCondition (. string name; SwiftType type; .)
 = ( "(" Expression<out type> ")"    (. if(type != SwiftType.Bool)
                                        {
                                             SemErr("If condition must be of boolean type");
@@ -309,7 +362,7 @@ IfCondition (. SwiftType type; .)
                                             SemErr("If condition must be of boolean type");
                                        }
                                     .)
-  | Declaration
+  | Declaration<out name, out type>
   )
   .
 
@@ -468,21 +521,22 @@ PrimaryExpression
  * for easy finding so we don't forget to go back and implement them!
  */
 
-Declaration
-= VariableDeclaration
+Declaration<out string name, out SwiftType type>  (. string _name; SwiftType _type; .)
+= VariableDeclaration<out _name, out _type>       (. name = _name; type = _type; .)
   .
 
 /*------------------------------------------------------------------------*/
 
-VariableDeclaration                       (.  string name; SwiftType type;  .)
+VariableDeclaration<out string name, out SwiftType type>  (.  string _name; SwiftType _type;  .)
 = "var"
-  PatternInitializer<out name, out type>  (.
-                                              if (lookup(openScopes, name) != null)
+  PatternInitializer<out _name, out _type>  (.
+                                              if (lookup(openScopes, _name) != null)
                                               {
-                                                SemErr("Redefinition of variable: " + name);
+                                                SemErr("Redefinition of variable: " + _name);
                                               }
 
-                                              openScopes.Peek().Push(new Symbol(name, (int)SwiftKind.Var, (int)type));
+                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type));
+                                              name = _name; type = _type;
                                           .)
   .
 
