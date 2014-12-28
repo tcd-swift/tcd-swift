@@ -221,10 +221,24 @@ Statement                           (. string name; SwiftType type; .)
     | Declaration<out name, out type>
     | BranchStatement
     | LoopStatement
+    | FunctionDeclaration
   // | LabeledStatement
   // | ControlTransferStatement
   )
   [";"]
+  .
+
+/*------------------------------------------------------------------------*/
+
+FunctionDeclaration
+= "func"
+  FunctionIdentifier
+  "("
+  { Params }
+  ")"
+  ["->" ReturnDecl 
+  ]
+  CodeBlock
   .
 
 /*------------------------------------------------------------------------*/
