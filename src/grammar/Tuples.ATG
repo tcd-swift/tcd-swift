@@ -273,7 +273,9 @@ ReturnStatement (. SwiftType type; .)
 
 FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName;
                        Parameters parameters = new Parameters(); Program actions;
-                       Program tempHolder = program; program = new Program(); .)
+                       Program tempHolder = program; program = new Program();
+                       inFuncDecl = true;
+                    .)
 = "func"
   FunctionIdentifier<out funcName>
   "("
@@ -287,6 +289,7 @@ FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcNa
      program = tempHolder;
      Function func = new Function(funcName, funcName, parameters, returnType, actions);
      functionDecls.Add(funcName, func);
+     inFuncDecl = false;
   .)
 .
 
