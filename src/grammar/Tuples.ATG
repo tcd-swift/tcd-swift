@@ -271,48 +271,54 @@ ReturnStatement (. SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName;
-                       Parameters parameters = new Parameters(); Program actions;
-                       Program tempHolder = program; program = new Program();
-                       inFuncDecl = true;
-                    .)
-= "func"
+FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefined; string funcName;
+                                         Parameters parameters = new Parameters(); Program actions;
+                                         Program tempHolder = program; program = new Program();
+                                         inFuncDecl = true;
+                                      .)
+= "func"                              (. openScopes.Push(new Scope()); .)
   FunctionIdentifier<out funcName>
   "("
   [ Params<out parameters> ]
   ")"
-  ["->" ReturnDecl<out returnType>
-  ]
+  [ ReturnDecl<out returnType> ]
   CodeBlock
-  (.
-     actions = program;
-     program = tempHolder;
-     Function func = new Function(funcName, funcName, parameters, returnType, actions);
-     functionDecls.Add(funcName, func);
-     inFuncDecl = false;
-  .)
+                                      (.
+                                          openScopes.Pop();
+                                          actions = program;
+                                          program = tempHolder;
+                                          Function func = new Function(funcName, funcName, parameters, returnType, actions);
+                                          functionDecls.Add(funcName, func);
+                                          inFuncDecl = false;
+                                      .)
 .
+
+/*------------------------------------------------------------------------*/
 
 FunctionIdentifier<out string name>
 = Identifier<out name>
 .
 
-Params<out Parameters parameters> (. Parameter parameter; Parameters tempList = new Parameters(); .)
-= Param<out parameter> (. tempList.Add(parameter); .)
+/*------------------------------------------------------------------------*/
+
+Params<out Parameters parameters>     (. Parameter parameter; Parameters tempList = new Parameters(); .)
+= Param<out parameter>                (. tempList.Add(parameter); .)
   {
-  ',' Param<out parameter> (. tempList.Add(parameter); .)
-  }
-  (. parameters = new Parameters(); parameters = tempList; .)
+  ',' Param<out parameter>            (. tempList.Add(parameter); .)
+  }                                   (. parameters = tempList;   .)
 .
 
-Param<out Parameter p> (. SwiftType type; string name; .)
-= Identifier<out name> TypeAnnotation<out type>
-(. p = new Parameter(name, type); .)
+/*------------------------------------------------------------------------*/
+
+Param<out Parameter p>                (. SwiftType type; string name;   .)
+= Identifier<out name>
+  TypeAnnotation<out type>
+                                      (. p = new Parameter(name, type); .)
 .
 
-ReturnDecl<out SwiftType type>
-= Type<out type>
-.
+/*------------------------------------------------------------------------*/
+
+ReturnDecl<out SwiftType type> = "->" Type<out type> .
 
 /*------------------------------------------------------------------------*/
 
