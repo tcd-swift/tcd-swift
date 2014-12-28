@@ -1,11 +1,9 @@
-var x = 420
+var x: Int = 420;
 var y: Int = 400 + 40 / 2
 var z: Int = (10 + 200) * 2
+z = z * 1
 
 let c = ((400 + 40) / 2)
-
-var w: Int = 210
-w = w * 2
 
 var s: String = "Hello World!";
 
@@ -13,15 +11,15 @@ var b: Bool = x == y
 
 if (b)
 {
-    var s1: String = "if (b)"
+    var x = 100
 }
 else if b
 {
-    var s2: String = "else if b"
+    var y = 100
 }
 else
 {
-    var s3: String = "else"
+    var z = 100
 }
 
 while x == y {

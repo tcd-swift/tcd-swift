@@ -18,12 +18,13 @@ enum SwiftKind : int
   Proc
 };
 
-// using Symbol = System.Tuple<string, int, int>
+// using Symbol = System.Tuple<string, int, int, string>
 /*
   Symbol:
     * Symbol.Item1 -> name
     * Symbol.Item2 -> kind
     * Symbol.Item3 -> type
+    * Symbol.Item4 -> uid
 */
 
 class Scope : Stack<Symbol> {}
@@ -34,6 +35,7 @@ Program program = new Program();
 TupleStack tempStack = new TupleStack();
 Stack<Scope> openScopes = new Stack<Scope>();
 Stack<string> openLabels = new Stack<string>();
+Dictionary<string, int> symDeclCount = new Dictionary<string, int>();
 
 int temporarySeed = 0;
 int labelSeed = 0;
@@ -48,29 +50,48 @@ string generateLabel()
   return "L$"+labelSeed++;
 }
 
+string getUID(string name)
+{
+  return name+"$"+symDeclCount[name];
+}
+
+Symbol _lookup(Scope scope, string name)
+{
+  foreach (Symbol s in scope)
+  {
+    if (s.Item1 == name) return s;
+  }
+
+  return null;
+}
+
+// Find symbol (if one exists), at most nested level
 Symbol lookup(Stack<Scope> scopes, string name)
 {
+  Symbol result = null;
+
   foreach (Scope scope in scopes)
   {
     foreach (Symbol s in scope)
     {
-      if (s.Item1 == name) return s;
+      if (s.Item1 == name) result = s;
     }
   }
 
-  return null; // if the name wasn't found in any open scopes.
+  return result;
 }
 
 // Find the scope of a symbol
-Scope findScope(string name) {
-
-  foreach(Scope scope in openScopes) {
-    foreach(Symbol s in scope) {
-      if (s.Item1 == name) {
-        return scope;
-      }
+Scope findScope(string name)
+{
+  foreach(Scope scope in openScopes)
+  {
+    foreach(Symbol s in scope)
+    {
+      if (s.Item1 == name) return scope;
     }
   }
+
   return null;
 }
 
@@ -192,7 +213,7 @@ Statement                           (. string name; SwiftType type; .)
                                           SemErr(error);
                                         }
 
-                                        IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                        IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, tempStack.Peek().getDest());
                                         program.Add(tuple.toString());
                                         tempStack.Pop();
                                     .)
@@ -278,7 +299,7 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                         SemErr(name + " is a constant, can't reassign a value");
                                       }
 
-                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                      tuple = new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, tempStack.Peek().getDest());
                                       program.Add(tuple.toString());
                                       tempStack.Pop();
                                     .)
@@ -436,7 +457,11 @@ DefaultLabel
 
 /*------------------------------------------------------------------------*/
 
-CodeBlock = "{" [Statements] "}".
+CodeBlock
+= "{"                     (. openScopes.Push(new Scope()); .)
+  [Statements]
+  "}"                     (. openScopes.Pop();  .)
+  .
 
 /*------------------------------------------------------------------------*/
 
@@ -523,7 +548,7 @@ PrimaryExpression
                                           }
 
                                           type = (SwiftType)sym.Item3;
-                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, name, name));
+                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, sym.Item4));
                                       .)
   | Literal<out value, out _type>     (.
                                           tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
@@ -551,12 +576,12 @@ Declaration<out string name, out SwiftType type>  (. string _name = null; SwiftT
 VariableDeclaration<out string name, out SwiftType type>  (.  string _name; SwiftType _type;  .)
 = "var"
   PatternInitializer<out _name, out _type>  (.
-                                              if (lookup(openScopes, _name) != null)
+                                              if (_lookup(openScopes.Peek(), _name) != null)
                                               {
                                                 SemErr("Redefinition of variable: " + _name);
                                               }
 
-                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type));
+                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type, getUID(_name)));
                                               name = _name; type = _type;
                                           .)
   .
@@ -566,12 +591,12 @@ VariableDeclaration<out string name, out SwiftType type>  (.  string _name; Swif
 ConstantDeclaration<out string name, out SwiftType type>  (.  string _name; SwiftType _type;  .)
 = "let"
   PatternInitializer<out _name, out _type>  (.
-                                              if (lookup(openScopes, _name) != null)
+                                              if (_lookup(openScopes.Peek(), _name) != null)
                                               {
                                                 SemErr("Redefinition of constant: " + _name);
                                               }
 
-                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Const, (int)_type));
+                                              openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Const, (int)_type, getUID(_name)));
                                               name = _name; type = _type;
                                           .)
   .
@@ -588,7 +613,16 @@ PatternInitializer
                                             }
                                         .)
   ]                                     (.
-                                            IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, name, tempStack.Peek().getDest());
+                                            if (symDeclCount.ContainsKey(name))
+                                            {
+                                              symDeclCount[name] += 1;
+                                            }
+                                            else
+                                            {
+                                              symDeclCount.Add(name, 1);
+                                            }
+
+                                            IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), tempStack.Peek().getDest());
                                             program.Add(tuple.toString());
                                             tempStack.Pop();
                                         .)
@@ -600,7 +634,7 @@ Pattern<out string name, out SwiftType type>  (. string _name; SwiftType _type =
 = IdentifierPattern<out _name>                (.
                                                 name = _name;
                                                 Symbol symbol = lookup(openScopes, name);
-                                                if(symbol != null) _type = (SwiftType)symbol.Item3;
+                                                if (symbol != null) _type = (SwiftType)symbol.Item3;
                                               .)
   [ TypeAnnotation<out _type>
   ]                                           (.
