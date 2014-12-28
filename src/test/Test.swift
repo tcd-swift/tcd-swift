@@ -5,20 +5,17 @@ z = z * 1
 
 let c = ((400 + 40) / 2)
 
-var s: String = "Hello World!";
+var s: String = "Hello World!"
 
 var b: Bool = x == y
 
-if (b)
-{
+if (b) {
     var x = 100
 }
-else if b
-{
+else if x != y {
     var y = 100
 }
-else
-{
+else {
     var z = 100
 }
 
@@ -35,12 +32,11 @@ for var i = 0; i < 10; i = i + 1 {
     x = x + 1
 }
 
-switch x
-{
+switch x {
     case x:
-        x = x + y;
+        x = x + y
     case y + 1:
-        x = x - y;
+        x = x - y
     default:
-        x = x + 1;
+        x = x + 1
 }
