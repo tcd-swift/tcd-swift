@@ -43,11 +43,11 @@ class Function
 {
     public string _name;
     public string _label;
-    public List<Parameter> _parameters;
+    public Parameters _parameters;
     public SwiftType _returnType;
-    public List<IRTuple> _codeblock;
+    public Program _codeblock;
 
-    public Function(string name, string label, List<Parameter> parameters, SwiftType returnType, List<IRTuple> codeblock)
+    public Function(string name, string label, Parameters parameters, SwiftType returnType, Program codeblock)
     {
         _name = name;
         _label = label;
@@ -58,7 +58,6 @@ class Function
 }
 
 class Parameters : List<Parameter> {}
-class FuncBody : List<IRTuple> {}
 
 class Scope : Stack<Symbol> {}
 class Program : List<string> {}
@@ -70,6 +69,8 @@ Stack<Scope> openScopes = new Stack<Scope>();
 Stack<string> openLabels = new Stack<string>();
 Dictionary<string, int> symDeclCount = new Dictionary<string, int>();
 Dictionary<string, Function> functionDecls = new Dictionary<string, Function>();
+
+bool inFuncDecl = false;
 
 int temporarySeed = 0;
 int labelSeed = 0;
@@ -255,6 +256,7 @@ Statement                           (. string name; SwiftType type; .)
     | Declaration<out name, out type>
     | BranchStatement
     | LoopStatement
+    | ReturnStatement
   // | LabeledStatement
   // | ControlTransferStatement
   )
@@ -263,8 +265,14 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
+ReturnStatement (. SwiftType type; .)
+= "return" [ Expression<out type> ] (. if (!inFuncDecl) SemErr("Cannot have top level function declaration"); .)
+.
+
+/*------------------------------------------------------------------------*/
+
 FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName;
-                       Parameters parameters = new Parameters(); FuncBody actions; 
+                       Parameters parameters = new Parameters(); Program actions;
                        Program tempHolder = program; program = new Program(); .)
 = "func"
   FunctionIdentifier<out funcName>
@@ -485,27 +493,27 @@ SwitchStatement                   (. SwiftType type;  .)
 
 SwitchCases                       (.  string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
 =                                 (.  openScopes.Push(new Scope());                                       .)
-  Case                            (. 
+  Case                            (.
                                       openScopes.Pop();
                                       program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
                                   .)
-  {                               (.  
+  {                               (.
                                       openScopes.Push(new Scope());
                                       program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
                                   .)
     Case                          (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());  
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
                                   .)
   }
 
-  [                               (.  
+  [                               (.
                                       openScopes.Push(new Scope());
                                       program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
                                   .)
-    DefaultCase                   (.  
+    DefaultCase                   (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
                                   .)
   ]                               (.  program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString());       .)
 .
