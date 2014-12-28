@@ -42,7 +42,6 @@ public class CodeGen{
         // Floating point everything
         if(IR.getOp() == IrOp.JMP){
             return "JMP " + IR.getDest();
-
         }
         if(IR.getOp() == IrOp.JMPF){
             string str += "CMP " + IR.getDest() + ", #0";
