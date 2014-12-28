@@ -5,8 +5,8 @@ using System.Collections.Generic;
 public class test{
     
     public static void Main(){
-        int regs = 12;
-        
+        int regs = 3;
+        /*
         List<string>[] input = new List<string>[10];
         input[0] = new List<string>(){"T","R0","R1","T"};
         input[1] = new List<string>(){"A","R1","A","T"};
@@ -29,22 +29,32 @@ public class test{
         };
         
         List<string> livein = new List<string>(){"R0","R1","R2"};
+        */
+        
+        List<string>[] input = new List<string>[6];
+        input[0] = new List<string>(){"A","B","D"};
+        input[1] = new List<string>(){"B","A","C","D","E"};
+        input[2] = new List<string>(){"C","E","B","F"};
+        input[3] = new List<string>(){"D","A","B","E","F"};
+        input[4] = new List<string>(){"E","B","E","D","F"};
+        input[5] = new List<string>(){"F","C","D","E"};
+        
+        string[,] moves = new string[1,2]{
+            {"A","E"}
+        };
+        List<string> livein = new List<string>();
+        
         
         Allocate.takeInput(input, moves, livein, regs);
         Allocate.build();
         
         List<List<string>> results = Allocate.simplify(Allocate.graph);
-        
-        if(results == null){
-            Console.WriteLine("Couldn't allocate registers, get your shit together Darragh");
+          
+        Console.WriteLine();
+        for(int i = 0; i < results.Count; i++){
+            Console.WriteLine(results[i][0] + " : " + results[i][1]);
         }
-        else{
-            Console.WriteLine();
-            for(int i = 0; i < results.Count; i++){
-                Console.WriteLine(results[i][0] + " : " + results[i][1]);
-            }
-            Console.WriteLine();
-        } 
+        Console.WriteLine();
     }
 }
 
@@ -123,18 +133,13 @@ public class Allocate{
             alloc.Add(new List<string>(){n.id,regs[0]});
             return alloc;
         }
-        Console.WriteLine();
-        for(int i = 0; i < alloc.Count; i++){
-            Console.WriteLine(alloc[i][0] + " : " + alloc[i][1]);
-        }
-        Console.WriteLine();
-        Console.WriteLine("No registers left to allocate to :( - This should be possible at this point");
-        return null;
+        alloc.Add(new List<string>(){n.id,"MEM["+ n.id +"]"});
+        return alloc;
     }
 
     public static List<List<string>> simplify(Graph graph){
     
-        if(graph.Count < 3 || graph.isRegisters()){
+        if(graph.Count == 1 || graph.isRegisters()){
             return assign(graph);
         }
 
@@ -159,7 +164,6 @@ public class Allocate{
                 graph.Remove(n);
                 //Console.WriteLine("Simplifying, removing " + n.id);
                 result = simplify(graph);
-                if(result == null) return null;
                 graph.Add(n);
                 return appendToAllocated(result, n);
             }
@@ -168,10 +172,12 @@ public class Allocate{
         n = graph.GetHighestDegreeNode();
         graph.Remove(n);
         result = simplify(graph);
-        if(result == null) return null;
         graph.Add(n);
+        /*
         result.Add(new List<string>(){n.id,"MEM["+n.id+"]"});
         return result;
+        */
+        return appendToAllocated(result, n); //you know, let's just try to colour the node anyway
     }
 
     public static List<List<string>> assign(Graph graph){
