@@ -233,13 +233,16 @@ FunctionDeclaration
 = "func"
   FunctionIdentifier
   "("
-  { Params }
+  [ Params ]
   ")"
-  ["->" ReturnDecl 
+  ["->" ReturnDecl
   ]
   CodeBlock
   .
 
+Params
+= Parameter { , Paramater }
+.
 /*------------------------------------------------------------------------*/
 
 LoopStatement
@@ -583,7 +586,7 @@ Declaration<out string name, out SwiftType type>  (. string _name = null; SwiftT
   | ConstantDeclaration<out _name, out _type>
   | FunctionDeclaration
   )                                               (. name = _name; type = _type; .)
-  .                                              
+  .
 
 /*------------------------------------------------------------------------*/
 
