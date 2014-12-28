@@ -481,15 +481,31 @@ SwitchStatement                   (. SwiftType type;  .)
 
 /*------------------------------------------------------------------------*/
 
-SwitchCases                       (. string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
-= Case                            (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
-  {                               (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
-    Case                          (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
+SwitchCases                       (.  string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
+=                                 (.  openScopes.Push(new Scope());                                       .)
+  Case                            (. 
+                                      openScopes.Pop();
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
+                                  .)
+  {                               (.  
+                                      openScopes.Push(new Scope());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                  .)
+    Case                          (.
+                                      openScopes.Pop();
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());  
+                                  .)
   }
 
-  [                               (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
-    DefaultCase                   (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
-  ]                               (. program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString());       .)
+  [                               (.  
+                                      openScopes.Push(new Scope());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                  .)
+    DefaultCase                   (.  
+                                      openScopes.Pop();
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         
+                                  .)
+  ]                               (.  program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString());       .)
 .
 
 Case
@@ -754,12 +770,7 @@ Identifier<out string name>
 
 TCDSwift
 =                             (.  openScopes.Push(new Scope()); .)
-  Statements
-                              (.
-                                  Console.WriteLine("OpenScopes: " + openScopes.Count);
-                                  if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
-                                  openScopes.Pop();
-                              .)
+  Statements                  (.  openScopes.Pop();             .)
   .
 
 /*------------------------------------------------------------------------*/
