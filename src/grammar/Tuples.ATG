@@ -229,20 +229,33 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration
+FunctionDeclaration (. SwiftType returnType; .)
 = "func"
   FunctionIdentifier
   "("
   [ Params ]
   ")"
-  ["->" ReturnDecl
+  ["->" ReturnDecl<out returnType>
   ]
   CodeBlock
-  .
+.
+
+FunctionIdentifier (. string name; .)
+= Identifier<out name>
+.
 
 Params
-= Parameter { , Paramater }
+= Param { ',' Param }
 .
+
+Param (. SwiftType type; string name; .)
+= Identifier<out name> TypeAnnotation<out type>
+.
+
+ReturnDecl<out SwiftType type>
+= Type<out type>
+.
+
 /*------------------------------------------------------------------------*/
 
 LoopStatement
