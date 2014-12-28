@@ -110,6 +110,11 @@ public class IRBlock
   // Compute event(LiveUse) and anti-event(Def) sets for this block
   public void ComputeLiveuseDef()
   {
+    this.def.Clear();
+    this.liveuse.Clear();
+    this.livein.Clear();
+    this.liveout.Clear();
+
     HashSet<Ident> used = new HashSet<Ident>();
     HashSet<Ident> defined = new HashSet<Ident>();
 
@@ -159,6 +164,8 @@ public class IRBlock
   // Backward pass to determine liveness at each point in the block
   public void ComputeLiveouts()
   {
+    this.liveouts.Clear();
+
     Stack<List<string>> reversed = new Stack<List<string>>(); // Because this is a backward pass, lists will be found in reverse
     HashSet<Ident> lo = new HashSet<Ident>(this.liveout);
 
@@ -281,7 +288,7 @@ public class IRBlock
     {
       Console.Write("\t");
       foreach (string s in lo)
-        Console.Write(s + " ");
+        Console.Write(s + "\t");
       Console.WriteLine();
     }
 

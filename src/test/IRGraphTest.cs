@@ -27,6 +27,7 @@ public class IRGraphTest
     irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R$2", "T"));
 
     IRGraph graph = new IRGraph(irstream);
+    graph.ComputeLiveness();
 
     graph.Print();
   }

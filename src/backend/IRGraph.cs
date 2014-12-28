@@ -12,16 +12,31 @@ public class IRGraph
   // Construct a graph from a stream of tuples
   public IRGraph(IRStream tuples)
   {
-    this.blocks = new SortedDictionary<int, IRBlock>();
-
     if(tuples.Count < 1)
       return;
 
-    int currentIndex = 1; // The next block index in the graph
+    this.blocks = new SortedDictionary<int, IRBlock>();
 
-    SortedDictionary<int, int> firsts = new SortedDictionary<int, int>(); // Map from block index to line index of its first tuple in stream
-    SortedDictionary<int, int> lasts = new SortedDictionary<int, int>(); // Map from block index to line index of its last tuple in stream
+    SortedDictionary<int, int> firsts; // Map from block index to line index of its first tuple in stream
+    SortedDictionary<int, int> lasts; // Map from block index to line index of its last tuple in stream
  
+    // Split the IR stream into blocks
+    this.SplitStream(tuples, out firsts, out lasts);
+
+    // Link successor blocks
+    this.LinkSuccessors(firsts, lasts);
+  
+    // Compute initial liveness
+    this.ComputeLiveness();
+  }
+
+  // 
+  private void SplitStream(IRStream tuples, out SortedDictionary<int, int> firsts, out SortedDictionary<int, int> lasts)
+  {
+    firsts = new SortedDictionary<int, int>(); // Map from block index to line index of its first tuple in stream
+    lasts = new SortedDictionary<int, int>(); // Map from block index to line index of its last tuple in stream
+
+    int currentIndex = 1; // The next block index in the graph
     firsts[currentIndex] = 0; // By definition, the very first tuple is the first tuple in the first block
     this.blocks[currentIndex] = new IRBlock(currentIndex);
     this.blocks[currentIndex].AppendStatement(tuples[0]);
@@ -61,21 +76,12 @@ public class IRGraph
       if(j == tuples.Count)
         lasts[currentIndex] = j-1;
     }
+  }
 
-    /*
-    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
-    {
-      Console.WriteLine("Block " + pair.Value.GetIndex() + ":");
-      if (firsts.ContainsKey(pair.Key))
-        Console.WriteLine("Start index: " + firsts[pair.Key]);
-      if (lasts.ContainsKey(pair.Key))
-        Console.WriteLine("End index: " + lasts[pair.Key]);
-      Console.WriteLine();
-    }
-    */
-
-    // Link successor blocks
-    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+  // Establish pointers between each block in the graph and its successor blocks
+  private void LinkSuccessors(SortedDictionary<int, int> firsts, SortedDictionary<int, int> lasts)
+  {
+        foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
     {
       IRBlock block = pair.Value;
       IRTuple tup = block.GetLast(); // Get last statement in block
@@ -119,16 +125,19 @@ public class IRGraph
           } 
         }
       }
-      // TODO: What about RET?
     }
+  }
+
+  // Compute block-based and statement-based liveness for this graph
+  public void ComputeLiveness()
+  {
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      pair.Value.ComputeLiveuseDef(); // Initialize events and anti-events for each block
+
+    this.ComputeBlockLiveness(); // Iteratively determine block-based liveness
 
     foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
-      pair.Value.ComputeLiveuseDef();
-
-    this.ComputeLiveness();
-
-    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
-      pair.Value.ComputeLiveouts();    
+      pair.Value.ComputeLiveouts(); // Determine statement-based liveness
   }
 
   // Return whether a tuple is of the type that may start a block
@@ -144,7 +153,7 @@ public class IRGraph
   }
 
   // Compute LiveIn and LiveOut for each block in this graph
-  public void ComputeLiveness()
+  private void ComputeBlockLiveness()
   {
     bool converged = true;
     do{
