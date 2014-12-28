@@ -57,6 +57,9 @@ class Function
     }
 }
 
+class Parameters : List<Parameter> {}
+class FuncBody : List<IRTuple> {}
+
 class Scope : Stack<Symbol> {}
 class Program : List<string> {}
 class TupleStack : Stack<IRTuple> {}
@@ -260,33 +263,44 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration (. SwiftType returnType; .)
+FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName; Parameters parameters = new Parameters(); FuncBody actions; .)
 = "func"
-  FunctionIdentifier
+  FunctionIdentifier<out funcName>
   "("
-  [ Params ]
+  [ Params<out parameters> ]
   ")"
   ["->" ReturnDecl<out returnType>
   ]
-  CodeBlock
+  Functionbody<out actions>
+  (.
+     Function func = new Function(funcName, funcName, parameters, returnType, actions);
+     functionDecls.Add(funcName, func);
+  .)
 .
 
-FunctionIdentifier (. string name; .)
+FunctionIdentifier<out string name>
 = Identifier<out name>
 .
 
-Params
-= Param { ',' Param }
+Params<out Parameters parameters> (. Parameter parameter; Parameters tempList = new Parameters(); .)
+= Param<out parameter> (. tempList.Add(parameter); .)
+  {
+  ',' Param<out parameter> (. tempList.Add(parameter); .)
+  }
+  (. parameters = new Parameters(); parameters = tempList; .)
 .
 
-Param (. SwiftType type; string name; .)
+Param<out Parameter p> (. SwiftType type; string name; .)
 = Identifier<out name> TypeAnnotation<out type>
+(. p = new Parameter(name, type); .)
 .
 
 ReturnDecl<out SwiftType type>
 = Type<out type>
 .
 
+Functionbody<out FuncBody actions> (. actions = new FuncBody(); .) //TODO
+= .
 /*------------------------------------------------------------------------*/
 
 LoopStatement
