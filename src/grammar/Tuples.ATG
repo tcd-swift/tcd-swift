@@ -27,6 +27,36 @@ enum SwiftKind : int
     * Symbol.Item4 -> uid
 */
 
+class Parameter
+{
+    public string _name;
+    public SwiftType _type;
+
+    public Parameter(string name, SwiftType type)
+    {
+        _name = name;
+        _type = type;
+    }
+}
+
+class Function
+{
+    public string _name;
+    public string _label;
+    public List<Parameter> _parameters;
+    public SwiftType _returnType;
+    public List<IRTuple> _codeblock;
+
+    public Function(string name, string label, List<Parameter> parameters, SwiftType returnType, List<IRTuple> codeblock)
+    {
+        _name = name;
+        _label = label;
+        _parameters = parameters;
+        _returnType = returnType;
+        _codeblock = codeblock;
+    }
+}
+
 class Scope : Stack<Symbol> {}
 class Program : List<string> {}
 class TupleStack : Stack<IRTuple> {}
@@ -36,6 +66,7 @@ TupleStack tempStack = new TupleStack();
 Stack<Scope> openScopes = new Stack<Scope>();
 Stack<string> openLabels = new Stack<string>();
 Dictionary<string, int> symDeclCount = new Dictionary<string, int>();
+Dictionary<string, Function> functionDecls = new Dictionary<string, Function>();
 
 int temporarySeed = 0;
 int labelSeed = 0;
