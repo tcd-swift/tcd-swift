@@ -2,17 +2,11 @@ using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-public class input{
-
-    public static Graph graph;
-
-    public static int registers;
-
-    public static List<string> livein;
-
+public class test{
+    
     public static void Main(){
-        registers = 3;
-
+        int regs = 12;
+        
         List<string>[] input = new List<string>[10];
         input[0] = new List<string>(){"T","R0","R1","T"};
         input[1] = new List<string>(){"A","R1","A","T"};
@@ -24,7 +18,7 @@ public class input{
         input[7] = new List<string>(){"D","B","C","D","T"};
         input[8] = new List<string>(){"R0","R0","T"};
         input[9] = new List<string>(){"R2","R0","R2"};
-
+        
         string[,] moves = new string[6,2]{
             {"T","R2"},
             {"A","R0"},
@@ -34,10 +28,46 @@ public class input{
             {"R2","T"}
         };
         
+        List<string> livein = new List<string>(){"R0","R1","R2"};
+        
+        Allocate.takeInput(input, moves, livein, regs);
+        Allocate.build();
+        
+        List<List<string>> results = Allocate.simplify(Allocate.graph);
+        
+        if(results == null){
+            Console.WriteLine("Couldn't allocate registers, get your shit together Darragh");
+        }
+        else{
+            Console.WriteLine();
+            for(int i = 0; i < results.Count; i++){
+                Console.WriteLine(results[i][0] + " : " + results[i][1]);
+            }
+            Console.WriteLine();
+        } 
+    }
+}
+
+public class Allocate{
+
+    public static Graph graph;
+
+    public static int registers;
+    public static List<string> livein;
+    public static List<string>[] input;
+    public static string[,] moves;
+
+    public static void takeInput(List<string>[] inputIn, string[,] movesIn, List<string> live, int regs){
+        input = inputIn;
+        moves = movesIn;
+        registers = regs;
+        livein = live;
         graph = new Graph();
-
-        livein = new List<string>(){"R0","R1","R2"};
-
+        Console.WriteLine("Registers = " + registers);
+    }
+    
+    public static void build(){
+    
         Console.Write("\nLive In:");
         for(int i = 0; i < livein.Count; i++){
             Node n = graph.getNode(livein[i]);
@@ -71,24 +101,11 @@ public class input{
         }
 
         graph.print();
-
-        List<List<string>> results = assign(graph);
-        if(results == null){
-            Console.WriteLine("Couldn't allocate registers, get your shit together Darragh");
-        }
-        else{
-            Console.WriteLine();
-            for(int i = 0; i < results.Count; i++){
-                Console.WriteLine(results[i][0] + " : " + results[i][1]);
-            }
-            Console.WriteLine();
-        }
-        return;
     }
     
     public static List<string> getRegisters(){
         List<string> regs = new List<string>();
-        for(int i = 0; i < input.registers; i++){
+        for(int i = 0; i < Allocate.registers; i++){
             string reg = "R" + i;
             regs.Add(reg);       
         }
@@ -124,6 +141,7 @@ public class input{
         List<List<string>> result = new List<List<string>>();
         List<int> degrees = new List<int>();
         Node n;
+        
         for(int i = 0; i < graph.Count; i++){
             if(graph.Get(i).isRegister){
                 degrees.Add(-1); //causes nodes that are already registers to be ignored when simplifying
@@ -132,14 +150,14 @@ public class input{
                 degrees.Add(graph.Get(i).getDegree());
             }
         }
-        int k = input.registers - 1;
+        
+        int k = Allocate.registers - 1;
         while(k >= 0){
-            Console.WriteLine("k = " + k);
             if(degrees.Contains(k)){
                 int index = degrees.IndexOf(k);
                 n = graph.Get(index);
                 graph.Remove(n);
-                Console.WriteLine("Simplifying, removing " + n.id);
+                //Console.WriteLine("Simplifying, removing " + n.id);
                 result = simplify(graph);
                 if(result == null) return null;
                 graph.Add(n);
@@ -157,33 +175,29 @@ public class input{
     }
 
     public static List<List<string>> assign(Graph graph){
-        Console.WriteLine("Current number of nodes: " + graph.Count);
-        if(graph.Count <= registers){
         
-            List<List<string>> assigned = new List<List<string>>();
-            List<string> available = new List<string>();
-            
-            //build list of available registers
-            for(int i = 0; i < input.registers; i++){
-                string reg = "R" + i;
-                if(!livein.Contains(reg)){
-                    available.Add(reg);
-                }
+        List<List<string>> assigned = new List<List<string>>();
+        List<string> available = new List<string>();
+         
+        //build list of available registers
+        for(int i = 0; i < Allocate.registers; i++){
+            string reg = "R" + i;
+            if(!livein.Contains(reg)){
+                available.Add(reg);
             }
-            
-            //assign registers
-            for(int i = 0; i < graph.Count; i++){
-                if(graph.Get(i).isRegister){
-                    assigned.Add(new List<string>(){graph.Get(i).id,graph.Get(i).id});
-                }
-                else{
-                    assigned.Add(new List<string>(){graph.Get(i).id,available[0]});
-                    available.Remove(available[0]);
-                }
-            }
-            return assigned;
         }
-        return simplify(graph);
+        
+        //assign registers
+        for(int i = 0; i < graph.Count; i++){
+            if(graph.Get(i).isRegister){
+                assigned.Add(new List<string>(){graph.Get(i).id,graph.Get(i).id});
+            }
+            else{
+                assigned.Add(new List<string>(){graph.Get(i).id,available[0]});
+                available.Remove(available[0]);
+            }
+        }
+        return assigned;
     }
 }
 
