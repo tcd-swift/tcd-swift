@@ -15,6 +15,14 @@ public class CodeGen{
         if(IR.getOp() == IrOp.AND){
             return "AND " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
         }
+        if(IR.getOp() == IrOp.MUL){
+            if(IR.getDest != IR.getSrc1){
+                return "MUL " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2(); 
+            }
+            else{
+                return "MUL " + IR.getDest() + ", " + IR.getSrc2() + ", " + IR.getSrc1(); 
+            }
+        }
         // CALL
         // RET
         // DIV
@@ -25,16 +33,26 @@ public class CodeGen{
             str += "MOVNE " + IR.getDest() + ", #0";
             return str;
         }
-        if(IR.getOp() == IrOp.EQU){
+        if(IR.getOp() == IrOp.NEQ){
             string str =  "CMP " + IR.getSrc1() + ", " + IR.getSrc2()  +'\n';
             str += "MOVEQ " + IR.getDest() + ", #0";
             str += "MOVNE " + IR.getDest() + ", #1";
             return str;
         }
         // Floating point everything
-        // JMPing and Labels
+        if(IR.getOp() == IrOp.JMP){
+            return "JMP " + IR.getDest();
+
+        }
+        if(IR.getOp() == IrOp.JMPF){
+            string str += "CMP " + IR.getDest() + ", #0";
+            str += "JMPEQ " + IR.getSrc1();
+            return str;
+        }
+        if(IR.getOp() == IrOp.LABEL){
+            return IR.getDest() + ':';
+        }
         // MOD
-        // NEQ
         if(IR.getOp() == IrOp.NOT){
             return "MVN " + IR.getDest() + ", " + IR.getSrc1();
         }
@@ -44,6 +62,19 @@ public class CodeGen{
         if(IR.getOp() == IrOp.XOR){
             return "EOR " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
         }
+        if(IR.getOp() == IrOp.STORE){
+            if(IR.getDest()[0] == 'R'){
+                return "LDR " + IR.getDest()[0] + ", " + IR.getSrc1();
+            }
+            return "STR " + IR.getDest() + ", " + IR.getSrc1();
+        }
         return "";
+    }
+    public static string IRListToARM(IRTuple[] tuples){
+        str = "";
+        for(int i = 0; i < tuples.Length(); i++){
+            str += IRToARM(tuples[i]) + '\n';
+        }
+        return str;
     }
 }
