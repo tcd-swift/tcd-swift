@@ -221,7 +221,6 @@ Statement                           (. string name; SwiftType type; .)
     | Declaration<out name, out type>
     | BranchStatement
     | LoopStatement
-    | FunctionDeclaration
   // | LabeledStatement
   // | ControlTransferStatement
   )
@@ -582,6 +581,7 @@ PrimaryExpression
 Declaration<out string name, out SwiftType type>  (. string _name = null; SwiftType _type = SwiftType.Undefined; .)
 = ( VariableDeclaration<out _name, out _type>
   | ConstantDeclaration<out _name, out _type>
+  | FunctionDeclaration
   )                                               (. name = _name; type = _type; .)
   .                                              
 
