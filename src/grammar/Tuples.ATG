@@ -263,7 +263,9 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName; Parameters parameters = new Parameters(); FuncBody actions; .)
+FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcName;
+                       Parameters parameters = new Parameters(); FuncBody actions; 
+                       Program tempHolder = program; program = new Program(); .)
 = "func"
   FunctionIdentifier<out funcName>
   "("
@@ -271,8 +273,10 @@ FunctionDeclaration (. SwiftType returnType = SwiftType.Undefined; string funcNa
   ")"
   ["->" ReturnDecl<out returnType>
   ]
-  Functionbody<out actions>
+  CodeBlock
   (.
+     actions = program;
+     program = tempHolder;
      Function func = new Function(funcName, funcName, parameters, returnType, actions);
      functionDecls.Add(funcName, func);
   .)
@@ -299,8 +303,6 @@ ReturnDecl<out SwiftType type>
 = Type<out type>
 .
 
-Functionbody<out FuncBody actions> (. actions = new FuncBody(); .) //TODO
-= .
 /*------------------------------------------------------------------------*/
 
 LoopStatement
