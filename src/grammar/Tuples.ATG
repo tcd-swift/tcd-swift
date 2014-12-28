@@ -457,28 +457,25 @@ ElseClause
 
 /*------------------------------------------------------------------------*/
 
-SwitchStatement (. SwiftType type; .)
-= "switch" Expression<out type>
- '{' [ SwitchCases ] '}'
- (. tempStack.Pop(); .)
-.
+SwitchStatement                   (. SwiftType type;  .)
+= "switch" 
+  Expression<out type>
+  '{'
+  [SwitchCases]
+  '}'                             (. tempStack.Pop(); .)
+  .
 
 /*------------------------------------------------------------------------*/
 
-SwitchCases (. string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
-= Case (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
-  {
-  (.
-    program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
-  .)
-  Case (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
+SwitchCases                       (. string finishLabel = generateLabel(); openLabels.Push(finishLabel); .)
+= Case                            (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
+  {                               (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
+    Case                          (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
   }
 
-  [ (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString()); .)
-    DefaultCase
-    (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString()); .)
-  ]
-  (. program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString()); .)
+  [                               (. program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
+    DefaultCase                   (. program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());         .)
+  ]                               (. program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString());       .)
 .
 
 Case
@@ -497,35 +494,31 @@ CaseLabel
 = "case" CaseItemList ':'
 .
 
-CaseItemList (. SwiftType type; .)
-= Expression<out type>       (.
-                                    var expr = tempStack.Pop();
-                                    IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), expr.getDest(), tempStack.Peek().getDest());
+/*------------------------------------------------------------------------*/
 
-                                    program.Add(checkCase.toString());
+CaseItemList                      (.  SwiftType type; .)
+= Expression<out type>            (.
+                                      var expr = tempStack.Pop();
+                                      IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), expr.getDest(), tempStack.Peek().getDest());
 
-                                    string nextCase = generateLabel();
-                                    openLabels.Push(nextCase);
-                                    IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
+                                      program.Add(checkCase.toString());
 
-                                    program.Add(tuple.toString());
-                            .)
+                                      string nextCase = generateLabel();
+                                      openLabels.Push(nextCase);
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
+
+                                      program.Add(tuple.toString());
+                                  .)
   [ ',' CaseItemList ]
 .
 
-DefaultLabel
-= "default" ':'
-.
+/*------------------------------------------------------------------------*/
+
+DefaultLabel = "default" ':' .
 
 /*------------------------------------------------------------------------*/
 
 CodeBlock = "{" [Statements] "}" .
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
-
-/*------------------------------------------------------------------------*/
 
 /*------------------------------------------------------------------------*/
 
