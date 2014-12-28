@@ -28,7 +28,7 @@ do {
 } while z == y
 
 
-for var i = 0; i < 10; i = i + 1 {
+for var y = 0; y < 10; y = y + 1 {
     x = x + 1
 }
 

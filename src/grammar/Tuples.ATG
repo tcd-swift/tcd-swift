@@ -260,16 +260,16 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-FunctionDeclaration (. SwiftType returnType; .)
-= "func"
+FunctionDeclaration                       (. SwiftType returnType; .)
+= "func"                                  (. openScopes.Push(new Scope()); .)
   FunctionIdentifier
   "("
   [ Params ]
   ")"
   ["->" ReturnDecl<out returnType>
   ]
-  CodeBlock
-.
+  CodeBlock                               (. openScopes.Pop(); .)
+  .
 
 FunctionIdentifier (. string name; .)
 = Identifier<out name>
@@ -299,7 +299,7 @@ LoopStatement
 /*------------------------------------------------------------------------*/
 
 WhileLoop                           (. string loopStartLabel; .)
-= "while"
+= "while"                           (. openScopes.Push(new Scope()); .)
   IfCondition                       (.
                                       loopStartLabel = generateLabel();
                                       openLabels.Push(generateLabel());
@@ -308,6 +308,7 @@ WhileLoop                           (. string loopStartLabel; .)
                                       tempStack.Pop();
                                     .)
   CodeBlock                         (.
+                                      openScopes.Pop();
                                       program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());
                                       program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
                                     .)
@@ -318,10 +319,11 @@ WhileLoop                           (. string loopStartLabel; .)
 
 DoWhileLoop
 = "do"                              (.
+                                      openScopes.Push(new Scope());
                                       openLabels.Push(generateLabel());
                                       program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
                                     .)
-  CodeBlock
+  CodeBlock                         (. openScopes.Pop(); .)
   "while"
   IfCondition                       (.
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, tempStack.Peek().getDest(), openLabels.Peek());
@@ -344,7 +346,7 @@ ForLoop
 
 TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>();
                                        Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
-= "for"
+= "for"                             (. openScopes.Push(new Scope()); .)
   (Identifier <out name>
    "="
    Expression <out type>            (.
@@ -364,9 +366,7 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       tempStack.Pop();
                                     .)
   |
-  Declaration<out name, out type>   (.
-                                      Console.WriteLine("TODO: Scope this");
-                                    .)
+  Declaration<out name, out type>
   )
   ";"                               (.
                                       loopStartLabel = generateLabel();
@@ -398,6 +398,8 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       tempStack.Pop();
                                     .)
   CodeBlock                         (.
+                                      openScopes.Pop();
+
                                       for (int i = 0; i < ins_list.Count; i++) {
                                         program.Add(ins_list[i]); // add the instructions from the instruction list to the program now
                                       }
@@ -417,7 +419,7 @@ BranchStatement
 /*------------------------------------------------------------------------*/
 
 IfStatement
-= "if"
+= "if"                                (. openScopes.Push(new Scope()); .)
   IfCondition                         (.
                                           openLabels.Push(generateLabel());
 
@@ -426,6 +428,8 @@ IfStatement
                                           tempStack.Pop();
                                       .)
   CodeBlock                           (.
+                                          openScopes.Pop();
+
                                           IRTuple startOfElse = new IRTuple(IrOp.LABEL, openLabels.Pop());
 
                                           openLabels.Push(generateLabel());
@@ -445,10 +449,10 @@ IfCondition                       (.  string name; SwiftType type;  .)
 /*------------------------------------------------------------------------*/
 
 ElseClause
-= "else"
+= "else"                          (. openScopes.Push(new Scope()); .)
   ( CodeBlock
   | IfStatement
-  )
+  )                               (. openScopes.Pop();             .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -515,11 +519,7 @@ DefaultLabel
 
 /*------------------------------------------------------------------------*/
 
-CodeBlock
-= "{"                     (. openScopes.Push(new Scope()); .)
-  [Statements]
-  "}"                     (. openScopes.Pop();  .)
-  .
+CodeBlock = "{" [Statements] "}" .
 
 /*------------------------------------------------------------------------*/
 
@@ -749,6 +749,7 @@ TCDSwift
 =                             (.  openScopes.Push(new Scope()); .)
   Statements
                               (.
+                                  Console.WriteLine("OpenScopes: " + openScopes.Count);
                                   if (openScopes.Peek().Count == 0) Warn("Warning: program is empty");
                                   openScopes.Pop();
                               .)
