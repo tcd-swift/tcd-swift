@@ -241,7 +241,7 @@ FunctionDeclaration
   .
 
 Params
-= Parameter { , Paramater }
+= Parameter {"," Parameter}
 .
 /*------------------------------------------------------------------------*/
 
