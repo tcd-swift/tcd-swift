@@ -19,6 +19,13 @@ public class Allocate{
         for(int i = 0; i < results.Count; i++){
             dict.Add(results[i][0], results[i][1]);
         }
+        
+        Console.WriteLine();
+        foreach(var kvp in dict) {
+            Console.WriteLine("{0} : {1}", kvp.Key, kvp.Value);
+        }
+        Console.WriteLine();
+        
         return dict;
     }
 
