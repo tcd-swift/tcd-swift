@@ -5,6 +5,7 @@ using System.IO;
 public class CodeGen{
     public static string IRToARM(IRTuple IR){
         IRTupleOneOpIdent IROOI = IR as IRTupleOneOpIdent;
+        IRTupleOneOpImm<string> IROOImm = IR as IRTupleOneOpImm<string>;
         IRTupleTwoOp IRTO = IR as IRTupleTwoOp;
         if(IR.getOp() == IrOp.NEG){
             return "Neg " + IROOI.getDest();
@@ -45,29 +46,29 @@ public class CodeGen{
             else{
                 str = "LDR R0, " + IR.getDest();
             }
-            str += "LDRMFD sp, {R1-R12, pc}\n";
+            str += "\nLDRMFD sp, {R1-R12, pc}\n";
             return str;
         }
         // DIV
 
         if(IR.getOp() == IrOp.EQU){
             string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
-            str += "MOVEQ " + IRTO.getDest() + ", #1";
+            str += "MOVEQ " + IRTO.getDest() + ", #1\n";
             str += "MOVNE " + IRTO.getDest() + ", #0";
             return str;
         }
         if(IR.getOp() == IrOp.NEQ){
             string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
-            str += "MOVEQ " + IRTO.getDest() + ", #0";
+            str += "MOVEQ " + IRTO.getDest() + ", #0\n";
             str += "MOVNE " + IRTO.getDest() + ", #1";
             return str;
         }
         if(IR.getOp() == IrOp.JMP){
-            return "JMP " + IROOI.getDest();
+            return "JMP " + IR.getDest();
         }
         if(IR.getOp() == IrOp.JMPF){
-            string str = "CMP " + IRTO.getDest() + ", #0";
-            str += "JMPEQ " + IRTO.getSrc1();
+            string str = "CMP " + IROOI.getDest() + ", #0\n";
+            str += "JMPEQ " + IROOI.getSrc1();
             return str;
         }
         if(IR.getOp() == IrOp.LABEL){
@@ -89,12 +90,16 @@ public class CodeGen{
             }
             return "STR " + IROOI.getDest() + ", " + IROOI.getSrc1();
         }
+        IR.Print();
         return "";
     }
     public static string IRListToARM(List<IRTuple> tuples){
         string str = "";
         for(int i = 0; i < tuples.Count; i++){
+try{
             str += IRToARM(tuples[i]) + '\n';
+}
+catch(System.NullReferenceException e){ tuples[i].Print(); }
         }
         return str;
     }
