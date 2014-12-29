@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
-
-using IRStream = System.Collections.Generic.List<IRTuple>;
+using TCDSwift;
 
 public class IRGraphTest
 {
   public static void Main(string [] args)
   {
-    IRStream irstream = new IRStream();
+    List<IRTuple> irstream = new List<IRTuple>();
 
     irstream.Add(new IRTuple(IrOp.LABEL, "F$1"));
     irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "T", "R$2"));

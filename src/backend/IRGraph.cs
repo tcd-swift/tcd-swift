@@ -1,7 +1,7 @@
 using System;
-using System.Collections.Generic; // For SortedDictionary
+using System.Collections.Generic;
+using TCDSwift;
 
-using IRStream = System.Collections.Generic.List<IRTuple>;
 using Ident = System.String;
 
 public class IRGraph
@@ -10,7 +10,7 @@ public class IRGraph
   private SortedDictionary<int, IRBlock> blocks; // Mapping of block index number to block
 
   // Construct a graph from a stream of tuples
-  public IRGraph(IRStream tuples)
+  public IRGraph(List<IRTuple> tuples)
   {
     if(tuples.Count < 1)
       return;
@@ -33,7 +33,7 @@ public class IRGraph
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
-  private void SplitStream(IRStream tuples, out SortedDictionary<int, int> firsts, out SortedDictionary<int, int> lasts)
+  private void SplitStream(List<IRTuple> tuples, out SortedDictionary<int, int> firsts, out SortedDictionary<int, int> lasts)
   {
     firsts = new SortedDictionary<int, int>();
     lasts = new SortedDictionary<int, int>();

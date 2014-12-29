@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-// Type of an Ident; leaving this as string for now
 using Ident = System.String;
+
+namespace TCDSwift
+{
 
 /*
  * The different internal types for IR tuples
@@ -90,6 +92,11 @@ public class IRTuple
     Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
     Console.Write("}");
   }
+
+  public virtual string toString()
+  {
+    return string.Format("{{{0}, {1}}}", Enum.GetName(typeof(IrOp), this.op), this.dest);
+  }
 }
 
 /* IRTuple with one operand where operand is an Ident */
@@ -132,6 +139,11 @@ public class IRTupleOneOpIdent : IRTuple
     Console.Write(", " + this.src1);
     Console.Write("}");
   }
+
+  public override string toString()
+  {
+    return string.Format("{{{0}, {1}, {2}}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
+  }
 }
 
 /* IRTuple with one operand where operand is an immediate */
@@ -163,6 +175,11 @@ public class IRTupleOneOpImm<T> : IRTuple
     Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
     Console.Write(", " + this.src1);
     Console.Write("}");
+  }
+
+  public override string toString()
+  {
+    return string.Format("{{{0}, {1}, {2}}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1);
   }
 }
 
@@ -209,4 +226,11 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
     Console.Write(", " + this.src2);
     Console.Write("}");
   }  
+
+  public override string toString()
+  {
+    return string.Format("{{{0}, {1}, {2}, {3}}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1, this.src2);
+  }
+}
+
 }
