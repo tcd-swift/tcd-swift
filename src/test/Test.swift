@@ -41,6 +41,10 @@ switch x {
         x = x + 1
 }
 
+func void() -> Int {
+    return 2 + 2
+}
+
 func increment(x: Int) -> Int {
     return x + 1
 }
@@ -61,3 +65,4 @@ var q = increment(x)
 q = add(x, 1)
 q = add(1+1, 2*2)
 var p = check(q == z, 1, 2)
+var v = void()
