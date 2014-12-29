@@ -39,6 +39,34 @@ public class Allocate{
     //build graph with current construction variables
     public static void build(){
         
+        //remove anything that isn't an ident from input but leave as isolated node in graph
+        Regex literal = new Regex(@"^[0-9]+");
+        Regex str = new Regex(@"^"".+""");
+        
+        for(int i = livein.Count-1; i >= 0; i--){
+            if(literal.IsMatch(livein[i]) || str.IsMatch(livein[i])){
+                graph.getNode(livein[i]);
+                livein.Remove(livein[i]);
+            }
+        }
+        for(int i = input.Count-1; i >= 0; i--){
+            if(input[i][0] == ""){
+                input.Remove(input[i]);
+            }
+            else if(literal.IsMatch(input[i][0]) || str.IsMatch(input[i][0])){
+                graph.getNode(input[i][0]);
+                input.Remove(input[i]);
+            }
+            else{
+                for(int j = input[i].Count-1; j > 0; j--){
+                    if(literal.IsMatch(input[i][j]) || str.IsMatch(input[i][j])){
+                        graph.getNode(input[i][j]);
+                        input[i].Remove(input[i][j]);
+                    }
+                }
+            }  
+        }
+        
         //set up nodes based on live in registers
         Console.Write("\nLive In:");
         for(int i = 0; i < livein.Count; i++){
@@ -56,8 +84,6 @@ public class Allocate{
         List<string> line;
         for(int i = 0; i < input.Count; i++){
             line = input[i];
-            string output = string.Join(",", line.ToArray());
-            Console.WriteLine(output);
             if(line[0] != ""){
                 Node n = graph.getNode(line[0]);
                 Node m;
@@ -84,6 +110,13 @@ public class Allocate{
     //given a partially coloured graph and a node, attempts to integrate node
     public static List<List<string>> appendToAllocated(List<List<string>> alloc, Node n){
         List<string> regs = getRegisters();
+        Regex literal = new Regex(@"^[0-9]+");
+        Regex str = new Regex(@"^"".+""");
+        
+        if(str.IsMatch(n.id) || literal.IsMatch(n.id)){
+            alloc.Add(new List<string>(){n.id,"="+n.id});
+            return alloc;
+        }
         for(int i = 0; i < alloc.Count; i++){
             if(n.interferes(alloc[i][0])){
                 regs.Remove(alloc[i][1]);
@@ -140,7 +173,10 @@ public class Allocate{
         
         List<List<string>> assigned = new List<List<string>>();
         List<string> available = new List<string>();
-         
+        
+        Regex literal = new Regex(@"^[0-9]+");
+        Regex str = new Regex(@"^"".+""");
+        
         //build list of available registers
         for(int i = 1; i <= Allocate.registers; i++){
             string reg = "R" + i;
@@ -151,11 +187,15 @@ public class Allocate{
         
         //assign registers
         for(int i = 0; i < graph.Count; i++){
-            if(graph.Get(i).isRegister){
-                assigned.Add(new List<string>(){graph.Get(i).id,graph.Get(i).id});
+            Node n = graph.Get(i);
+            if(n.isRegister){
+                assigned.Add(new List<string>(){n.id,n.id});
+            }
+            else if(str.IsMatch(n.id) || literal.IsMatch(n.id)){
+                assigned.Add(new List<string>(){n.id,"="+n.id});
             }
             else{
-                assigned.Add(new List<string>(){graph.Get(i).id,available[0]});
+                assigned.Add(new List<string>(){n.id,available[0]});
                 available.Remove(available[0]);
             }
         }
