@@ -40,3 +40,17 @@ switch x {
     default:
         x = x + 1
 }
+
+func increment(n: Int) -> Int
+{
+    return 1
+}
+
+func add(j: Int, k: Int) -> Int
+{
+    return 1 + 1
+}
+
+var q = increment(1)
+q = add(x, 1)
+q = add(1+1, 2*2)

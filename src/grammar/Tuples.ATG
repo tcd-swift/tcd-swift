@@ -277,7 +277,12 @@ FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefi
                                          inFuncDecl = true;
                                       .)
 = "func"                              (. openScopes.Push(new Scope()); .)
-  FunctionIdentifier<out funcName>
+  FunctionIdentifier<out funcName>    (. 
+                                          if (functionDecls.ContainsKey(funcName))
+                                          {
+                                            SemErr("Redefinition of function " + funcName);
+                                          }
+                                      .)
   "("
   [ Params<out parameters> ]
   ")"
@@ -635,20 +640,36 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
   .
 
 /*------------------------------------------------------------------------*/
-// Treat like Factor
-PrimaryExpression
-<out SwiftType type>                  (.  SwiftType _type; string name, value;  .)
-=                                     (.  type = SwiftType.Undefined;           .)
-  ( "(" Expression<out _type> ")"     (.  type = _type;                         .)
-  | Identifier<out name>              (.
-                                          Symbol sym = lookup(openScopes, name);
-                                          if (sym == null)
-                                          {
-                                            SemErr("Use of undefined variable: " + name);
-                                          }
 
-                                          type = (SwiftType)sym.Item3;
-                                          tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, sym.Item4));
+PrimaryExpression
+<out SwiftType type>                  (.  SwiftType _type; string name, value; bool isFunction = false; .)
+=                                     (.  type = SwiftType.Undefined; .)
+  ( "(" Expression<out _type> ")"     (.  type = _type;               .)
+  | ( Identifier<out name>
+      [
+        ParenthesizedExpression       (.  isFunction = true;  .)
+      ]
+    )                                 (.  
+                                          if (isFunction)
+                                          {
+                                            if (!functionDecls.ContainsKey(name))
+                                            {
+                                              SemErr("Calling undefined function " + name);
+                                            }
+
+                                            type = functionDecls[name]._returnType;
+                                          }
+                                          else
+                                          {
+                                            Symbol sym = lookup(openScopes, name);
+                                            if (sym == null)
+                                            {
+                                              SemErr("Use of undefined variable: " + name);
+                                            }
+
+                                            type = (SwiftType)sym.Item3;
+                                            tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, sym.Item4));
+                                          }
                                       .)
   | Literal<out value, out _type>     (.
                                           tempStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
@@ -659,11 +680,26 @@ PrimaryExpression
 
 /*------------------------------------------------------------------------*/
 
-/*
- * All productions have been way over simplified for testing sake.
- * All skipped productions etc. are commented with "// Should be"
- * for easy finding so we don't forget to go back and implement them!
- */
+ParenthesizedExpression
+= "("
+  [ExpressionElementList]
+  ")"
+.
+
+/*------------------------------------------------------------------------*/
+
+ExpressionElementList                 (. SwiftType type; .)
+= Expression<out type>
+  ["," ExpressionElementList]
+.
+
+/*------------------------------------------------------------------------*/
+
+/************************************************
+ *  Declarations
+ ************************************************/
+
+/*------------------------------------------------------------------------*/
 
 Declaration<out string name, out SwiftType type>  (. string _name = null; SwiftType _type = SwiftType.Undefined; .)
 = ( VariableDeclaration<out _name, out _type>
@@ -789,9 +825,11 @@ Identifier<out string name>
 
 TCDSwift
 =                             (.  openScopes.Push(new Scope()); .)
-  Statements                  (.  openScopes.Pop();             .)
-                              (.  program.Add(new IRTuple(IrOp.JMP, "END").toString()); .)
-                              (.
+  Statements                  (.
+                                  openScopes.Pop();
+
+                                  program.Add(new IRTuple(IrOp.JMP, "END").toString());
+
                                   foreach(var func in functionDecls.Values)
                                   {
                                       program.Add(new IRTuple(IrOp.LABEL, func._label).toString());
@@ -800,8 +838,9 @@ TCDSwift
                                           program.Add(inst);
                                       }
                                   }
+
+                                  program.Add(new IRTuple(IrOp.LABEL, "END").toString());
                               .)
-                              (. program.Add(new IRTuple(IrOp.LABEL, "END").toString()); .)
   .
 
 /*------------------------------------------------------------------------*/
