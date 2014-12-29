@@ -63,6 +63,18 @@ public class CodeGen{
             str += "MOVNE " + IRTO.getDest() + ", #1";
             return str;
         }
+        if(IR.getOp() == IrOp.LT){
+            string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
+            str += "MOVGE " + IRTO.getDest() + ", #0\n";
+            str += "MOVLT " + IRTO.getDest() + ", #1";
+            return str;
+        }
+        if(IR.getOp() == IrOp.GT){
+            string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
+            str += "MOVLE " + IRTO.getDest() + ", #0\n";
+            str += "MOVGT " + IRTO.getDest() + ", #1";
+            return str;
+        }
         if(IR.getOp() == IrOp.JMP){
             return "JMP " + IR.getDest();
         }
