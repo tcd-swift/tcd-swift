@@ -41,16 +41,16 @@ switch x {
         x = x + 1
 }
 
-func increment(n: Int) -> Int
+func increment(x: Int) -> Int
 {
-    return 1
+    return x + 1
 }
 
 func add(j: Int, k: Int) -> Int
 {
-    return 1 + 1
+    return j + k
 }
 
-var q = increment(1)
+var q = increment(x)
 q = add(x, 1)
 q = add(1+1, 2*2)
