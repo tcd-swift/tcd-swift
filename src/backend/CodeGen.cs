@@ -3,7 +3,7 @@ using System.Collections.Generic;
 public class CodeGen{
     public static string IRToARM(IRTuple IR){
         if(IR.getOp() == IrOp.NEG){
-            return "Neg " + ((IRTupleOneOp)IR).getDest();
+            return "Neg " + ((IRTupleOneOpIdent)IR).getDest();
         }
         if(IR.getOp() == IrOp.ADD){
             if(Object.ReferenceEquals(IR.GetType(), typeof(IRTupleTwoOp))){
@@ -28,12 +28,12 @@ public class CodeGen{
         }
         if(IR.getOp() == IrOp.CALL){
             string str = "STRMFD sp, {R1-R12, lr}\n";
-            str += "BL " + ((IRTupleOneOp)IR).getDest();
+            str += "BL " + ((IRTupleOneOpIdent)IR).getDest();
             if(IR.getDest()[0] == 'R'){
-                str = "MOV " + ((IRTupleOneOp)IR).getSrc1() + ", R0";
+                str = "MOV " + ((IRTupleOneOpIdent)IR).getSrc1() + ", R0";
             }
             else{
-                str = "LDR " + ((IRTupleOneOp)IR).getSrc1() + ", R0";
+                str = "LDR " + ((IRTupleOneOpIdent)IR).getSrc1() + ", R0";
             }
             return str;
         }
@@ -63,7 +63,7 @@ public class CodeGen{
             return str;
         }
         if(IR.getOp() == IrOp.JMP){
-            return "JMP " + ((IRTupleOneOp)IR).getDest();
+            return "JMP " + ((IRTupleOneOpIdent)IR).getDest();
         }
         if(IR.getOp() == IrOp.JMPF){
             string str = "CMP " + ((IRTupleTwoOp)IR).getDest() + ", #0";
@@ -75,7 +75,7 @@ public class CodeGen{
         }
         // MOD
         if(IR.getOp() == IrOp.NOT){
-            return "MVN " + ((IRTupleOneOp)IR).getDest() + ", " + ((IRTupleOneOp)IR).getSrc1();
+            return "MVN " + ((IRTupleOneOpIdent)IR).getDest() + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
         }
         if(IR.getOp() == IrOp.OR){
             return "ORR " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
@@ -85,9 +85,9 @@ public class CodeGen{
         }
         if(IR.getOp() == IrOp.STORE){
             if(IR.getDest()[0] == 'R'){
-                return "LDR " + ((IRTupleOneOp)IR).getDest()[0] + ", " + ((IRTupleOneOp)IR).getSrc1();
+                return "LDR " + ((IRTupleOneOpIdent)IR).getDest()[0] + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
             }
-            return "STR " + ((IRTupleOneOp)IR).getDest() + ", " + ((IRTupleOneOp)IR).getSrc1();
+            return "STR " + ((IRTupleOneOpIdent)IR).getDest() + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
         }
         return "";
     }
