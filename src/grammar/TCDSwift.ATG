@@ -376,7 +376,9 @@ DoWhileLoop
   CodeBlock                         (. openScopes.Pop(); .)
   "while"
   IfCondition                       (.
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, exprStack.Pop().getDest(), openLabels.Peek());
+                                      exprStack.Push(new IRTupleOneOpIdent(IrOp.NEG, generateTemporary(), exprStack.Pop().getDest()));
+                                      program.Add(exprStack.Peek());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
                                       program.Add(tuple);
                                       openLabels.Pop();
                                     .)
