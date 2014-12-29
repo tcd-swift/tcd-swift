@@ -76,6 +76,7 @@ Dictionary<string, int> symDeclCount = new Dictionary<string, int>();
 Dictionary<string, Function> functionDecls = new Dictionary<string, Function>();
 
 bool inFuncDecl = false;
+bool inFunctionCall = false;
 
 int temporarySeed = 0;
 int labelSeed = 0;
@@ -660,17 +661,17 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
 PrimaryExpression
 <out SwiftType type>                  (.  
                                           SwiftType _type; Types types = new Types(); 
-                                          string name, value; bool isFunction = false; 
+                                          string name, value; 
                                       .)
 =                                     (.  type = SwiftType.Undefined; .)
   ( "(" Expression<out _type> ")"     (.  type = _type;               .)
   | ( Identifier<out name>
       [
         ParenthesizedExpression<out types>
-                                      (.  isFunction = true;  .)
+                                      (.  inFunctionCall = true;  .)
       ]
     )                                 (.  
-                                          if (isFunction)
+                                          if (inFunctionCall)
                                           {
                                             if (!functionDecls.ContainsKey(name))
                                             {
@@ -702,8 +703,7 @@ PrimaryExpression
                                                 Parameter p = functionDecls[name]._parameters[i];
                                                 program.Add(new IRTupleOneOpIdent(IrOp.STORE, p._uid, exprStack.Pop().getDest()).toString());
                                               }
-
-                                              exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, functionDecls[name]._returnValue, ""));
+                                              exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, functionDecls[name]._label, functionDecls[name]._returnValue));
                                             }
 
                                             type = functionDecls[name]._returnType;
@@ -811,8 +811,16 @@ PatternInitializer
                                               symDeclCount.Add(name, 1);
                                             }
 
-                                            IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), exprStack.Pop().getDest());
-                                            program.Add(tuple.toString());
+
+                                            if (inFunctionCall) {
+                                              var val = (IRTupleOneOpIdent)exprStack.Pop();
+                                              IRTupleTwoOp tuple = new IRTupleTwoOp(IrOp.CALL, getUID(name), val.getDest(), val.getSrc1());
+                                              program.Add(tuple.toString());
+                                              inFunctionCall = false;
+                                            } else {
+                                              IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), exprStack.Pop().getDest());
+                                              program.Add(tuple.toString());
+                                            }
                                         .)
   .
 

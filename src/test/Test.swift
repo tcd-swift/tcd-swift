@@ -41,16 +41,23 @@ switch x {
         x = x + 1
 }
 
-func increment(x: Int) -> Int
-{
+func increment(x: Int) -> Int {
     return x + 1
 }
 
-func add(j: Int, k: Int) -> Int
-{
+func add(j: Int, k: Int) -> Int {
     return j + k
+}
+
+func check(b: Bool, i: Int, j: Int) -> Int {
+    if b {
+        return i
+    } else {
+        return j
+    }
 }
 
 var q = increment(x)
 q = add(x, 1)
 q = add(1+1, 2*2)
+var p = check(q == z, 1, 2)
