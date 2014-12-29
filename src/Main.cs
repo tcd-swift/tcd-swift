@@ -16,9 +16,10 @@ class TCDSwift
             parser.Parse();
             if (parser.errors.count == 0)
             {
-                parser.Write(arg[1]);
+                parser.Write("output.ir");
             }
             IRStream tuples = parser.GetStream();
+            // backenders should write ARM out to arg[1]
         }
         else Console.WriteLine("Usage: tcdscc <program.swift> <output.asm>");
     }
