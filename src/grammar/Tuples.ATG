@@ -268,8 +268,13 @@ Statement                           (. string name; SwiftType type; .)
 
 /*------------------------------------------------------------------------*/
 
-ReturnStatement (. SwiftType type; .)
-= "return" [ Expression<out type> ] (. if (!inFuncDecl) SemErr("Cannot have top level function declaration"); .)
+ReturnStatement                         (. SwiftType type; .)
+= "return"                           (. if (!inFuncDecl) SemErr("Cannot have top level function declaration"); .)
+  [ Expression<out type>             (.
+                                        IRTuple tuple = new IRTuple(IrOp.RET, exprStack.Peek().getDest());
+                                        program.Add(tuple.toString());
+                                     .)
+  ]
 .
 
 /*------------------------------------------------------------------------*/
@@ -813,8 +818,7 @@ PatternInitializer
 
 
                                             if (inFunctionCall) {
-                                              var val = (IRTupleOneOpIdent)exprStack.Pop();
-                                              IRTupleTwoOp tuple = new IRTupleTwoOp(IrOp.CALL, getUID(name), val.getDest(), val.getSrc1());
+                                              IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.CALL, exprStack.Pop().getDest(), getUID(name));
                                               program.Add(tuple.toString());
                                               inFunctionCall = false;
                                             } else {
