@@ -23,8 +23,22 @@ public class CodeGen{
                 return "MUL " + IR.getDest() + ", " + IR.getSrc2() + ", " + IR.getSrc1(); 
             }
         }
-        // CALL
-        // RET
+        if(IR.getOp() == IrOp.CALL){
+            string str = "STRMFD sp, {R1-R12, lr}\n";
+            str += "bl " + IR.getDest();
+            return str;
+        }
+        if(IR.getOp() == IrOp.RET){
+            string str;
+            if(IR.getDest()[0] == 'R'){
+                str = "MOV R0, " + IR.getDest();
+            }
+            else{
+                str = "LDR R0, " + IR.getDest();
+            }
+            str += "LDRMFD sp, {R1-R12, pc}\n";
+            return str;
+        }
         // DIV
 
         if(IR.getOp() == IrOp.EQU){
@@ -39,7 +53,6 @@ public class CodeGen{
             str += "MOVNE " + IR.getDest() + ", #1";
             return str;
         }
-        // Floating point everything
         if(IR.getOp() == IrOp.JMP){
             return "JMP " + IR.getDest();
         }
