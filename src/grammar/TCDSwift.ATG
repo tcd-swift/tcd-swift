@@ -370,7 +370,7 @@ WhileLoop                           (. string loopStartLabel; .)
   IfCondition                       (.
                                       loopStartLabel = generateLabel();
                                       openLabels.Push(generateLabel());
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, openLabels.Peek(), exprStack.Pop().getDest());
                                       program.Add(tuple);
                                     .)
   CodeBlock                         (.
@@ -394,7 +394,7 @@ DoWhileLoop
   IfCondition                       (.
                                       exprStack.Push(new IRTupleOneOpIdent(IrOp.NEG, generateTemporary(), exprStack.Pop().getDest()));
                                       program.Add(exprStack.Peek());
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, openLabels.Peek(), exprStack.Pop().getDest());
                                       program.Add(tuple);
                                       openLabels.Pop();
                                     .)
@@ -431,7 +431,7 @@ ForLoop                             (. string name, exprname; SwiftType type, ex
                                       openLabels.Push(generateLabel()); // second label is for the loop end
                                     .)
   IfCondition                       (.
-                                      tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
+                                      tuple = new IRTupleOneOpIdent(IrOp.JMPF, openLabels.Peek(), exprStack.Pop().getDest());
                                       program.Add(tuple);
                                     .)
   ";"
@@ -478,7 +478,7 @@ IfStatement
   IfCondition                         (.
                                           openLabels.Push(generateLabel());
 
-                                          IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
+                                          IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, openLabels.Peek(), exprStack.Pop().getDest());
                                           program.Add(tuple);
                                       .)
   CodeBlock                           (.
@@ -575,7 +575,7 @@ CaseItemList                      (.  SwiftType type; .)
 
                                       string nextCase = generateLabel(); //produce label for next case
                                       openLabels.Push(nextCase);
-                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
+                                      IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, nextCase, checkCase.getDest());
 
                                       program.Add(tuple);
                                   .)
