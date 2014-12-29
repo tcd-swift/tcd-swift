@@ -4,7 +4,7 @@ all: bin/coco.exe
 	mkdir -p generated
 	mkdir -p bin
 	mono bin/coco.exe -frames src/frames -o generated -namespace TCDSwift src/grammar/TCDSwift.ATG
-	$(CSHARPCOMPILER) src/Main.cs generated/*.cs src/common/*.cs -out:bin/tcdscc.exe
+	$(CSHARPCOMPILER) src/Main.cs generated/*.cs src/common/*.cs src/backend/CodeGen.cs -out:bin/tcdscc.exe
 
 bin/coco.exe:
 	mkdir -p bin
