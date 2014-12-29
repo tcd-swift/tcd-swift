@@ -2,82 +2,25 @@ using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
-public class test{
-    
-    public static void Main(){
-        int regs = 3;
-        /*
-        List<string>[] input = new List<string>[10];
-        input[0] = new List<string>(){"T","R0","R1","T"};
-        input[1] = new List<string>(){"A","R1","A","T"};
-        input[2] = new List<string>(){"B","A","B","T"};
-        input[3] = new List<string>(){"C","A","B","C","T"};
-        input[4] = new List<string>(){"D","B","C","D","T"};
-        input[5] = new List<string>(){"C","B","C","D","T"};
-        input[6] = new List<string>(){"D","B","C","D","T"};
-        input[7] = new List<string>(){"D","B","C","D","T"};
-        input[8] = new List<string>(){"R0","R0","T"};
-        input[9] = new List<string>(){"R2","R0","R2"};
-        
-        string[,] moves = new string[6,2]{
-            {"T","R2"},
-            {"A","R0"},
-            {"B","R1"},
-            {"D","A"},
-            {"R0","C"},
-            {"R2","T"}
-        };
-        
-        List<string> livein = new List<string>(){"R0","R1","R2"};
-        */
-        
-        List<string>[] input = new List<string>[6];
-        input[0] = new List<string>(){"A","B","D"};
-        input[1] = new List<string>(){"B","A","C","D","E"};
-        input[2] = new List<string>(){"C","E","B","F"};
-        input[3] = new List<string>(){"D","A","B","E","F"};
-        input[4] = new List<string>(){"E","B","E","D","F"};
-        input[5] = new List<string>(){"F","C","D","E"};
-        
-        string[,] moves = new string[1,2]{
-            {"A","E"}
-        };
-        List<string> livein = new List<string>();
-        
-        
-        Allocate.takeInput(input, moves, livein, regs);
-        Allocate.build();
-        
-        List<List<string>> results = Allocate.simplify(Allocate.graph);
-          
-        Console.WriteLine();
-        for(int i = 0; i < results.Count; i++){
-            Console.WriteLine(results[i][0] + " : " + results[i][1]);
-        }
-        Console.WriteLine();
-    }
-}
-
 public class Allocate{
 
     public static Graph graph;
-
-    public static int registers;
+    //graph construction variables
+    public static int registers = 13;
     public static List<string> livein;
     public static List<string>[] input;
-    public static string[,] moves;
 
-    public static void takeInput(List<string>[] inputIn, string[,] movesIn, List<string> live, int regs){
+    public static void takeInput(List<string>[] inputIn, List<string> live){
         input = inputIn;
-        moves = movesIn;
-        registers = regs;
         livein = live;
         graph = new Graph();
         Console.WriteLine("Registers = " + registers);
     }
     
+    //build graph with current construction variables
     public static void build(){
-    
+        
+        //set up nodes based on live in registers
         Console.Write("\nLive In:");
         for(int i = 0; i < livein.Count; i++){
             Node n = graph.getNode(livein[i]);
@@ -90,6 +33,7 @@ public class Allocate{
         }
         Console.WriteLine("\n");
 
+        //build graph using list of interferences
         List<string> line;
         for(int i = 0; i < input.Length; i++){
             line = input[i];
@@ -104,15 +48,10 @@ public class Allocate{
             }
         }
 
-        for(int i = 0; i < moves.GetLength(0); i++){
-            Node n = graph.getNode(moves[i,0]);
-            Node m = graph.getNode(moves[i,1]);
-            n.movelink(m);
-        }
-
         graph.print();
     }
     
+    //get list of registers based on number of registers
     public static List<string> getRegisters(){
         List<string> regs = new List<string>();
         for(int i = 0; i < Allocate.registers; i++){
@@ -122,6 +61,7 @@ public class Allocate{
         return regs;
     }
 
+    //given a partially coloured graph and a node, attempts to integrate node
     public static List<List<string>> appendToAllocated(List<List<string>> alloc, Node n){
         List<string> regs = getRegisters();
         for(int i = 0; i < alloc.Count; i++){
@@ -138,7 +78,7 @@ public class Allocate{
     }
 
     public static List<List<string>> simplify(Graph graph){
-    
+        //conditions to start colouring graph
         if(graph.Count == 1 || graph.isRegisters()){
             return assign(graph);
         }
@@ -156,13 +96,13 @@ public class Allocate{
             }
         }
         
+        //define degree that node must be at (or less than) to be simplified
         int k = Allocate.registers - 1;
         while(k >= 0){
             if(degrees.Contains(k)){
                 int index = degrees.IndexOf(k);
                 n = graph.Get(index);
                 graph.Remove(n);
-                //Console.WriteLine("Simplifying, removing " + n.id);
                 result = simplify(graph);
                 graph.Add(n);
                 return appendToAllocated(result, n);
@@ -173,10 +113,6 @@ public class Allocate{
         graph.Remove(n);
         result = simplify(graph);
         graph.Add(n);
-        /*
-        result.Add(new List<string>(){n.id,"MEM["+n.id+"]"});
-        return result;
-        */
         return appendToAllocated(result, n); //you know, let's just try to colour the node anyway
     }
 
@@ -225,11 +161,6 @@ public class Graph{
         for(int i = 0; i < n.interfere.Count; i++){
             if(nodes.Contains(n.interfere[i])){
                 n.interfere[i].link(n);
-            }
-        }
-        for(int i = 0; i < n.move.Count; i++){
-            if(nodes.Contains(n.move[i])){
-                n.move[i].movelink(n);
             }
         }
         Count++;
@@ -292,17 +223,13 @@ public class Graph{
 public class Node{
     public string id;
     public List<Node> interfere;
-    public List<Node> move;
     public bool isRegister;
-    public bool moveRelated;
 
     public Node(string ident){
         this.id = ident;
         this.interfere = new List<Node>();
-        this.move = new List<Node>();
         Regex regex = new Regex(@"R\d?\d");
         this.isRegister = regex.IsMatch(id);
-        this.moveRelated = false;
     }
 
     public int getDegree(){
@@ -311,10 +238,6 @@ public class Node{
     
     public void Remove(Node n){
         interfere.Remove(n);
-        move.Remove(n);
-        if(move.Count == 0){
-            moveRelated = false;
-        }
     }
 
     public string toString(){
@@ -323,12 +246,6 @@ public class Node{
         output = output + this.id + ":";
         for(int i = 0; i < this.interfere.Count; i++){
             output = output + " " + this.interfere[i].id;
-        }
-        if(this.moveRelated){
-            output = output + ", moveRelated:";
-            for(int i = 0; i < this.move.Count; i++){
-                output = output + " " + this.move[i].id;
-            }
         }
         output = output + ", isRegister: " + isRegister;
         return output;
@@ -350,28 +267,6 @@ public class Node{
             }
             if(!n.interferes(this.id)){
                 n.interfere.Add(this);
-            }
-        }
-    }
-
-    public bool related(string s){
-        for(int i = 0; i < this.move.Count; i++){
-            if(this.move[i].id == s){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public void movelink(Node n){
-        if(this.id != n.id){
-            if(!this.related(n.id)){
-                this.move.Add(n);
-                this.moveRelated = true;
-            }
-            if(!n.related(this.id)){
-                n.move.Add(this);
-                n.moveRelated = true;
             }
         }
     }
