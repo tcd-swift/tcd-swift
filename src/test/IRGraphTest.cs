@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-// Type of an IRStream; we can change this if we need something more sophisticated later
 using IRStream = System.Collections.Generic.List<IRTuple>;
 
 public class IRGraphTest
@@ -27,8 +26,27 @@ public class IRGraphTest
     irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R$2", "T"));
 
     IRGraph graph = new IRGraph(irstream);
-    graph.ComputeLiveness();
+
+    List<string> livein;
+    List<List<string>> liveouts;
+    graph.ComputeLiveness(out livein, out liveouts);
 
     graph.Print();
+
+    Console.WriteLine("-------");
+
+    Console.WriteLine("LiveIn:");
+    foreach(string li in livein)
+        Console.Write("\t" + li);
+    Console.WriteLine();
+
+    Console.WriteLine("LiveOuts:");
+    foreach(List<string> los in liveouts)
+    {
+        foreach(string lo in los)
+            Console.Write(lo + "\t");
+        Console.WriteLine();
+    }
+
   }
 }

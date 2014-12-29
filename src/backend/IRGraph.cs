@@ -6,8 +6,8 @@ using Ident = System.String;
 
 public class IRGraph
 {
-  // Store this as a sorted dictionary so it is easy to iterate; by definition, blocks[0] is the entry node
-  SortedDictionary<int, IRBlock> blocks;
+  private static int BLOCK_INDEX_INITIAL = 1; // Index of first block in graph
+  private SortedDictionary<int, IRBlock> blocks; // Mapping of block index number to block
 
   // Construct a graph from a stream of tuples
   public IRGraph(IRStream tuples)
@@ -27,16 +27,18 @@ public class IRGraph
     this.LinkSuccessors(firsts, lasts);
   
     // Compute initial liveness
-    this.ComputeLiveness();
+    List<string> livein;
+    List<List<string>> liveouts;
+    this.ComputeLiveness(out livein, out liveouts);
   }
 
-  // 
+  // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
   private void SplitStream(IRStream tuples, out SortedDictionary<int, int> firsts, out SortedDictionary<int, int> lasts)
   {
-    firsts = new SortedDictionary<int, int>(); // Map from block index to line index of its first tuple in stream
-    lasts = new SortedDictionary<int, int>(); // Map from block index to line index of its last tuple in stream
+    firsts = new SortedDictionary<int, int>();
+    lasts = new SortedDictionary<int, int>();
 
-    int currentIndex = 1; // The next block index in the graph
+    int currentIndex = BLOCK_INDEX_INITIAL; // The next block index in the graph
     firsts[currentIndex] = 0; // By definition, the very first tuple is the first tuple in the first block
     this.blocks[currentIndex] = new IRBlock(currentIndex);
     this.blocks[currentIndex].AppendStatement(tuples[0]);
@@ -129,7 +131,7 @@ public class IRGraph
   }
 
   // Compute block-based and statement-based liveness for this graph
-  public void ComputeLiveness()
+  public void ComputeLiveness(out List<string> livein, out List<List<string>> liveouts)
   {
     foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
       pair.Value.ComputeLiveuseDef(); // Initialize events and anti-events for each block
@@ -138,6 +140,11 @@ public class IRGraph
 
     foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
       pair.Value.ComputeLiveouts(); // Determine statement-based liveness
+
+    livein = new List<string>(this.blocks[BLOCK_INDEX_INITIAL].GetLiveIn());
+    liveouts = new List<List<string>>();
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      liveouts.AddRange(pair.Value.GetLiveOuts());
   }
 
   // Return whether a tuple is of the type that may start a block

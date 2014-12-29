@@ -161,6 +161,11 @@ public class IRBlock
     return this.liveout;
   }
 
+  public List<List<string>> GetLiveOuts()
+  {
+    return this.liveouts;
+  }
+
   // Backward pass to determine liveness at each point in the block
   public void ComputeLiveouts()
   {
