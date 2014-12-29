@@ -704,8 +704,7 @@ PrimaryExpression
                                           }
                                       .)
   | Literal<out value, out _type>     (.
-                                          exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
-                                          program.Add(exprStack.Peek());
+                                          exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, value, value));
                                           type = _type;
                                       .)
   ).
