@@ -8,9 +8,9 @@ public class IRGraphTest{
         List<IRTuple> irstream = new List<IRTuple>();
 
         irstream.Add(new IRTuple(IrOp.LABEL, "F$1"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "T", "R$2"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "A", "R$0"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "B", "R$1"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "T", "R2"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "A", "R0"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "B", "R1"));
         irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "C", 0));
         irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "D", "A"));
         irstream.Add(new IRTuple(IrOp.LABEL, "L$1"));
@@ -20,8 +20,8 @@ public class IRGraphTest{
         irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "T$2", 0));
         irstream.Add(new IRTupleTwoOp(IrOp.LTE, "T$3", "D", "T$2"));
         irstream.Add(new IRTupleOneOpIdent(IrOp.JMPF, "L$1", "T$3"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R$0", "C"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R$2", "T"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R0", "C"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R2", "T"));
 
         IRGraph graph = new IRGraph(irstream);
 
@@ -29,11 +29,11 @@ public class IRGraphTest{
         List<List<string>> liveouts;
         graph.ComputeLiveness(out livein, out liveouts);
     
-        List<List<string>> registerAllocation = Allocate.run(liveouts, livein);
+        Dictionary<string,string> registerAllocation = Allocate.run(liveouts, livein);
     
         Console.WriteLine();
-        for(int i = 0; i < registerAllocation.Count; i++){
-            Console.WriteLine(registerAllocation[i][0] + " : " + registerAllocation[i][1]);
+        foreach(var kvp in registerAllocation) {
+            Console.WriteLine("{0} : {1}", kvp.Key, kvp.Value);
         }
         Console.WriteLine();
     

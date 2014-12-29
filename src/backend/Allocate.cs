@@ -11,10 +11,15 @@ public class Allocate{
     public static List<string> livein;
     public static List<List<string>> input;
 
-    public static List<List<string>> run(List<List<string>> inputIn, List<string> live){
+    public static Dictionary<string,string> run(List<List<string>> inputIn, List<string> live){
         takeInput(inputIn, live);
         build();
-        return simplify(graph);
+        List<List<string>> results = simplify(graph);
+        Dictionary<string,string> dict = new Dictionary<string,string>();
+        for(int i = 0; i < results.Count; i++){
+            dict.Add(results[i][0], results[i][1]);
+        }
+        return dict;
     }
 
     public static void takeInput(List<List<string>> inputIn, List<string> live){
@@ -63,7 +68,7 @@ public class Allocate{
     public static List<string> getRegisters(){
         List<string> regs = new List<string>();
         for(int i = 0; i < Allocate.registers; i++){
-            string reg = "R$" + i;
+            string reg = "R" + i;
             regs.Add(reg);       
         }
         return regs;
@@ -131,7 +136,7 @@ public class Allocate{
          
         //build list of available registers
         for(int i = 0; i < Allocate.registers; i++){
-            string reg = "R$" + i;
+            string reg = "R" + i;
             if(!livein.Contains(reg)){
                 available.Add(reg);
             }
@@ -236,7 +241,7 @@ public class Node{
     public Node(string ident){
         this.id = ident;
         this.interfere = new List<Node>();
-        Regex regex = new Regex(@"R\$\d?\d");
+        Regex regex = new Regex(@"R\d?\d");
         this.isRegister = regex.IsMatch(id);
     }
 

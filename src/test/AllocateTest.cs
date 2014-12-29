@@ -6,24 +6,24 @@ public class AllocateTest{
     public static void Main(){
         //test 1
         List<List<string>> input = new List<List<string>>();
-        input.Add(new List<string>(){"T","R$0","R$1","T"});
-        input.Add(new List<string>(){"A","R$1","A","T"});
+        input.Add(new List<string>(){"T","R0","R1","T"});
+        input.Add(new List<string>(){"A","R1","A","T"});
         input.Add(new List<string>(){"B","A","B","T"});
         input.Add(new List<string>(){"C","A","B","C","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
         input.Add(new List<string>(){"C","B","C","D","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
-        input.Add(new List<string>(){"R$0","R$0","T"});
-        input.Add(new List<string>(){"R$2","R$0","R$2"});
+        input.Add(new List<string>(){"R0","R0","T"});
+        input.Add(new List<string>(){"R2","R0","R2"});
         
-        List<string> livein = new List<string>(){"R$0","R$1","R$2"};
+        List<string> livein = new List<string>(){"R0","R1","R2"};
         
-        List<List<string>> results = Allocate.run(input, livein);
+        Dictionary<string,string> results = Allocate.run(input, livein);
           
         Console.WriteLine();
-        for(int i = 0; i < results.Count; i++){
-            Console.WriteLine(results[i][0] + " : " + results[i][1]);
+        foreach(var kvp in results) {
+            Console.WriteLine("{0} : {1}", kvp.Key, kvp.Value);
         }
         Console.WriteLine("-----------------");
         
@@ -41,8 +41,8 @@ public class AllocateTest{
         results = Allocate.run(input, livein);
           
         Console.WriteLine();
-        for(int i = 0; i < results.Count; i++){
-            Console.WriteLine(results[i][0] + " : " + results[i][1]);
+        foreach(var kvp in results) {
+            Console.WriteLine("{0} : {1}", kvp.Key, kvp.Value);
         }
         Console.WriteLine();
     }
