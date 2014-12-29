@@ -252,8 +252,14 @@ Statement                           (. string name; SwiftType type; .)
                                           SemErr(error);
                                         }
 
-                                        IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, exprStack.Pop().getDest());
-                                        program.Add(tuple.toString());
+                                        if (inFunctionCall) {
+                                              IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.CALL, exprStack.Pop().getDest(), getUID(name));
+                                              program.Add(tuple.toString());
+                                              inFunctionCall = false;
+                                        } else {
+                                              IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), exprStack.Pop().getDest());
+                                              program.Add(tuple.toString());
+                                        }
                                     .)
     )
     | Declaration<out name, out type>
