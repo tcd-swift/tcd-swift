@@ -46,12 +46,13 @@ public class Allocate{
             line = input[i];
             string output = string.Join(",", line.ToArray());
             Console.WriteLine(output);
-            
-            Node n = graph.getNode(line[0]);
-            Node m;
-            for(int j = 1; j < line.Count; j++){
-                m = graph.getNode(line[j]);
-                n.link(m);
+            if(line[0] != ""){
+                Node n = graph.getNode(line[0]);
+                Node m;
+                    for(int j = 1; j < line.Count; j++){
+                        m = graph.getNode(line[j]);
+                        n.link(m);
+                    }
             }
         }
 
@@ -62,7 +63,7 @@ public class Allocate{
     public static List<string> getRegisters(){
         List<string> regs = new List<string>();
         for(int i = 0; i < Allocate.registers; i++){
-            string reg = "R" + i;
+            string reg = "R$" + i;
             regs.Add(reg);       
         }
         return regs;
@@ -130,7 +131,7 @@ public class Allocate{
          
         //build list of available registers
         for(int i = 0; i < Allocate.registers; i++){
-            string reg = "R" + i;
+            string reg = "R$" + i;
             if(!livein.Contains(reg)){
                 available.Add(reg);
             }
@@ -235,7 +236,7 @@ public class Node{
     public Node(string ident){
         this.id = ident;
         this.interfere = new List<Node>();
-        Regex regex = new Regex(@"R\d?\d");
+        Regex regex = new Regex(@"R\$\d?\d");
         this.isRegister = regex.IsMatch(id);
     }
 
