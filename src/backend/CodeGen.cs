@@ -79,8 +79,8 @@ public class CodeGen{
             return "JMP " + IR.getDest();
         }
         if(IR.getOp() == IrOp.JMPF){
-            string str = "CMP " + IROOI.getDest() + ", #0\n";
-            str += "JMPEQ " + IROOI.getSrc1();
+            string str = "CMP " + IROOI.getSrc1() + ", #0\n";
+            str += "JMPEQ " + IROOI.getDest();
             return str;
         }
         if(IR.getOp() == IrOp.LABEL){
