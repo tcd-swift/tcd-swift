@@ -62,6 +62,7 @@ class Parameters : List<Parameter> {}
 class Scope : Stack<Symbol> {}
 class Program : List<string> {}
 class TupleStack : Stack<IRTuple> {}
+class Types : List<SwiftType> {} // Coco/r doesn't seem to like List attributes
 
 Program program = new Program();
 TupleStack tempStack = new TupleStack();
@@ -642,12 +643,16 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
 /*------------------------------------------------------------------------*/
 
 PrimaryExpression
-<out SwiftType type>                  (.  SwiftType _type; string name, value; bool isFunction = false; .)
+<out SwiftType type>                  (.  
+                                          SwiftType _type; Types types = new Types(); 
+                                          string name, value; bool isFunction = false; 
+                                      .)
 =                                     (.  type = SwiftType.Undefined; .)
   ( "(" Expression<out _type> ")"     (.  type = _type;               .)
   | ( Identifier<out name>
       [
-        ParenthesizedExpression       (.  isFunction = true;  .)
+        ParenthesizedExpression<out types>
+                                      (.  isFunction = true;  .)
       ]
     )                                 (.  
                                           if (isFunction)
@@ -655,6 +660,25 @@ PrimaryExpression
                                             if (!functionDecls.ContainsKey(name))
                                             {
                                               SemErr("Calling undefined function " + name);
+                                            }
+
+                                            if (functionDecls[name]._parameters.Count != types.Count)
+                                            {
+                                              SemErr(string.Format("Passing {0} arguments to function '{1}' that takes {2}",
+                                                types.Count, name, functionDecls[name]._parameters.Count));
+                                            }
+                                            else
+                                            {
+                                              // Check if argument types match parameter types
+                                              for (int i = 0; i < types.Count; i++)
+                                              {
+                                                Parameter p = functionDecls[name]._parameters[i];
+                                                if (p._type != types[i])
+                                                {
+                                                  SemErr(string.Format("{0} in `{1}` expects type {2} not {3}",
+                                                   p._name, name, Enum.GetName(typeof(SwiftType), p._type), Enum.GetName(typeof(SwiftType), types[i])));
+                                                }
+                                              }
                                             }
 
                                             type = functionDecls[name]._returnType;
@@ -680,17 +704,20 @@ PrimaryExpression
 
 /*------------------------------------------------------------------------*/
 
-ParenthesizedExpression
+ParenthesizedExpression<out Types types>  (. types = new Types(); .)
 = "("
-  [ExpressionElementList]
+  [ExpressionElementList<out types>]
   ")"
 .
 
 /*------------------------------------------------------------------------*/
 
-ExpressionElementList                 (. SwiftType type; .)
-= Expression<out type>
-  ["," ExpressionElementList]
+ExpressionElementList<out Types types>  (. SwiftType type; types = new Types(); .)
+= Expression<out type>                            (. types.Add(type); .)
+  {
+    ","
+    Expression<out type>                          (. types.Add(type); .)
+  }
 .
 
 /*------------------------------------------------------------------------*/
