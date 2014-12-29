@@ -1,25 +1,23 @@
 using TCDSwift;
 using System.Collections.Generic;
+using System.IO;
+
 public class CodeGen{
     public static string IRToARM(IRTuple IR){
         if(IR.getOp() == IrOp.NEG){
             return "Neg " + ((IRTupleOneOpIdent)IR).getDest();
         }
         if(IR.getOp() == IrOp.ADD){
-            if(Object.ReferenceEquals(IR.GetType(), typeof(IRTupleTwoOp))){
-                return "ADD " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
-            }
+            return "ADD " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
         }
         if(IR.getOp() == IrOp.SUB){
-            if(Object.ReferenceEquals(IR.GetType(), typeof(IRTupleTwoOp))){
-                return "SUB " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
-            }
+            return "SUB " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
         }
         if(IR.getOp() == IrOp.AND){
             return "AND " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
         }
         if(IR.getOp() == IrOp.MUL){
-            if(IR.getDest != IR.getSrc1){
+            if(((IRTupleTwoOp)IR).getDest() != ((IRTupleTwoOp)IR).getSrc1()){
                 return "MUL " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2(); 
             }
             else{
@@ -92,17 +90,17 @@ public class CodeGen{
         return "";
     }
     public static string IRListToARM(List<IRTuple> tuples){
-        str = "";
-        for(int i = 0; i < tuples.Length(); i++){
+        string str = "";
+        for(int i = 0; i < tuples.Count; i++){
             str += IRToARM(tuples[i]) + '\n';
         }
         return str;
     }
     public static int IRListToArmFile(List<IRTuple> tuples, string filename){
-        string output = IRListToArm(tuples);
+        string output = IRListToARM(tuples);
         StreamWriter writer = new StreamWriter(filename);
         writer.Write(output);
-        write.Close();
+        writer.Close();
         return 1;
     }
 }
