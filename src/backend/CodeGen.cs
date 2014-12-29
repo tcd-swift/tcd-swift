@@ -1,3 +1,5 @@
+using TCDSwift;
+using System.Collections.Generic;
 public class CodeGen{
     public static string IRToARM(IRTuple IR){
         if(IR.getOp() == IrOp.NEG){
@@ -11,6 +13,7 @@ public class CodeGen{
         if(IR.getOp() == IrOp.SUB){
             if(Object.ReferenceEquals(IR.GetType(), typeof(IRTupleTwoOp))){
                 return "SUB " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            }
         }
         if(IR.getOp() == IrOp.AND){
             return "AND " + IR.getDest() + ", " + IR.getSrc1() + ", " + IR.getSrc2();
@@ -63,7 +66,7 @@ public class CodeGen{
             return "JMP " + IR.getDest();
         }
         if(IR.getOp() == IrOp.JMPF){
-            string str += "CMP " + IR.getDest() + ", #0";
+            string str = "CMP " + IR.getDest() + ", #0";
             str += "JMPEQ " + IR.getSrc1();
             return str;
         }
@@ -88,11 +91,18 @@ public class CodeGen{
         }
         return "";
     }
-    public static string IRListToARM(IRTuple[] tuples){
+    public static string IRListToARM(List<IRTuple> tuples){
         str = "";
         for(int i = 0; i < tuples.Length(); i++){
             str += IRToARM(tuples[i]) + '\n';
         }
         return str;
+    }
+    public static int IRListToArmFile(List<IRTuple> tuples, string filename){
+        string output = IRListToArm(tuples);
+        StreamWriter writer = new StreamWriter(filename);
+        writer.Write(output);
+        write.Close();
+        return 1;
     }
 }
