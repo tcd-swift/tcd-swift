@@ -2,3 +2,4 @@ bin/
 generated/
 .DS_Store
 *.asm
+*.exe

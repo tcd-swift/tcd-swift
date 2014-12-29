@@ -1,42 +1,52 @@
 using System;
 using System.Collections.Generic;
+using TCDSwift;
+
+using Ident = System.String;
 
 public class IRBlockTest
 {
   public static void Main(string [] args)
   {
     IRBlock block1 = new IRBlock(1);
-    block1.AppendStatement(new IRTuple(IrOp.LABEL, "l1"));
-    block1.AppendStatement(new IRTupleTwoOp(IrOp.EQU, "t1", "b", "a"));
+    block1.AppendStatement(new IRTuple(IrOp.LABEL, "F$1"));
+    block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "T", "R$2"));
+    block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "A", "R$0"));
+    block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "B", "R$1"));
+    block1.AppendStatement(new IRTupleOneOpImm<int>(IrOp.STORE, "C", 0));
+    block1.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "D", "A"));
 
     IRBlock block2 = new IRBlock(2);
-    block2.AppendStatement(new IRTupleOneOpImm<int>(IrOp.STORE, "b", 4));
-    block2.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "c", "b"));
-    block1.AppendStatement(new IRTupleTwoOp(IrOp.ADD, "t3", "a", "c"));
-    block2.AppendStatement(new IRTuple(IrOp.JMP, "l1"));
+    block2.AppendStatement(new IRTuple(IrOp.LABEL, "L$1"));
+    block2.AppendStatement(new IRTupleTwoOp(IrOp.ADD, "C", "C", "B"));
+    block2.AppendStatement(new IRTupleOneOpImm<int>(IrOp.STORE, "T$1", 1));
+    block2.AppendStatement(new IRTupleTwoOp(IrOp.SUB, "D", "D", "T$1"));
+    block2.AppendStatement(new IRTupleOneOpImm<int>(IrOp.STORE, "T$2", 0));
+    block2.AppendStatement(new IRTupleTwoOp(IrOp.LTE, "T$3", "D", "T$2"));
+    block2.AppendStatement(new IRTupleOneOpIdent(IrOp.JMPF, "L$1", "T$3"));
 
     IRBlock block3 = new IRBlock(3);
-    block3.AppendStatement(new IRTupleTwoOp(IrOp.LTE, "t2", "b", "c"));
-    block3.AppendStatement(new IRTupleOneOpIdent(IrOp.JMPF, "t2", "l2"));
-
-    IRBlock block4 = new IRBlock(4);
-    block4.AppendStatement(new IRTuple(IrOp.JMP, "l3"));
+    block3.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "R$0", "C"));
+    block3.AppendStatement(new IRTupleOneOpIdent(IrOp.STORE, "R$2", "T"));
 
     block1.AddSuccessor(block2);
-    block1.AddSuccessor(block3);
-    block3.AddSuccessor(block4);
+    block2.AddSuccessor(block2);
+    block2.AddSuccessor(block3);
 
     List<IRBlock> blocks = new List<IRBlock>();
     blocks.Add(block1);
     blocks.Add(block2);
     blocks.Add(block3);
-    blocks.Add(block4);
 
     foreach (IRBlock irb in blocks)
     {
+      irb.ComputeLiveuseDef();
+      irb.ComputeLiveouts();
       Console.WriteLine("B" + irb.GetIndex() + ":");
       irb.PrintStatements();
       irb.PrintSuccessors();
+      irb.PrintLiveuseDef();
+      irb.PrintLiveouts();
       Console.WriteLine();
     }
 
