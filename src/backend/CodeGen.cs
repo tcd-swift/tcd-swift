@@ -25,11 +25,17 @@ public class CodeGen{
         }
         if(IR.getOp() == IrOp.CALL){
             string str = "STRMFD sp, {R1-R12, lr}\n";
-            str += "bl " + IR.getDest();
+            str += "BL " + IR.getDest();
+            if(IR.getDest()[0] == 'R'){
+                str = "MOV " + IR.getDest() + ", R0";
+            }
+            else{
+                str = "LDR " + IR.getDest() + ", R0";
+            }
             return str;
         }
         if(IR.getOp() == IrOp.RET){
-            string str;
+            string str = "";
             if(IR.getDest()[0] == 'R'){
                 str = "MOV R0, " + IR.getDest();
             }
