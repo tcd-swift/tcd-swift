@@ -5,12 +5,19 @@ using System.Collections.Generic;
 public class Allocate{
 
     public static Graph graph;
+    
     //graph construction variables
     public static int registers = 13;
     public static List<string> livein;
-    public static List<string>[] input;
+    public static List<List<string>> input;
 
-    public static void takeInput(List<string>[] inputIn, List<string> live){
+    public static List<List<string>> run(List<List<string>> inputIn, List<string> live){
+        takeInput(inputIn, live);
+        build();
+        return simplify(graph);
+    }
+
+    public static void takeInput(List<List<string>> inputIn, List<string> live){
         input = inputIn;
         livein = live;
         graph = new Graph();
@@ -35,7 +42,7 @@ public class Allocate{
 
         //build graph using list of interferences
         List<string> line;
-        for(int i = 0; i < input.Length; i++){
+        for(int i = 0; i < input.Count; i++){
             line = input[i];
             string output = string.Join(",", line.ToArray());
             Console.WriteLine(output);
