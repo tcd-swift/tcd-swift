@@ -4,34 +4,36 @@ using System.IO;
 
 public class CodeGen{
     public static string IRToARM(IRTuple IR){
+        IRTupleOneOpIdent IROOI = IR as IRTupleOneOpIdent;
+        IRTupleTwoOp IRTO = IR as IRTupleTwoOp;
         if(IR.getOp() == IrOp.NEG){
-            return "Neg " + ((IRTupleOneOpIdent)IR).getDest();
+            return "Neg " + IROOI.getDest();
         }
         if(IR.getOp() == IrOp.ADD){
-            return "ADD " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            return "ADD " + IR.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2();
         }
         if(IR.getOp() == IrOp.SUB){
-            return "SUB " + IR.getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            return "SUB " + IR.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2();
         }
         if(IR.getOp() == IrOp.AND){
-            return "AND " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            return "AND " + IRTO.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2();
         }
         if(IR.getOp() == IrOp.MUL){
-            if(((IRTupleTwoOp)IR).getDest() != ((IRTupleTwoOp)IR).getSrc1()){
-                return "MUL " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2(); 
+            if(IRTO.getDest() != IRTO.getSrc1()){
+                return "MUL " + IRTO.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2(); 
             }
             else{
-                return "MUL " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc2() + ", " + ((IRTupleTwoOp)IR).getSrc1(); 
+                return "MUL " + IRTO.getDest() + ", " + IRTO.getSrc2() + ", " + IRTO.getSrc1(); 
             }
         }
         if(IR.getOp() == IrOp.CALL){
             string str = "STRMFD sp, {R1-R12, lr}\n";
-            str += "BL " + ((IRTupleOneOpIdent)IR).getDest();
+            str += "BL " + IROOI.getDest();
             if(IR.getDest()[0] == 'R'){
-                str = "MOV " + ((IRTupleOneOpIdent)IR).getSrc1() + ", R0";
+                str = "MOV " + IROOI.getSrc1() + ", R0";
             }
             else{
-                str = "LDR " + ((IRTupleOneOpIdent)IR).getSrc1() + ", R0";
+                str = "LDR " + IROOI.getSrc1() + ", R0";
             }
             return str;
         }
@@ -49,23 +51,23 @@ public class CodeGen{
         // DIV
 
         if(IR.getOp() == IrOp.EQU){
-            string str =  "CMP " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2()  +'\n';
-            str += "MOVEQ " + ((IRTupleTwoOp)IR).getDest() + ", #1";
-            str += "MOVNE " + ((IRTupleTwoOp)IR).getDest() + ", #0";
+            string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
+            str += "MOVEQ " + IRTO.getDest() + ", #1";
+            str += "MOVNE " + IRTO.getDest() + ", #0";
             return str;
         }
         if(IR.getOp() == IrOp.NEQ){
-            string str =  "CMP " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2()  +'\n';
-            str += "MOVEQ " + ((IRTupleTwoOp)IR).getDest() + ", #0";
-            str += "MOVNE " + ((IRTupleTwoOp)IR).getDest() + ", #1";
+            string str =  "CMP " + IRTO.getSrc1() + ", " + IRTO.getSrc2()  +'\n';
+            str += "MOVEQ " + IRTO.getDest() + ", #0";
+            str += "MOVNE " + IRTO.getDest() + ", #1";
             return str;
         }
         if(IR.getOp() == IrOp.JMP){
-            return "JMP " + ((IRTupleOneOpIdent)IR).getDest();
+            return "JMP " + IROOI.getDest();
         }
         if(IR.getOp() == IrOp.JMPF){
-            string str = "CMP " + ((IRTupleTwoOp)IR).getDest() + ", #0";
-            str += "JMPEQ " + ((IRTupleTwoOp)IR).getSrc1();
+            string str = "CMP " + IRTO.getDest() + ", #0";
+            str += "JMPEQ " + IRTO.getSrc1();
             return str;
         }
         if(IR.getOp() == IrOp.LABEL){
@@ -73,19 +75,19 @@ public class CodeGen{
         }
         // MOD
         if(IR.getOp() == IrOp.NOT){
-            return "MVN " + ((IRTupleOneOpIdent)IR).getDest() + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
+            return "MVN " + IROOI.getDest() + ", " + IROOI.getSrc1();
         }
         if(IR.getOp() == IrOp.OR){
-            return "ORR " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            return "ORR " + IRTO.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2();
         }
         if(IR.getOp() == IrOp.XOR){
-            return "EOR " + ((IRTupleTwoOp)IR).getDest() + ", " + ((IRTupleTwoOp)IR).getSrc1() + ", " + ((IRTupleTwoOp)IR).getSrc2();
+            return "EOR " + IRTO.getDest() + ", " + IRTO.getSrc1() + ", " + IRTO.getSrc2();
         }
         if(IR.getOp() == IrOp.STORE){
             if(IR.getDest()[0] == 'R'){
-                return "LDR " + ((IRTupleOneOpIdent)IR).getDest()[0] + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
+                return "LDR " + IROOI.getDest()[0] + ", " + IROOI.getSrc1();
             }
-            return "STR " + ((IRTupleOneOpIdent)IR).getDest() + ", " + ((IRTupleOneOpIdent)IR).getSrc1();
+            return "STR " + IROOI.getDest() + ", " + IROOI.getSrc1();
         }
         return "";
     }
