@@ -3,6 +3,8 @@ using System;
 namespace TCDSwift  
 {
 
+using IRStream = System.Collections.Generic.List<IRTuple>;
+
 class TCDSwift
 {
     public static void Main (string[] arg)
@@ -16,6 +18,7 @@ class TCDSwift
             {
                 parser.Write(arg[1]);
             }
+            IRStream tuples = parser.GetStream();
         }
         else Console.WriteLine("Usage: tcdscc <program.swift> <output.asm>");
     }

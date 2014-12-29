@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using Symbol = System.Tuple<string, int, int, string>; // name, kind, type, uid
+using IRStream = System.Collections.Generic.List<TCDSwift.IRTuple>;
 
 -->namespace
 
@@ -68,10 +69,14 @@ public class Parser {
     Console.WriteLine("-- line " + t.line + " col " + t.col + ": " + msg);
   }
 
+  public IRStream GetStream() {
+    return program;
+  }
+
   public void Write (string filename) {
     List<string> output = new List<string>();
-    foreach (string i in program) {
-      output.Add(i);
+    foreach (var i in program) {
+      output.Add(i.toString());
     }
     File.WriteAllLines(filename, output.ToArray());
   }

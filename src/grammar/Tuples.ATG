@@ -47,10 +47,10 @@ class Function
     public string _label;
     public Parameters _parameters;
     public SwiftType _returnType;
-    public Program _codeblock;
+    public IRStream _codeblock;
     public string _returnValue;
 
-    public Function(string name, string label, Parameters parameters, SwiftType returnType, Program codeblock, string returnValue)
+    public Function(string name, string label, Parameters parameters, SwiftType returnType, IRStream codeblock, string returnValue)
     {
         _name = name;
         _label = label;
@@ -64,11 +64,10 @@ class Function
 class Parameters : List<Parameter> {}
 
 class Scope : Stack<Symbol> {}
-class Program : List<string> {}
 class TupleStack : Stack<IRTuple> {}
 class Types : List<SwiftType> {} // Coco/r doesn't seem to like List attributes
 
-Program program = new Program();
+IRStream program = new IRStream();
 TupleStack exprStack = new TupleStack();
 Stack<Scope> openScopes = new Stack<Scope>();
 Stack<string> openLabels = new Stack<string>();
@@ -254,11 +253,11 @@ Statement                           (. string name; SwiftType type; .)
 
                                         if (inFunctionCall) {
                                               IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.CALL, exprStack.Pop().getDest(), getUID(name));
-                                              program.Add(tuple.toString());
+                                              program.Add(tuple);
                                               inFunctionCall = false;
                                         } else {
                                               IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), exprStack.Pop().getDest());
-                                              program.Add(tuple.toString());
+                                              program.Add(tuple);
                                         }
                                     .)
     )
@@ -278,7 +277,7 @@ ReturnStatement                         (. SwiftType type; .)
 = "return"                           (. if (!inFuncDecl) SemErr("Cannot have top level function declaration"); .)
   [ Expression<out type>             (.
                                         IRTuple tuple = new IRTuple(IrOp.RET, exprStack.Peek().getDest());
-                                        program.Add(tuple.toString());
+                                        program.Add(tuple);
                                      .)
   ]
 .
@@ -286,8 +285,8 @@ ReturnStatement                         (. SwiftType type; .)
 /*------------------------------------------------------------------------*/
 
 FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefined; string funcName;
-                                         Parameters parameters = new Parameters(); Program actions;
-                                         Program tempHolder = program; program = new Program();
+                                         Parameters parameters = new Parameters(); IRStream actions;
+                                         IRStream tempHolder = program; program = new IRStream();
                                          inFuncDecl = true;
                                       .)
 = "func"                              (. openScopes.Push(new Scope()); .)
@@ -374,12 +373,12 @@ WhileLoop                           (. string loopStartLabel; .)
                                       loopStartLabel = generateLabel();
                                       openLabels.Push(generateLabel());
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
-                                      program.Add(tuple.toString());
+                                      program.Add(tuple);
                                     .)
   CodeBlock                         (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel));
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));
                                     .)
   .
 
@@ -390,13 +389,13 @@ DoWhileLoop
 = "do"                              (.
                                       openScopes.Push(new Scope());
                                       openLabels.Push(generateLabel());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Peek()));
                                     .)
   CodeBlock                         (. openScopes.Pop(); .)
   "while"
   IfCondition                       (.
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMP, exprStack.Pop().getDest(), openLabels.Peek());
-                                      program.Add(tuple.toString());
+                                      program.Add(tuple);
                                       openLabels.Pop();
                                     .)
   .
@@ -412,7 +411,7 @@ ForLoop
 
 /*------------------------------------------------------------------------*/
 
-TradForLoop                         (. string name, exprname; SwiftType type, exprtype; List<String> ins_list = new List<String>();
+TradForLoop                         (. string name, exprname; SwiftType type, exprtype; IRStream ins_list = new IRStream();
                                        Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
 = "for"                             (. openScopes.Push(new Scope()); .)
   (Identifier <out name>
@@ -430,19 +429,19 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       }
 
                                       tuple = new IRTupleOneOpIdent(IrOp.STORE, sym.Item4, exprStack.Pop().getDest());
-                                      program.Add(tuple.toString());
+                                      program.Add(tuple);
                                     .)
   |
   Declaration<out name, out type>
   )
   ";"                               (.
                                       loopStartLabel = generateLabel();
-                                      program.Add(new IRTuple(IrOp.LABEL, loopStartLabel).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, loopStartLabel));
                                       openLabels.Push(generateLabel()); // second label is for the loop end
                                     .)
   IfCondition                       (.
                                       tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
-                                      program.Add(tuple.toString());
+                                      program.Add(tuple);
                                     .)
   ";"
   Identifier <out exprname>
@@ -460,7 +459,7 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       }
 
                                       tuple = new IRTupleOneOpIdent(IrOp.STORE, exprname, exprStack.Pop().getDest());
-                                      ins_list.Add(tuple.toString());
+                                      ins_list.Add(tuple);
                                     .)
   CodeBlock                         (.
                                       openScopes.Pop();
@@ -468,8 +467,8 @@ TradForLoop                         (. string name, exprname; SwiftType type, ex
                                       for (int i = 0; i < ins_list.Count; i++) {
                                         program.Add(ins_list[i]); // add the instructions from the instruction list to the program now
                                       }
-                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel).toString());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                      program.Add(new IRTuple(IrOp.JMP, loopStartLabel));
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));
                                     .)
   .
 
@@ -489,7 +488,7 @@ IfStatement
                                           openLabels.Push(generateLabel());
 
                                           IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, exprStack.Pop().getDest(), openLabels.Peek());
-                                          program.Add(tuple.toString());
+                                          program.Add(tuple);
                                       .)
   CodeBlock                           (.
                                           openScopes.Pop();
@@ -497,11 +496,11 @@ IfStatement
                                           IRTuple startOfElse = new IRTuple(IrOp.LABEL, openLabels.Pop());
 
                                           openLabels.Push(generateLabel());
-                                          program.Add(new IRTuple(IrOp.JMP, openLabels.Peek()).toString());
-                                          program.Add(startOfElse.toString());
+                                          program.Add(new IRTuple(IrOp.JMP, openLabels.Peek()));
+                                          program.Add(startOfElse);
                                       .)
   [ElseClause]
-                                      (.  program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());  .)
+                                      (.  program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));  .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -535,27 +534,27 @@ SwitchCases                       (.  string finishLabel = generateLabel(); open
 =                                 (.  openScopes.Push(new Scope());                                       .)
   Case                            (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel));
                                   .)
   {                               (.
                                       openScopes.Push(new Scope());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));
                                   .)
     Case                          (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel));
                                   .)
   }
 
   [                               (.
                                       openScopes.Push(new Scope());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));
                                   .)
     DefaultCase                   (.
                                       openScopes.Pop();
-                                      program.Add(new IRTuple(IrOp.JMP, finishLabel).toString());
+                                      program.Add(new IRTuple(IrOp.JMP, finishLabel));
                                   .)
-  ]                               (.  program.Add(new IRTuple(IrOp.LABEL, finishLabel).toString());       .)
+  ]                               (.  program.Add(new IRTuple(IrOp.LABEL, finishLabel));       .)
 .
 
 Case
@@ -581,13 +580,13 @@ CaseItemList                      (.  SwiftType type; .)
                                       var expr = exprStack.Pop();
                                       IRTupleTwoOp checkCase = new IRTupleTwoOp(IrOp.EQU, generateTemporary(), expr.getDest(), exprStack.Peek().getDest());
 
-                                      program.Add(checkCase.toString());
+                                      program.Add(checkCase);
 
                                       string nextCase = generateLabel();
                                       openLabels.Push(nextCase);
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
 
-                                      program.Add(tuple.toString());
+                                      program.Add(tuple);
                                   .)
   [ ',' CaseItemList ]
 .
@@ -619,7 +618,7 @@ Expression<out SwiftType type>    (.  IrOp op; SwiftType simpType; .)
                                             IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
 
                                             exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
-                                            program.Add(exprStack.Peek().toString());
+                                            program.Add(exprStack.Peek());
                                             type = SwiftType.Bool;
                                         }else{
                                             SemErr("Incompatipable types in comparative");
@@ -641,7 +640,7 @@ SimpleExpression<out SwiftType type> (.  IrOp op; SwiftType termType; .)
                                             IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
 
                                             exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
-                                            program.Add(exprStack.Peek().toString());
+                                            program.Add(exprStack.Peek());
                                         }
                                         else
                                         {
@@ -662,7 +661,7 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
                                         IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
 
                                         exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
-                                        program.Add(exprStack.Peek().toString());
+                                        program.Add(exprStack.Peek());
                                     .)
   }
   .
@@ -712,7 +711,7 @@ PrimaryExpression
                                               {
                                                 // Assign values to params backwards because of expression stack
                                                 Parameter p = functionDecls[name]._parameters[i];
-                                                program.Add(new IRTupleOneOpIdent(IrOp.STORE, p._uid, exprStack.Pop().getDest()).toString());
+                                                program.Add(new IRTupleOneOpIdent(IrOp.STORE, p._uid, exprStack.Pop().getDest()));
                                               }
                                               exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, functionDecls[name]._label, functionDecls[name]._returnValue));
                                             }
@@ -733,7 +732,7 @@ PrimaryExpression
                                       .)
   | Literal<out value, out _type>     (.
                                           exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
-                                          program.Add(exprStack.Peek().toString());
+                                          program.Add(exprStack.Peek());
                                           type = _type;
                                       .)
   ).
@@ -825,11 +824,11 @@ PatternInitializer
 
                                             if (inFunctionCall) {
                                               IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.CALL, exprStack.Pop().getDest(), getUID(name));
-                                              program.Add(tuple.toString());
+                                              program.Add(tuple);
                                               inFunctionCall = false;
                                             } else {
                                               IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.STORE, getUID(name), exprStack.Pop().getDest());
-                                              program.Add(tuple.toString());
+                                              program.Add(tuple);
                                             }
                                         .)
   .
@@ -897,18 +896,18 @@ TCDSwift
   Statements                  (.
                                   openScopes.Pop();
 
-                                  program.Add(new IRTuple(IrOp.JMP, "END").toString());
+                                  program.Add(new IRTuple(IrOp.JMP, "END"));
 
                                   foreach(var func in functionDecls.Values)
                                   {
-                                      program.Add(new IRTuple(IrOp.LABEL, func._label).toString());
+                                      program.Add(new IRTuple(IrOp.LABEL, func._label));
                                       foreach(var inst in func._codeblock)
                                       {
                                           program.Add(inst);
                                       }
                                   }
 
-                                  program.Add(new IRTuple(IrOp.LABEL, "END").toString());
+                                  program.Add(new IRTuple(IrOp.LABEL, "END"));
                               .)
   .
 
