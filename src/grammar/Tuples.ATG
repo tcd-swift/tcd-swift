@@ -14,8 +14,7 @@ enum SwiftType : int
 enum SwiftKind : int
 {
   Var,
-  Const,
-  Proc
+  Const
 };
 
 // using Symbol = System.Tuple<string, int, int, string>
@@ -61,11 +60,10 @@ class Function
     }
 }
 
-class Parameters : List<Parameter> {}
-
 class Scope : Stack<Symbol> {}
+class Types : List<SwiftType> {}
 class TupleStack : Stack<IRTuple> {}
-class Types : List<SwiftType> {} // Coco/r doesn't seem to like List attributes
+class Parameters : List<Parameter> {}
 
 IRStream program = new IRStream();
 TupleStack exprStack = new TupleStack();
@@ -105,7 +103,7 @@ Symbol _lookup(Scope scope, string name)
   return null;
 }
 
-// Find symbol (if one exists), at most nested level
+// Find symbol (if one exists), at most "local" scope
 Symbol lookup(Stack<Scope> scopes, string name)
 {
   foreach (Scope scope in scopes)
@@ -113,20 +111,6 @@ Symbol lookup(Stack<Scope> scopes, string name)
     foreach (Symbol s in scope)
     {
       if (s.Item1 == name) return s;
-    }
-  }
-
-  return null;
-}
-
-// Find the scope of a symbol
-Scope findScope(string name)
-{
-  foreach(Scope scope in openScopes)
-  {
-    foreach(Symbol s in scope)
-    {
-      if (s.Item1 == name) return scope;
     }
   }
 
@@ -265,15 +249,13 @@ Statement                           (. string name; SwiftType type; .)
     | BranchStatement
     | LoopStatement
     | ReturnStatement
-  // | LabeledStatement
-  // | ControlTransferStatement
   )
   [";"]
   .
 
 /*------------------------------------------------------------------------*/
 
-ReturnStatement                         (. SwiftType type; .)
+ReturnStatement                      (. SwiftType type; .)
 = "return"                           (. if (!inFuncDecl) SemErr("Cannot have top level function declaration"); .)
   [ Expression<out type>             (.
                                         IRTuple tuple = new IRTuple(IrOp.RET, exprStack.Peek().getDest());
@@ -305,7 +287,7 @@ FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefi
                                           openScopes.Pop();
                                           actions = program;
                                           program = tempHolder;
-                                          // exprStack.Pop() below likely to cause crash for func returning void
+
                                           Function func = new Function(funcName, funcName, parameters, returnType, actions, exprStack.Pop().getDest());
                                           functionDecls.Add(funcName, func);
                                           inFuncDecl = false;
@@ -402,16 +384,7 @@ DoWhileLoop
 
 /*------------------------------------------------------------------------*/
 
-ForLoop
-= //(
-  TradForLoop
-//  | ForInLoop
-//  )
-.
-
-/*------------------------------------------------------------------------*/
-
-TradForLoop                         (. string name, exprname; SwiftType type, exprtype; IRStream ins_list = new IRStream();
+ForLoop                             (. string name, exprname; SwiftType type, exprtype; IRStream ins_list = new IRStream();
                                        Symbol sym; IRTupleOneOpIdent tuple; string loopStartLabel; .)
 = "for"                             (. openScopes.Push(new Scope()); .)
   (Identifier <out name>
@@ -607,7 +580,7 @@ CodeBlock = "{" [Statements] "}" .
 
 /*------------------------------------------------------------------------*/
 
-Expression<out SwiftType type>    (.  IrOp op; SwiftType simpType; .)
+Expression<out SwiftType type>      (.  IrOp op; SwiftType simpType; .)
 = SimpleExpression<out type>
   [
     ComparativeOp<out op>
@@ -748,10 +721,10 @@ ParenthesizedExpression<out Types types>  (. types = new Types(); .)
 /*------------------------------------------------------------------------*/
 
 ExpressionElementList<out Types types>  (. SwiftType type; types = new Types(); .)
-= Expression<out type>                            (. types.Add(type); .)
+= Expression<out type>                  (. types.Add(type); .)
   {
     ","
-    Expression<out type>                          (. types.Add(type); .)
+    Expression<out type>                (. types.Add(type); .)
   }
 .
 
@@ -782,7 +755,7 @@ VariableDeclaration<out string name, out SwiftType type>  (.  string _name; Swif
 
                                               openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Var, (int)_type, getUID(_name)));
                                               name = _name; type = _type;
-                                          .)
+                                            .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -797,7 +770,7 @@ ConstantDeclaration<out string name, out SwiftType type>  (.  string _name; Swif
 
                                               openScopes.Peek().Push(new Symbol(_name, (int)SwiftKind.Const, (int)_type, getUID(_name)));
                                               name = _name; type = _type;
-                                          .)
+                                            .)
   .
 
 /*------------------------------------------------------------------------*/
@@ -864,12 +837,12 @@ Initializer<out SwiftType type> (. SwiftType _type; .)
 
 TypeAnnotation<out SwiftType type>  (. SwiftType _type; .)
 = ':'
-  Type<out _type>                    (. type = _type;   .) // Should be [Attributes] Type
+  Type<out _type>                    (. type = _type;   .)
   .
 
 /*------------------------------------------------------------------------*/
 
-Type<out SwiftType type>        (.  string typeName; .)  // Should be waaaay more comprehensive!
+Type<out SwiftType type>        (.  string typeName; .)
 = Identifier<out typeName>      (.
                                     try
                                     {
