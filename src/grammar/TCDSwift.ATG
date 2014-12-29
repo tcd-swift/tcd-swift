@@ -26,6 +26,13 @@ enum SwiftKind : int
     * Symbol.Item4 -> uid
 */
 
+/**
+* Class to represent a Parameter
+* Attributes:
+*     name
+*     type
+*     uid
+*/
 class Parameter
 {
     public string _name;
@@ -40,6 +47,17 @@ class Parameter
     }
 }
 
+/**
+* Class to represent a Function
+* Attributes:
+*   name
+*   label //label for tuple generation
+*   parameters
+*   return type
+*   codeblock //function body
+*
+*   The class allows us to collect Functions and add them to the program at the end
+*/
 class Function
 {
     public string _name;
@@ -47,16 +65,14 @@ class Function
     public Parameters _parameters;
     public SwiftType _returnType;
     public IRStream _codeblock;
-    public string _returnValue;
 
-    public Function(string name, string label, Parameters parameters, SwiftType returnType, IRStream codeblock, string returnValue)
+    public Function(string name, string label, Parameters parameters, SwiftType returnType, IRStream codeblock)
     {
         _name = name;
         _label = label;
         _parameters = parameters;
         _returnType = returnType;
         _codeblock = codeblock;
-        _returnValue = returnValue;
     }
 }
 
@@ -268,11 +284,11 @@ ReturnStatement                      (. SwiftType type; .)
 
 FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefined; string funcName;
                                          Parameters parameters = new Parameters(); IRStream actions;
-                                         IRStream tempHolder = program; program = new IRStream();
+                                         IRStream tempHolder = program; program = new IRStream();   //temporary hold program to collect function body
                                          inFuncDecl = true;
                                       .)
 = "func"                              (. openScopes.Push(new Scope()); .)
-  FunctionIdentifier<out funcName>    (. 
+  FunctionIdentifier<out funcName>    (.
                                           if (functionDecls.ContainsKey(funcName))
                                           {
                                             SemErr("Redefinition of function " + funcName);
@@ -285,10 +301,10 @@ FunctionDeclaration                   (. SwiftType returnType = SwiftType.Undefi
   CodeBlock
                                       (.
                                           openScopes.Pop();
-                                          actions = program;
-                                          program = tempHolder;
+                                          actions = program;    //instantiate function body
+                                          program = tempHolder; //resume program
 
-                                          Function func = new Function(funcName, funcName, parameters, returnType, actions, exprStack.Pop().getDest());
+                                          Function func = new Function(funcName, funcName, parameters, returnType, actions);
                                           functionDecls.Add(funcName, func);
                                           inFuncDecl = false;
                                       .)
@@ -314,7 +330,7 @@ Params<out Parameters parameters>     (. Parameter parameter; Parameters tempLis
 Param<out Parameter p>                (. SwiftType type; string name;   .)
 = Identifier<out name>
   TypeAnnotation<out type>
-                                      (. 
+                                      (.
                                         if (_lookup(openScopes.Peek(), name) != null)
                                         {
                                           SemErr("Parameters must differ in name, '" + name + "' is used twice");
@@ -513,7 +529,7 @@ SwitchCases                       (.  string finishLabel = generateLabel(); open
                                   .)
   {                               (.
                                       openScopes.Push(new Scope());
-                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop()));
+                                      program.Add(new IRTuple(IrOp.LABEL, openLabels.Pop())); //label to jump to next case
                                   .)
     Case                          (.
                                       openScopes.Pop();
@@ -557,7 +573,7 @@ CaseItemList                      (.  SwiftType type; .)
 
                                       program.Add(checkCase);
 
-                                      string nextCase = generateLabel();
+                                      string nextCase = generateLabel(); //produce label for next case
                                       openLabels.Push(nextCase);
                                       IRTupleOneOpIdent tuple = new IRTupleOneOpIdent(IrOp.JMPF, checkCase.getDest(), nextCase);
 
@@ -644,9 +660,9 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
 /*------------------------------------------------------------------------*/
 
 PrimaryExpression
-<out SwiftType type>                  (.  
-                                          SwiftType _type; Types types = new Types(); 
-                                          string name, value; 
+<out SwiftType type>                  (.
+                                          SwiftType _type; Types types = new Types();
+                                          string name, value;
                                       .)
 =                                     (.  type = SwiftType.Undefined; .)
   ( "(" Expression<out _type> ")"     (.  type = _type;               .)
@@ -655,7 +671,7 @@ PrimaryExpression
         ParenthesizedExpression<out types>
                                       (.  inFunctionCall = true;  .)
       ]
-    )                                 (.  
+    )                                 (.
                                           if (inFunctionCall)
                                           {
                                             if (!functionDecls.ContainsKey(name))
@@ -688,7 +704,7 @@ PrimaryExpression
                                                 Parameter p = functionDecls[name]._parameters[i];
                                                 program.Add(new IRTupleOneOpIdent(IrOp.STORE, p._uid, exprStack.Pop().getDest()));
                                               }
-                                              exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, functionDecls[name]._label, functionDecls[name]._returnValue));
+                                              exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, functionDecls[name]._label, ""));
                                             }
 
                                             type = functionDecls[name]._returnType;
