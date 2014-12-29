@@ -8,9 +8,9 @@ public class IRGraphTest{
         List<IRTuple> irstream = new List<IRTuple>();
 
         irstream.Add(new IRTuple(IrOp.LABEL, "F$1"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "T", "R2"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "A", "R0"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "B", "R1"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "T", "R3"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "A", "R1"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "B", "R2"));
         irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "C", 0));
         irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "D", "A"));
         irstream.Add(new IRTuple(IrOp.LABEL, "L$1"));
@@ -20,8 +20,8 @@ public class IRGraphTest{
         irstream.Add(new IRTupleOneOpImm<int>(IrOp.STORE, "T$2", 0));
         irstream.Add(new IRTupleTwoOp(IrOp.LTE, "T$3", "D", "T$2"));
         irstream.Add(new IRTupleOneOpIdent(IrOp.JMPF, "L$1", "T$3"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R0", "C"));
-        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R2", "T"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R1", "C"));
+        irstream.Add(new IRTupleOneOpIdent(IrOp.STORE, "R3", "T"));
 
         IRGraph graph = new IRGraph(irstream);
 

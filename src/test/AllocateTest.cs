@@ -6,16 +6,16 @@ public class AllocateTest{
     public static void Main(){
         //test 1
         List<List<string>> input = new List<List<string>>();
-        input.Add(new List<string>(){"T","R0","R1","T"});
-        input.Add(new List<string>(){"A","R1","A","T"});
+        input.Add(new List<string>(){"T","R1","R2","T"});
+        input.Add(new List<string>(){"A","R2","A","T"});
         input.Add(new List<string>(){"B","A","B","T"});
         input.Add(new List<string>(){"C","A","B","C","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
         input.Add(new List<string>(){"C","B","C","D","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
         input.Add(new List<string>(){"D","B","C","D","T"});
-        input.Add(new List<string>(){"R0","R0","T"});
-        input.Add(new List<string>(){"R2","R0","R2"});
+        input.Add(new List<string>(){"R1","R1","T"});
+        input.Add(new List<string>(){"R3","R1","R3"});
         
         List<string> livein = new List<string>(){"R0","R1","R2"};
         

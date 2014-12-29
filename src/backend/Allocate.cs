@@ -7,7 +7,7 @@ public class Allocate{
     public static Graph graph;
     
     //graph construction variables
-    public static int registers = 13;
+    public static int registers = 12;
     public static List<string> livein;
     public static List<List<string>> input;
 
@@ -67,7 +67,7 @@ public class Allocate{
     //get list of registers based on number of registers
     public static List<string> getRegisters(){
         List<string> regs = new List<string>();
-        for(int i = 0; i < Allocate.registers; i++){
+        for(int i = 1; i <= Allocate.registers; i++){
             string reg = "R" + i;
             regs.Add(reg);       
         }
@@ -135,7 +135,7 @@ public class Allocate{
         List<string> available = new List<string>();
          
         //build list of available registers
-        for(int i = 0; i < Allocate.registers; i++){
+        for(int i = 1; i <= Allocate.registers; i++){
             string reg = "R" + i;
             if(!livein.Contains(reg)){
                 available.Add(reg);
