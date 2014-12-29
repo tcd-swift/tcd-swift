@@ -87,6 +87,15 @@ public class IRTuple
     return result; // Operations without operators neither use nor assign variables
   }
 
+  // Return a translation of this tuple, translating its operand names using a map from old names to new names
+  public virtual IRTuple TranslateNames(Dictionary<string, string> translations)
+  {
+    string newdest = this.dest;
+    if(translations.ContainsKey(this.dest))
+      newdest = translations[this.dest];
+    return new IRTuple(this.op, newdest);
+  }
+
   public virtual void Print()
   {
     Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
@@ -133,6 +142,18 @@ public class IRTupleOneOpIdent : IRTuple
     return result;
   }
 
+  // Return a translation of this tuple, translating its operand names using a map from old names to new names
+  public override IRTuple TranslateNames(Dictionary<string, string> translations)
+  {
+    string newdest = this.dest;
+    if(translations.ContainsKey(this.dest))
+      newdest = translations[this.dest];
+    string newsrc1 = this.src1;
+    if(translations.ContainsKey(this.src1))
+      newsrc1 = translations[this.src1];
+    return new IRTupleOneOpIdent(this.op, newdest, newsrc1);
+  }
+
   public override void Print()
   {
     Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
@@ -168,6 +189,15 @@ public class IRTupleOneOpImm<T> : IRTuple
     if(varusers.Contains(this.op))
       result.Add(this.dest);
     return result;
+  }
+
+  // Return a translation of this tuple, translating its operand names using a map from old names to new names
+  public override IRTuple TranslateNames(Dictionary<string, string> translations)
+  {
+    string newdest = this.dest;
+    if(translations.ContainsKey(this.dest))
+      newdest = translations[this.dest];
+    return new IRTupleOneOpImm<T>(this.op, newdest, this.src1);
   }
 
   public override void Print()
@@ -217,6 +247,21 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
     if(varusers.Contains(this.op))
       result.Add(this.dest);
     return result;
+  }
+
+  // Return a translation of this tuple, translating its operand names using a map from old names to new names
+  public override IRTuple TranslateNames(Dictionary<string, string> translations)
+  {
+    string newdest = this.dest;
+    if(translations.ContainsKey(this.dest))
+      newdest = translations[this.dest];
+    string newsrc1 = this.src1;
+    if(translations.ContainsKey(this.src1))
+      newsrc1 = translations[this.src1];
+    string newsrc2 = this.src2;
+    if(translations.ContainsKey(this.src2))
+      newsrc2 = translations[this.src2];      
+    return new IRTupleTwoOp(this.op, newdest, newsrc1, newsrc2);
   }
 
   public override void Print()

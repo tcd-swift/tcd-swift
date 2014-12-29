@@ -8,7 +8,7 @@ public class IRTupleTest
 {
   public static void Main(string [] args)
   {
-    IRTuple[] tuples = {new IRTuple(IrOp.FUNC, "F$1"),
+    IRTuple[] tuples = {new IRTuple(IrOp.LABEL, "F$1"),
                         new IRTupleOneOpIdent(IrOp.STORE, "T", "R$2"),
                         new IRTupleOneOpIdent(IrOp.STORE, "A", "R$0"),
                         new IRTupleOneOpIdent(IrOp.STORE, "B", "R$1"),
@@ -23,6 +23,21 @@ public class IRTupleTest
                         new IRTupleOneOpIdent(IrOp.JMPF, "L$1", "T$3"),
                         new IRTupleOneOpIdent(IrOp.STORE, "R$0", "C"),
                         new IRTupleOneOpIdent(IrOp.STORE, "R$2", "T")};
+
+    Dictionary<string, string> translations = new Dictionary<string, string>()
+    {
+      {"R$0", "R$0"},
+      {"R$1", "R$1"},
+      {"R$2", "R$2"},
+      {"D", "R$1"},
+      {"C", "R$2"},
+      {"B", "R$3"},
+      {"A", "R$0"},
+      {"T", "R$4"},
+      {"T$1", "R$0"},
+      {"T$2", "R$0"},
+      {"T$3", "R$0"}
+    };
 
     foreach (IRTuple irt in tuples)
     {
@@ -42,6 +57,15 @@ public class IRTupleTest
         Console.Write(ident + " ");
       }
 
+      Console.WriteLine();
+    }
+
+    Console.WriteLine("-------");
+
+    foreach (IRTuple irt in tuples)
+    {
+      IRTuple translated = irt.TranslateNames(translations);
+      translated.Print();
       Console.WriteLine();
     }
 
