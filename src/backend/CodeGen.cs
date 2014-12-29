@@ -46,7 +46,7 @@ public class CodeGen{
             else{
                 str = "LDR R0, " + IR.getDest();
             }
-            str += "\nLDRMFD sp, {R1-R12, pc}\n";
+            str += "\nLDMFD sp, {R1-R12, pc}";
             return str;
         }
         // DIV
@@ -98,7 +98,7 @@ public class CodeGen{
         }
         if(IR.getOp() == IrOp.STORE){
             if(IR.getDest()[0] == 'R'){
-                return "LDR " + IROOI.getDest()[0] + ", " + IROOI.getSrc1();
+                return "LDR " + IROOI.getDest() + ", " + IROOI.getSrc1();
             }
             return "STR " + IROOI.getDest() + ", " + IROOI.getSrc1();
         }
