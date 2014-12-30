@@ -108,10 +108,10 @@ public class CodeGen{
     public static string IRListToARM(List<IRTuple> tuples){
         string str = "";
         for(int i = 0; i < tuples.Count; i++){
-try{
-            str += IRToARM(tuples[i]) + '\n';
-}
-catch(System.NullReferenceException e){ tuples[i].Print(); }
+            try{
+                str += IRToARM(tuples[i]) + '\n';
+            }
+            catch(System.NullReferenceException e){ tuples[i].Print(); }
         }
         return str;
     }
