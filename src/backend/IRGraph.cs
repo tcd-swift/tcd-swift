@@ -4,12 +4,19 @@ using TCDSwift;
 
 using Ident = System.String;
 
-public class IRGraph
+public class IRGraph : ICloneable
 {
   private static int BLOCK_INDEX_INITIAL = 1; // Index of first block in graph
   private SortedDictionary<int, IRBlock> blocks; // Mapping of block index number to block
 
   // Construct a graph from a stream of tuples
+  public IRGraph(List<IRBlock> blocks) {
+    this.blocks = new SortedDictionary<int, IRBlock>();
+
+    foreach(IRBlock block in blocks)
+      this.blocks[block.GetIndex()]  = block;
+  }
+
   public IRGraph(List<IRTuple> tuples)
   {
     if(tuples.Count < 1)
@@ -30,6 +37,18 @@ public class IRGraph
     List<string> livein;
     List<List<string>> liveouts;
     this.ComputeLiveness(out livein, out liveouts);
+  }
+
+  public IRBlock GetGraphHead() {
+    return this.blocks[BLOCK_INDEX_INITIAL];
+  }
+
+  public IRBlock GetBlock(int index) {
+    return this.blocks[index];
+  }
+
+  public SortedDictionary<int, IRBlock> getBlocks() {
+    return this.blocks.AsReadOnly()
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
@@ -190,5 +209,24 @@ public class IRGraph
       block.PrintLiveouts();
       Console.WriteLine();
     }
+  }
+
+  public SortedSet<IRBlock> SetOfAllBlocks() {
+    IRBlock head = this.GetGraphHead();
+    SortedSet<IRBlock> blocks = new SortedSet<IRBlocK>();
+
+    blocks.Add(head);
+    
+    return FindAllUnseenSuccessorBlocks(blocks, head);
+  }
+
+  private SortedSet<IRBlock> FindAllUnseenSuccessorBlocks(SortedSet<IRBlock> seen, IRBlock block) {
+    for (IRBlock block in block.GetSuccessors()) {
+      if (!seen.Contains(block)) {
+        seen.Add(block);
+        FindAllUnseenSuccessorBlocks(seen, block);
+      }
+    }
+    return seen;
   }
 }

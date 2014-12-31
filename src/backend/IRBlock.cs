@@ -91,6 +91,10 @@ public class IRBlock
     this.successors.RemoveAt(index);
   }
 
+  public List<IRBlock> GetSuccessors() {
+    return this.successors.AsReadOnly();
+  }
+
   public IRBlock GetSuccessor(int index)
   {
     return this.successors[index];
