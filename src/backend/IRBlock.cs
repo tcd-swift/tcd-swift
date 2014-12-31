@@ -92,7 +92,7 @@ public class IRBlock
   }
 
   public List<IRBlock> GetSuccessors() {
-    return this.successors.AsReadOnly();
+    return this.successors;
   }
 
   public IRBlock GetSuccessor(int index)

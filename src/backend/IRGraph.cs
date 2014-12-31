@@ -4,7 +4,7 @@ using TCDSwift;
 
 using Ident = System.String;
 
-public class IRGraph : ICloneable
+public class IRGraph
 {
   private static int BLOCK_INDEX_INITIAL = 1; // Index of first block in graph
   private SortedDictionary<int, IRBlock> blocks; // Mapping of block index number to block
