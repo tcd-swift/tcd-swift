@@ -4,22 +4,25 @@ using TCDSwift;
 
 public class DominatorTree
 {
+  private IRGraph cfg;
   private DominatorTreeNode startDominatorTree;
   private Dictionary<int, DominatorTreeNode> blockToNodeMappings;
-  private Dictionary<IRBlock, List<IRBlock>> dominateFrontiers;
+  private Dictionary<IRBlock, List<IRBlock>> dominanceFrontiers;
 
   public DominatorTree(IRGraph cfg) {
-    this.startDominatorTree = this.BuildDominatorTree(cfg);
+    this.cfg = cfg;
+    this.blockToNodeMappings = new Dictionary<int, DominatorTreeNode>();
 
-    this.ConstructDominanceFrontierMapping(cfg);
+    this.startDominatorTree = this.BuildDominatorTree();
+    this.dominanceFrontiers = this.ConstructDominanceFrontierMapping(cfg);
   }
 
-  private DominatorTreeNode BuildDominatorTree(IRGraph graph) {
+  private DominatorTreeNode BuildDominatorTree() {
     // Using Aho & Ullman - The thoery of parsing and compilation Vol II ... Algorithm 11.5
-    SortedSet<IRBlock> V = graph.GetSetOfAllBlocks();
+    SortedSet<IRBlock> V = this.cfg.GetSetOfAllBlocks();
     SortedSet<IRBlock> VSansR = new SortedSet<IRBlock>();
     VSansR.UnionWith(V);
-    VSansR.Remove(graph.GetGraphHead()); // remove head from the set of all blocks
+    VSansR.Remove(this.cfg.GetGraphHead()); // remove head from the set of all blocks
     
     // calculate which blocks dominates what list of blocks
     Dictionary<IRBlock, SortedSet<IRBlock>> dominates = new Dictionary<IRBlock, SortedSet<IRBlock>>();
@@ -27,7 +30,7 @@ public class DominatorTree
       SortedSet<IRBlock> VSansv = new SortedSet<IRBlock>();
       VSansv.UnionWith(V);
       VSansv.Remove(v); // V - {v}
-      SortedSet<IRBlock> S = FindReachableBlocks(graph, v.GetIndex());
+      SortedSet<IRBlock> S = FindReachableBlocks(this.cfg, v.GetIndex());
 
       VSansv.ExceptWith(S);
 
@@ -40,8 +43,8 @@ public class DominatorTree
     return null;
   }
 
-  public static SortedSet<IRBlock> FindReachableBlocks(IRGraph graph, int ignoreBlockIndex) {
-    IRBlock head = graph.GetGraphHead();
+  public static SortedSet<IRBlock> FindReachableBlocks(IRGraph cfg, int ignoreBlockIndex) {
+    IRBlock head = cfg.GetGraphHead();
     SortedSet<IRBlock> reachable = new SortedSet<IRBlock>();
     reachable.Add(head);
 
@@ -64,9 +67,12 @@ public class DominatorTree
     return reachable;
   }
 
-  private void ConstructDominanceFrontierMapping(IRGraph graph) {
+  private Dictionary<IRBlock, List<IRBlock>> ConstructDominanceFrontierMapping(IRGraph graph) {
     // Using Ron Cytron et al Algorithm quadratic algorithm
+    Dictionary<IRBlock, List<IRBlock>> mappings = new Dictionary<IRBlock, List<IRBlock>>();
+    
 
+    return mappings;
   }
 
   private SortedSet<IRBlock> ConstructDominanceFrontierMapping(IRBlock x) {
