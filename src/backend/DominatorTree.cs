@@ -26,21 +26,25 @@ public class DominatorTree
     
     // calculate which blocks dominates what list of blocks
     Dictionary<IRBlock, SortedSet<IRBlock>> dominates = new Dictionary<IRBlock, SortedSet<IRBlock>>();
-    foreach  (IRBlock v in VSansR) {
-      SortedSet<IRBlock> VSansv = new SortedSet<IRBlock>();
-      VSansv.UnionWith(V);
-      VSansv.Remove(v); // V - {v}
-      SortedSet<IRBlock> S = FindReachableBlocks(this.cfg, v.GetIndex());
-
-      VSansv.ExceptWith(S);
-
-      dominates[v] = VSansv; // V - {v} - S
+    foreach (IRBlock v in VSansR) {
+      dominates[v] = CalculateDominatesSet(this.cfg, V, VSansR, v);
     }
 
     // use dominates sets to build the dominator tree
 
 
     return null;
+  }
+
+  public static SortedSet<IRBlock> CalculateDominatesSet(IRGraph cfg, SortedSet<IRBlock> V, SortedSet<IRBlock> VSansR, IRBlock v) {
+    SortedSet<IRBlock> VSansv = new SortedSet<IRBlock>();
+    VSansv.UnionWith(V);
+    VSansv.Remove(v); // V - {v}
+    SortedSet<IRBlock> S = FindReachableBlocks(cfg, v.GetIndex());
+
+    VSansv.ExceptWith(S);
+
+    return VSansv; // V - {v} - S
   }
 
   public static SortedSet<IRBlock> FindReachableBlocks(IRGraph cfg, int ignoreBlockIndex) {

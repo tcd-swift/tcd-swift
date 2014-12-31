@@ -14,44 +14,46 @@ public class DominatorTreeTest
     TestFindReachableBlocks3();
     TestFindReachableBlocks4();
 
+    TestDomaintes3();
+    TestDomaintes4();
+
     Console.WriteLine("*** SUCCESS ***");
+  }
+
+
+  /*
+   * Test find reachable blocks methods
+   */
+  public static void TestFindReachableBlocks(int index, SortedSet<int> expected)
+  {
+    IRGraph cfg = BuildSampleCFG();
+    SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, index);
+    SortedSet<int> intResult = ConvertToIndexSet(result);
+
+    if(!intResult.SetEquals(expected)) {
+      throw new Exception("Reachable blocks for block " + index + " is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
+    }
   }
 
   public static void TestFindReachableBlocks1()
   {
-    IRGraph cfg = BuildSampleCFG();
-    SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 1);
-    SortedSet<int> intResult = ConvertToIndexSet(result);
-
     SortedSet<int> expected = new SortedSet<int>();
     expected.Add(1);
 
-    if(!intResult.SetEquals(expected)) {
-      throw new Exception("Reachable blocks for block 1 is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
-    }
+    TestFindReachableBlocks(1, expected);
   }
 
   public static void TestFindReachableBlocks3()
   {
-    IRGraph cfg = BuildSampleCFG();
-    SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 3);
-    SortedSet<int> intResult = ConvertToIndexSet(result);
-
     SortedSet<int> expected = new SortedSet<int>();
     expected.Add(1);
     expected.Add(2);
 
-    if(!intResult.SetEquals(expected)) {
-      throw new Exception("Reachable blocks for block 3 is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
-    }
+    TestFindReachableBlocks(3, expected);
   }
 
   public static void TestFindReachableBlocks4()
   {
-    IRGraph cfg = BuildSampleCFG();
-    SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 4);
-    SortedSet<int> intResult = ConvertToIndexSet(result);
-
     SortedSet<int> expected = new SortedSet<int>();
     expected.Add(1);
     expected.Add(2);
@@ -59,11 +61,57 @@ public class DominatorTreeTest
     expected.Add(5);
     expected.Add(8);
 
+    TestFindReachableBlocks(4, expected);
+  }
+
+
+  /*
+   * Test the dominance set
+   */
+  public static void TestDomaintes(int index, SortedSet<int> expected)
+  {
+    IRGraph cfg = BuildSampleCFG();
+
+    SortedSet<IRBlock> V = cfg.GetSetOfAllBlocks();
+    SortedSet<IRBlock> VSansR = new SortedSet<IRBlock>();
+    VSansR.UnionWith(V);
+    VSansR.Remove(cfg.GetGraphHead());
+
+    SortedSet<IRBlock> result = DominatorTree.CalculateDominatesSet(cfg, V, VSansR, cfg.GetBlock(index));
+    SortedSet<int> intResult = ConvertToIndexSet(result);
+
     if(!intResult.SetEquals(expected)) {
-      throw new Exception("Reachable blocks for block 4 is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
+      throw new Exception("Dominates blocks for block " + index + " is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
     }
   }
 
+  public static void TestDomaintes3()
+  {
+    SortedSet<int> expected = new SortedSet<int>();
+    expected.Add(4);
+    expected.Add(5);
+    expected.Add(6);
+    expected.Add(7);
+    expected.Add(9);
+    expected.Add(8);
+
+    TestDomaintes(3, expected);
+  }
+
+  public static void TestDomaintes4()
+  {
+    SortedSet<int> expected = new SortedSet<int>();
+    expected.Add(6);
+    expected.Add(7);
+    expected.Add(9);
+
+    TestDomaintes(4, expected);
+  }
+
+
+  /* 
+   * Test Full Tree
+   */
   public static void TestBuildFullTree()
   {
     // Build Dominator Tree
@@ -73,6 +121,10 @@ public class DominatorTreeTest
     // Compare Result to Expected
   }
 
+
+  /* 
+   * Helper Methods
+   */
   private static IRGraph BuildSampleCFG()
   {
     IRBlock block1 = new IRBlock(1);
