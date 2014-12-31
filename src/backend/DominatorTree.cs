@@ -29,7 +29,7 @@ public class DominatorTree
 
   private static SortedSet<IRBlock> FindReachableBlocks(SortedSet<IRBlock> reachable, IRBlock block, int ignoreBlockIndex) {
     List<IRBlock> successors = block.GetSuccessors();
-    for (IRBlock successor in successors) {
+    foreach (IRBlock successor in successors) {
       if ((!reachable.Contains(successor)) && (successor.GetIndex() != ignoreBlockIndex)) {
         reachable.Add(successor);
         FindReachableBlocks(reachable, successor, ignoreBlockIndex);

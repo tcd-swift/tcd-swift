@@ -212,21 +212,12 @@ public class IRGraph : ICloneable
   }
 
   public SortedSet<IRBlock> SetOfAllBlocks() {
-    IRBlock head = this.GetGraphHead();
-    SortedSet<IRBlock> blocks = new SortedSet<IRBlocK>();
+    SortedSet<IRBlock> setBlocks = new SortedSet<IRBlocK>();
 
-    blocks.Add(head);
-    
-    return FindAllUnseenSuccessorBlocks(blocks, head);
-  }
-
-  private SortedSet<IRBlock> FindAllUnseenSuccessorBlocks(SortedSet<IRBlock> seen, IRBlock block) {
-    for (IRBlock block in block.GetSuccessors()) {
-      if (!seen.Contains(block)) {
-        seen.Add(block);
-        FindAllUnseenSuccessorBlocks(seen, block);
-      }
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks) {
+      setBlocks.Add(pair.Value);
     }
-    return seen;
+
+    return setBlocks;
   }
 }
