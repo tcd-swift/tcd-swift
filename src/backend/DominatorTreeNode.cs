@@ -6,22 +6,32 @@ public class DominatorTreeNode
 {
   private IRBlock block;
   private DominatorTreeNode ancestor;
-  private List<DominatorTreeNode> descendants = new List<DominatorTreeNode>();
+  private List<DominatorTreeNode> descendants;
 
-  public DominatorTreeNode(DominatorTreeNode ancestor, IRBlock block) {
+  public DominatorTreeNode(DominatorTreeNode ancestor, IRBlock block)
+  {
     this.ancestor = ancestor;
     this.block = block;
+    this.descendants = new List<DominatorTreeNode>();
   }
 
-  public void AddDescendant(DominatorTreeNode node) {
-    this.descendants.Add(node);
+  public IRBlock GetBlock()
+  {
+    return this.block;
   }
 
-  public DominatorTreeNode GetAncestor() {
+  public DominatorTreeNode GetAncestor()
+  {
     return this.ancestor;
   }
 
-  public List<DominatorTreeNode> GetDescendants() {
+  public void AddDescendant(DominatorTreeNode node)
+  {
+    this.descendants.Add(node);
+  }
+
+  public List<DominatorTreeNode> GetDescendants()
+  {
     return this.descendants;
   }
 }

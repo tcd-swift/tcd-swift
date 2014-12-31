@@ -43,8 +43,12 @@ public class DominatorTree
   public static SortedSet<IRBlock> FindReachableBlocks(IRGraph graph, int ignoreBlockIndex) {
     IRBlock head = graph.GetGraphHead();
     SortedSet<IRBlock> reachable = new SortedSet<IRBlock>();
-
     reachable.Add(head);
+
+    // if you can't use head you should ge no where
+    if (head.GetIndex() == ignoreBlockIndex) {
+      return reachable; 
+    }
 
     return FindReachableBlocks(reachable, head, ignoreBlockIndex);
   }
