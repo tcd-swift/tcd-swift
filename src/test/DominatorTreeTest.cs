@@ -20,9 +20,10 @@ public class DominatorTreeTest
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 1);
     SortedSet<int> intResult = ConvertToIndexSet(result);
 
-    SortedSet<int> expected = SortedSet<int>({1});
+    SortedSet<int> expected = SortedSet<int>();
+    expected.Add(1);
 
-    Assert.AreEqual(intResult, expected)
+    Assert.AreEqual(intResult, expected);
   }
 
   public static void TestFindReachableBlocks3()
@@ -31,9 +32,11 @@ public class DominatorTreeTest
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 3);
     SortedSet<int> intResult = ConvertToIndexSet(result);
 
-    SortedSet<int> expected = SortedSet<int>({1, 2});
+    SortedSet<int> expected = SortedSet<int>();
+    expected.Add(1);
+    expected.Add(2);
 
-    Assert.AreEqual(intResult, expected)
+    Assert.AreEqual(intResult, expected);
   }
 
   public static void TestFindReachableBlocks4()
@@ -42,9 +45,14 @@ public class DominatorTreeTest
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 4);
     SortedSet<int> intResult = ConvertToIndexSet(result);
 
-    SortedSet<int> expected = SortedSet<int>({1, 2, 3, 5, 8});
+    SortedSet<int> expected = SortedSet<int>();
+    expected.Add(1);
+    expected.Add(2);
+    expected.Add(3);
+    expected.Add(5);
+    expected.Add(8);
 
-    Assert.AreEqual(intResult, expected)
+    Assert.AreEqual(intResult, expected);
   }
 
   public static void TestBuildFullTree()
@@ -97,8 +105,10 @@ public class DominatorTreeTest
   {
     SortedSet<int> intSet = SortedSet<int>();
 
-    for (IRBlock block in blocks)
+    foreach (IRBlock block in blocks)
+    {
       intSet.Add(block.GetIndex());
+    }
 
     return intSet;
   }
