@@ -1,12 +1,18 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TCDSwift;
 
-[TestClass]
 public class DominatorTreeTest
 {
-  [TestMethod]
+
+  public static void Main(string [] args){  
+    TestFindReachableBlocks1();
+    TestFindReachableBlocks3();
+    TestFindReachableBlocks4();
+
+    Console.WriteLine("*** SUCCESS ***");
+  }
+
   public void TestFindReachableBlocks1() {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 1);
@@ -17,7 +23,6 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  [TestMethod]
   public void TestFindReachableBlocks3() {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 3);
@@ -28,7 +33,6 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  [TestMethod]
   public void TestFindReachableBlocks4() {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 4);
@@ -39,7 +43,6 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  [TestMethod]
   public void TestBuildFullTree() {
     // Build Dominator Tree
     cfg = BuildSampleCFG();
