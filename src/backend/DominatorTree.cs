@@ -17,15 +17,21 @@ public class DominatorTree
   private DominatorTreeNode BuildDominatorTree(IRGraph graph) {
     // Using Aho & Ullman - The thoery of parsing and compilation Vol II ... Algorithm 11.5
     SortedSet<IRBlock> V = graph.GetSetOfAllBlocks();
-    SortedSet<IRGraph> VSansR = V.MemberwiseClone().Remove(graph.GetGraphHead()); // remove head from the set of all blocks
+    SortedSet<IRBlock> VSansR = new SortedSet<IRBlock>();
+    VSansR.UnionWith(V);
+    VSansR.Remove(graph.GetGraphHead()); // remove head from the set of all blocks
     
     // calculate which blocks dominates what list of blocks
-    Dictionary<IRBlock, SortedSet<IRBlock>> dominates = Dictionary<IRBlock, SortedSet<IRBlock>>();
+    Dictionary<IRBlock, SortedSet<IRBlock>> dominates = new Dictionary<IRBlock, SortedSet<IRBlock>>();
     foreach  (IRBlock v in VSansR) {
-      SortedSet<IRBlock> temp = V.MemberwiseClone().Remove(v); // V - {v}
+      SortedSet<IRBlock> VSansv = new SortedSet<IRBlock>();
+      VSansv.UnionWith(V);
+      VSansv.Remove(v); // V - {v}
       SortedSet<IRBlock> S = FindReachableBlocks(graph, v.GetIndex());
 
-      dominates[v] = temp.ExceptWith(S); // V - {v} - S
+      VSansv.ExceptWith(S);
+
+      dominates[v] = VSansv; // V - {v} - S
     }
 
     // use dominates sets to build the dominator tree
@@ -61,7 +67,7 @@ public class DominatorTree
 
   private SortedSet<IRBlock> ConstructDominanceFrontierMapping(IRBlock x) {
     // Using Ron Cytron et al Algorithm
-    SortedSet<IRBlock> dfx = SortedSet<IRBlock>();
+    SortedSet<IRBlock> dfx = new SortedSet<IRBlock>();
 
     // DF(X)local
     // foreach (IRBlock y in x.GetSuccessors()) {
