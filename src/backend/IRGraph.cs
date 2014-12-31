@@ -51,7 +51,7 @@ public class IRGraph
 
   public SortedDictionary<int, IRBlock> getBlocks()
   {
-    return this.blocks.AsReadOnly();
+    return this.blocks;
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
@@ -216,7 +216,7 @@ public class IRGraph
 
   public SortedSet<IRBlock> SetOfAllBlocks()
   {
-    SortedSet<IRBlock> setBlocks = new SortedSet<IRBlocK>();
+    SortedSet<IRBlock> setBlocks = new SortedSet<IRBlock>();
 
     foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
     {

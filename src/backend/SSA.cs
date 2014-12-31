@@ -21,12 +21,10 @@ public class SSA
    */
 
   private IRGraph ConvertIntoSSAForm(IRGraph graph) {
-    DominatorTree dominatorTree = DominatorTree(graph);
+    DominatorTree dominatorTree = new DominatorTree(graph);
     IRGraph withPhiFunctions = this.InsertPhiFunctions(graph);
     return this.RenameVariables(withPhiFunctions);
   }
-
-
 
   private IRGraph InsertPhiFunctions(IRGraph graph) {
     return graph;
