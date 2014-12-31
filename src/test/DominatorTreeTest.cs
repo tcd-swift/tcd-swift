@@ -5,15 +5,17 @@ using TCDSwift;
 public class DominatorTreeTest
 {
 
-  public static void Main(string [] args){  
+  public static void Main(string [] args)
+  {  
     TestFindReachableBlocks1();
     TestFindReachableBlocks3();
     TestFindReachableBlocks4();
 
-    Console.WriteLine("*** SUCCESS ***");
+    Console.WriteLine("*** SUCCESS: Dominator Tree");
   }
 
-  public void TestFindReachableBlocks1() {
+  public static void TestFindReachableBlocks1()
+  {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 1);
     SortedSet<int> intResult = ConvertToIndexSet(result);
@@ -23,7 +25,8 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  public void TestFindReachableBlocks3() {
+  public static void TestFindReachableBlocks3()
+  {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 3);
     SortedSet<int> intResult = ConvertToIndexSet(result);
@@ -33,7 +36,8 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  public void TestFindReachableBlocks4() {
+  public static void TestFindReachableBlocks4()
+  {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, 4);
     SortedSet<int> intResult = ConvertToIndexSet(result);
@@ -43,7 +47,8 @@ public class DominatorTreeTest
     Assert.AreEqual(intResult, expected)
   }
 
-  public void TestBuildFullTree() {
+  public static void TestBuildFullTree()
+  {
     // Build Dominator Tree
     cfg = BuildSampleCFG();
     DominatorTree dominatorTree = DominatorTree(cfg);
@@ -51,7 +56,8 @@ public class DominatorTreeTest
     // Compare Result to Expected
   }
 
-  private IRGraph BuildSampleCFG() {
+  private static IRGraph BuildSampleCFG()
+  {
     IRBlock block1 = new IRBlock(1);
     IRBlock block2 = new IRBlock(2);
     IRBlock block3 = new IRBlock(3);
@@ -87,7 +93,8 @@ public class DominatorTreeTest
     IRGraph cfg = IRGraph(blocks);
   }
 
-  private SortedSet<int> ConvertToIndexSet(SortedSet<IRBlock> blocks) {
+  private static SortedSet<int> ConvertToIndexSet(SortedSet<IRBlock> blocks)
+  {
     SortedSet<int> intSet = SortedSet<int>();
 
     for (IRBlock block in blocks)
