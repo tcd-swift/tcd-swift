@@ -39,16 +39,19 @@ public class IRGraph : ICloneable
     this.ComputeLiveness(out livein, out liveouts);
   }
 
-  public IRBlock GetGraphHead() {
+  public IRBlock GetGraphHead()
+  {
     return this.blocks[BLOCK_INDEX_INITIAL];
   }
 
-  public IRBlock GetBlock(int index) {
+  public IRBlock GetBlock(int index)
+  {
     return this.blocks[index];
   }
 
-  public SortedDictionary<int, IRBlock> getBlocks() {
-    return this.blocks.AsReadOnly()
+  public SortedDictionary<int, IRBlock> getBlocks()
+  {
+    return this.blocks.AsReadOnly();
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
@@ -211,10 +214,12 @@ public class IRGraph : ICloneable
     }
   }
 
-  public SortedSet<IRBlock> SetOfAllBlocks() {
+  public SortedSet<IRBlock> SetOfAllBlocks()
+  {
     SortedSet<IRBlock> setBlocks = new SortedSet<IRBlocK>();
 
-    foreach (KeyValuePair<int, IRBlock> pair in this.blocks) {
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+    {
       setBlocks.Add(pair.Value);
     }
 

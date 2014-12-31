@@ -6,7 +6,7 @@ public class SSA
 {
   public IRGraph DoSSAOptimizations(IRGraph graph) {
     // convert into SSA form
-    IRGraph ssa_form = this.ConvertIntoSSAForm(graph)
+    IRGraph ssa_form = this.ConvertIntoSSAForm(graph);
 
     // do optimizations (constant propagation, dead code elimination)
     IRGraph no_dead_code = this.DeadCodeElimination(ssa_form);

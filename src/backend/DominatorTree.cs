@@ -1,4 +1,4 @@
-using System,;
+using System;
 using System.Collections.Generic;
 using TCDSwift;
 
@@ -10,7 +10,7 @@ public class DominatorTree
   public DominatorTree(IRGraph cfg) {
     this.dominatorTree = this.BuildDominatorTree(cfg);
 
-    this.ConstructDominanceFrontierMapping(cfg)
+    this.ConstructDominanceFrontierMapping(cfg);
   }
 
   private DominatorTree BuildDominatorTree(IRGraph graph) {
@@ -24,7 +24,7 @@ public class DominatorTree
 
     reachable.Add(heaed);
 
-    return FindReachableBlocks(reachable, head, ignoreBlockIndex)
+    return this.FindReachableBlocks(reachable, head, ignoreBlockIndex);
   }
 
   private static SortedSet<IRBlock> FindReachableBlocks(SortedSet<IRBlock> reachable, IRBlock block, int ignoreBlockIndex) {
@@ -32,7 +32,7 @@ public class DominatorTree
     foreach (IRBlock successor in successors) {
       if ((!reachable.Contains(successor)) && (successor.GetIndex() != ignoreBlockIndex)) {
         reachable.Add(successor);
-        FindReachableBlocks(reachable, successor, ignoreBlockIndex);
+        this.FindReachableBlocks(reachable, successor, ignoreBlockIndex);
       }
     }
     return reachable;
