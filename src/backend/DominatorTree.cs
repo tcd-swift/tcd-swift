@@ -5,7 +5,8 @@ using TCDSwift;
 public class DominatorTree
 {
   private DominatorTreeNode startDominatorTree;
-  private Dictionary<int, List<int>> dominateFrontiers;
+  private Dictionary<int, DominatorTreeNode> blockToNodeMappings;
+  private Dictionary<IRBlock, List<IRBlock>> dominateFrontiers;
 
   public DominatorTree(IRGraph cfg) {
     this.startDominatorTree = this.BuildDominatorTree(cfg);
@@ -14,7 +15,22 @@ public class DominatorTree
   }
 
   private DominatorTreeNode BuildDominatorTree(IRGraph graph) {
-    // Using Aho & Ullman - The thoery of parsing... Algorithm 11.5
+    // Using Aho & Ullman - The thoery of parsing and compilation Vol II ... Algorithm 11.5
+    SortedSet<IRBlock> V = graph.GetSetOfAllBlocks();
+    SortedSet<IRGraph> VSansR = V.MemberwiseClone().Remove(graph.GetGraphHead()); // remove head from the set of all blocks
+    
+    // calculate which blocks dominates what list of blocks
+    Dictionary<IRBlock, SortedSet<IRBlock>> dominates = Dictionary<IRBlock, SortedSet<IRBlock>>();
+    foreach  (IRBlock v in VSansR) {
+      SortedSet<IRBlock> temp = V.MemberwiseClone().Remove(v); // V - {v}
+      SortedSet<IRBlock> S = FindReachableBlocks(graph, v.GetIndex());
+
+      dominates[v] = temp.ExceptWith(S); // V - {v} - S
+    }
+
+    // use dominates sets to build the dominator tree
+
+
     return null;
   }
 
@@ -40,6 +56,31 @@ public class DominatorTree
 
   private void ConstructDominanceFrontierMapping(IRGraph graph) {
     // Using Ron Cytron et al Algorithm quadratic algorithm
+
+  }
+
+  private SortedSet<IRBlock> ConstructDominanceFrontierMapping(IRBlock x) {
+    // Using Ron Cytron et al Algorithm
+    SortedSet<IRBlock> dfx = SortedSet<IRBlock>();
+
+    // DF(X)local
+    // foreach (IRBlock y in x.GetSuccessors()) {
+    //   if(idom(y) != x) {
+    //     dfx.Add(y);
+    //   }
+    // }
+
+    // // DF(X)up
+    // DominatorTreeNode xt = this.blockToNodeMappings[x.GetIndex()];
+    // foreach (DominatorTreeNode z in xt.GetDescendants()) {
+    //   foreach (IRBlock y in df(z)) {
+    //     if(idom(y) != x) {
+    //       dfx.Add(y);
+    //     }
+    //   }
+    // }
+
+    return dfx;
   }
 
 }

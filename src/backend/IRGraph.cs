@@ -214,7 +214,7 @@ public class IRGraph
     }
   }
 
-  public SortedSet<IRBlock> SetOfAllBlocks()
+  public SortedSet<IRBlock> GetSetOfAllBlocks()
   {
     SortedSet<IRBlock> setBlocks = new SortedSet<IRBlock>();
 
