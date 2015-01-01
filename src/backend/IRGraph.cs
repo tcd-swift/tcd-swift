@@ -8,10 +8,12 @@ public class IRGraph
 {
   private static int BLOCK_INDEX_INITIAL = 1; // Index of first block in graph
   private SortedDictionary<int, IRBlock> blocks; // Mapping of block index number to block
+  private HashSet<Ident> variablesDefined;
 
   // Construct a graph from a stream of tuples
   public IRGraph(List<IRBlock> blocks) {
     this.blocks = new SortedDictionary<int, IRBlock>();
+    this.variablesDefined = new HashSet<Ident>();
 
     foreach(IRBlock block in blocks)
       this.blocks[block.GetIndex()]  = block;
@@ -23,6 +25,7 @@ public class IRGraph
       return;
 
     this.blocks = new SortedDictionary<int, IRBlock>();
+    this.variablesDefined = new HashSet<Ident>();
 
     SortedDictionary<int, int> firsts; // Map from block index to line index of its first tuple in stream
     SortedDictionary<int, int> lasts; // Map from block index to line index of its last tuple in stream
@@ -49,9 +52,19 @@ public class IRGraph
     return this.blocks[index];
   }
 
-  public SortedDictionary<int, IRBlock> getBlocks()
+  public SortedDictionary<int, IRBlock> GetBlocks()
   {
     return this.blocks;
+  }
+
+  public HashSet<Ident> GetDefinedVars() {
+    if(this.variablesDefined.Count == 0) {
+      foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+      {
+        this.variablesDefined.UnionWith(pair.Value.GetDefinedVars());
+      }
+    }
+    return this.variablesDefined;
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
@@ -224,5 +237,19 @@ public class IRGraph
     }
 
     return setBlocks;
+  }
+
+  public SortedSet<IRBlock> GetPredecessors(IRBlock block)
+  {
+    SortedSet<IRBlock> predecessors = new SortedSet<IRBlock>();
+
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+    {
+      if (pair.Value.GetSuccessors().Contains(block)) {
+        predecessors.Add(pair.Value);
+      }
+    }
+
+    return predecessors;
   }
 }

@@ -26,6 +26,10 @@ public class DominatorTree
     return this.rootNode;
   }
 
+  public DominatorTreeNode GetNode(IRBlock block) {
+    return this.blockToNodeMappings[block];
+  }
+
   public SortedSet<IRBlock> GetDominanceFrontier(IRBlock block) {
     return this.dominanceFrontiers[block];
   }
