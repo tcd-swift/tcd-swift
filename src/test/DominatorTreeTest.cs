@@ -124,6 +124,12 @@ public class DominatorTreeTest
 
     // Compare Result to Expected
     if(!dominatorTree.GetRoot().Equals(expected)) {
+      Console.WriteLine("\n\n *** RESULT ***");
+      printTree(dominatorTree.GetRoot());
+
+      Console.WriteLine("\n\n *** EXPECTED ***");
+      printTree(expected);
+      
       throw new Exception("Dominator Tree built doesn't match expected dominator tree");
     }
   }
