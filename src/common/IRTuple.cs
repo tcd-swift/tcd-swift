@@ -39,7 +39,8 @@ public enum IrOp: int
   RET,
   STORE,
   SUB,
-  XOR
+  XOR,
+  PHI
 };
 
 /* Generalized IRTuple class */
@@ -51,7 +52,8 @@ public class IRTuple
     IrOp.STORE,
     IrOp.ADD, IrOp.AND, IrOp.DIV, IrOp.EQU, IrOp.FADD, IrOp.FDIV, IrOp.FMUL, 
     IrOp.FSUB, IrOp.GT, IrOp.GTE, IrOp.LT, IrOp.LTE, IrOp.MOD, IrOp.MUL, 
-    IrOp.NEQ, IrOp.OR, IrOp.SUB, IrOp.XOR
+    IrOp.NEQ, IrOp.OR, IrOp.SUB, IrOp.XOR,
+    IrOp.PHI
   };
 
   protected IrOp op;
@@ -277,5 +279,66 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
     return string.Format("{{{0}, {1}, {2}, {3}}}", Enum.GetName(typeof(IrOp), this.op), this.dest, this.src1, this.src2);
   }
 }
+
+/**
+ * IRTuple for multiple argument operators like Phi Functions that
+ * can have a variable number of arguments
+ *
+ * Note: These tuples should not be used to produce machine code
+ */
+public class IRTupleManyOp : IRTuple
+{
+  protected List<Ident> sources;
+
+  public IRTupleManyOp(IrOp irop, Ident destination, List<Ident> sources) : base(irop, destination)
+  {
+    this.sources = new List<Ident>();
+  }
+
+  public List<Ident> getSources()
+  {
+    return this.sources;
+  }
+
+  // Return a list of names of variables used in this tuple
+  public override HashSet<Ident> GetUsedVars()
+  {
+    HashSet<Ident> result = new HashSet<Ident>();
+    if(varusers.Contains(this.op))
+    {
+      foreach(Ident src in this.sources) {
+        result.Add(src);
+      }
+    }
+    return result;
+  }
+
+  // Return a list of names of variables defined in this tuple
+  public override HashSet<Ident> GetDefinedVars()
+  {
+    HashSet<Ident> result = new HashSet<Ident>();
+    if(varusers.Contains(this.op))
+      result.Add(this.dest);
+    return result;
+  }
+
+  public override void Print()
+  {
+    Console.Write(this.toString());
+  }  
+
+  public override string toString()
+  {
+    string result = "";
+    result += "{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest;
+    foreach (Ident source in this.sources) {
+      result += ", " + source;
+    }
+    result += "}";
+
+    return result;
+  }
+}
+
 
 }
