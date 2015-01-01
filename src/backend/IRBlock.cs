@@ -5,7 +5,7 @@ using TCDSwift;
 using Ident = System.String;
 
 /* A basic block of IR */
-public class IRBlock
+public class IRBlock : IComparable<IRBlock>
 {
   private int index; // The index number of this block within the graph
   private List<IRTuple> statements;
@@ -33,6 +33,21 @@ public class IRBlock
   public int GetIndex()
   {
     return this.index;
+  }
+
+  public bool Equals(IRBlock other)
+  {
+    return (this.index == other.GetIndex());
+  }
+
+  public int CompareTo(IRBlock other) {
+    if (this.index > other.GetIndex()) {
+      return 1;
+    } else if (this.index < other.GetIndex()) {
+     return -1;
+    } else {
+      return 0;
+    }
   }
 
   /* Forwarding functions */
@@ -89,6 +104,10 @@ public class IRBlock
   public void RemoveSuccessorAt(int index)
   {
     this.successors.RemoveAt(index);
+  }
+
+  public List<IRBlock> GetSuccessors() {
+    return this.successors;
   }
 
   public IRBlock GetSuccessor(int index)

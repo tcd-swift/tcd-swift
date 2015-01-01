@@ -13,3 +13,11 @@ bin/coco.exe:
 clean:
 	rm -rf generated/
 	rm -rf bin/
+
+dominatortests:
+	$(CSHARPCOMPILER) src/common/*.cs src/backend/*.cs src/test/DominatorTreeTest.cs -out:bin/dominatortests.exe
+	mono bin/dominatortests.exe
+
+ssatests:
+	$(CSHARPCOMPILER) src/common/*.cs src/backend/*.cs src/test/SSATest.cs -out:bin/ssatests.exe
+	mono bin/ssatests.exe
