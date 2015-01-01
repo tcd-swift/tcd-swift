@@ -75,6 +75,11 @@ public class IRTuple
     return this.dest;
   }
 
+  public void setDest(Ident val) 
+  {
+    this.dest = val;
+  }
+
   // Return a list of names of variables used in this tuple
   public virtual HashSet<Ident> GetUsedVars()
   {
@@ -123,6 +128,11 @@ public class IRTupleOneOpIdent : IRTuple
   public Ident getSrc1()
   {
     return this.src1;
+  }
+
+  public void setSrc1(Ident val)
+  {
+    this.src1 = val;
   }
 
   // Return a list of names of variables used in this tuple
@@ -230,6 +240,11 @@ public class IRTupleTwoOp : IRTupleOneOpIdent
     return this.src2;
   }
 
+  public void setSrc2(Ident val)
+  {
+    this.src2 = val;
+  }
+
   // Return a list of names of variables used in this tuple
   public override HashSet<Ident> GetUsedVars()
   {
@@ -295,9 +310,13 @@ public class IRTupleManyOp : IRTuple
     this.sources = new List<Ident>();
   }
 
-  public List<Ident> getSources()
+  public List<Ident> GetSources()
   {
     return this.sources;
+  }
+
+  public void SetSource(int i, Ident val) {
+    this.sources[i] = val;
   }
 
   // Return a list of names of variables used in this tuple
@@ -306,7 +325,8 @@ public class IRTupleManyOp : IRTuple
     HashSet<Ident> result = new HashSet<Ident>();
     if(varusers.Contains(this.op))
     {
-      foreach(Ident src in this.sources) {
+      foreach(Ident src in this.sources)
+      {
         result.Add(src);
       }
     }
@@ -331,7 +351,8 @@ public class IRTupleManyOp : IRTuple
   {
     string result = "";
     result += "{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest;
-    foreach (Ident source in this.sources) {
+    foreach (Ident source in this.sources)
+    {
       result += ", " + source;
     }
     result += "}";

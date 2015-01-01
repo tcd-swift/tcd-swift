@@ -26,7 +26,11 @@ class TCDSwift
             List<string> livein;
             List<List<string>> liveouts;
             graph.ComputeLiveness(out livein, out liveouts);
+
+            // Code Optimizations
+            // SSA.DoSSAOptimizations(graph);
     
+            // Register Allocation
             Dictionary<string,string> registerAllocation = Allocate.run(liveouts, livein);
     
             List<IRTuple> irstream_out = new List<IRTuple>(); 

@@ -76,6 +76,10 @@ public class IRBlock : IComparable<IRBlock>
     return this.statements[index];
   }
 
+  public List<IRTuple> GetStatements() {
+    return this.statements;
+  }
+
   public IRTuple GetFirst()
   {
     return this.statements[0];
@@ -122,6 +126,16 @@ public class IRBlock : IComparable<IRBlock>
     foreach (IRTuple irt in this.statements)
     {
       vars.UnionWith(irt.GetUsedVars());
+      vars.UnionWith(irt.GetDefinedVars());
+    }
+    return vars;
+  }
+
+  public HashSet<Ident> GetDefinedVars()
+  {
+    HashSet<Ident> vars = new HashSet<Ident>();
+    foreach (IRTuple irt in this.statements)
+    {
       vars.UnionWith(irt.GetDefinedVars());
     }
     return vars;
