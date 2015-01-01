@@ -18,6 +18,10 @@ public class DominatorTreeTest
 
     TestBuildFullTree();
 
+    TestCalculatingDominanceFrontier1();
+    TestCalculatingDominanceFrontier6();
+    TestCalculatingDominanceFrontier9();
+
     Console.WriteLine("*** SUCCESS ***");
   }
 
@@ -25,7 +29,7 @@ public class DominatorTreeTest
   /*
    * Test find reachable blocks methods
    */
-  public static void TestFindReachableBlocks(int index, SortedSet<int> expected)
+  private static void TestFindReachableBlocks(int index, SortedSet<int> expected)
   {
     IRGraph cfg = BuildSampleCFG();
     SortedSet<IRBlock> result = DominatorTree.FindReachableBlocks(cfg, index);
@@ -69,7 +73,7 @@ public class DominatorTreeTest
   /*
    * Test the dominance set
    */
-  public static void TestDomaintes(int index, SortedSet<int> expected)
+  private static void TestDomaintes(int index, SortedSet<int> expected)
   {
     IRGraph cfg = BuildSampleCFG();
 
@@ -111,7 +115,7 @@ public class DominatorTreeTest
 
 
   /* 
-   * Test Full Tree
+   * Test Building Full Dominator Tree
    */
   public static void TestBuildFullTree()
   {
@@ -129,11 +133,47 @@ public class DominatorTreeTest
 
       Console.WriteLine("\n\n *** EXPECTED ***");
       printTree(expected);
-      
+
       throw new Exception("Dominator Tree built doesn't match expected dominator tree");
     }
   }
 
+  /* 
+   * Test Building Full Dominator Tree
+   */
+  private static void TestCalculatingDominanceFrontier(int index, SortedSet<int> expected) {
+    // Build Dominator Tree
+    IRGraph cfg = BuildSampleCFG();
+    DominatorTree dominatorTree = new DominatorTree(cfg);
+
+    SortedSet<IRBlock> result = dominatorTree.GetDominanceFrontier(cfg.GetBlock(index));
+    SortedSet<int> intResult = ConvertToIndexSet(result);
+
+    if(!intResult.SetEquals(expected)) {
+      throw new Exception("Dominance frontier for block " + index + " is " + ConvertSetToString(intResult) + " should be " + ConvertSetToString(expected));
+    }
+  }
+
+  public static void TestCalculatingDominanceFrontier1() {
+    SortedSet<int> expected = new SortedSet<int>(); 
+    // should have empty dominance frontier
+
+    TestCalculatingDominanceFrontier(1, expected);
+  }
+
+  public static void TestCalculatingDominanceFrontier6() {
+    SortedSet<int> expected = new SortedSet<int>(); 
+    expected.Add(9);
+
+    TestCalculatingDominanceFrontier(6, expected);
+  }
+
+  public static void TestCalculatingDominanceFrontier9() {
+    SortedSet<int> expected = new SortedSet<int>(); 
+    expected.Add(3);
+
+    TestCalculatingDominanceFrontier(9, expected);
+  }
 
   /* 
    * Helper Methods
@@ -159,7 +199,7 @@ public class DominatorTreeTest
     block5.AddSuccessor(block8);
     block6.AddSuccessor(block9);
     block7.AddSuccessor(block9);
-    block9.AddSuccessor(block4);
+    block9.AddSuccessor(block3);
 
     List<IRBlock> blocks = new List<IRBlock>();
     blocks.Add(block1);

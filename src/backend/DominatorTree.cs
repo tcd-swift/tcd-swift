@@ -6,23 +6,31 @@ using TCDSwift;
 public class DominatorTree
 {
   private IRGraph cfg;
-  private DominatorTreeNode rootTree;
+  private DominatorTreeNode rootNode;
+  private Dictionary<IRBlock, IRBlock> imediateDominator;
   private Dictionary<IRBlock, DominatorTreeNode> blockToNodeMappings;
-  private Dictionary<IRBlock, List<IRBlock>> dominanceFrontiers;
+  private Dictionary<IRBlock, SortedSet<IRBlock>> dominanceFrontiers;
 
   public DominatorTree(IRGraph cfg) {
     this.cfg = cfg;
+    this.imediateDominator = new Dictionary<IRBlock, IRBlock>();
     this.blockToNodeMappings = new Dictionary<IRBlock, DominatorTreeNode>();
+    this.dominanceFrontiers = new Dictionary<IRBlock, SortedSet<IRBlock>>();
 
-    this.rootTree = this.BuildDominatorTree();
-    this.dominanceFrontiers = this.ConstructDominanceFrontierMapping(cfg);
+    // Build the tree and construct the dominance froniters
+    this.BuildDominatorTree();
+    this.ConstructDominanceFrontierMapping();
   }
 
   public DominatorTreeNode GetRoot() {
-    return this.rootTree;
+    return this.rootNode;
   }
 
-  private DominatorTreeNode BuildDominatorTree() {
+  public SortedSet<IRBlock> GetDominanceFrontier(IRBlock block) {
+    return this.dominanceFrontiers[block];
+  }
+
+  private void BuildDominatorTree() {
     // Using Aho & Ullman - The thoery of parsing and compilation Vol II ... Algorithm 11.5
     IRBlock head = this.cfg.GetGraphHead();
     SortedSet<IRBlock> V = this.cfg.GetSetOfAllBlocks();
@@ -39,23 +47,21 @@ public class DominatorTree
 
     // use dominates sets to build the dominator tree
     SortedSet<IRBlock> placed = new SortedSet<IRBlock>();
-    Dictionary<IRBlock, IRBlock> imediateDominator = new Dictionary<IRBlock, IRBlock>();
+    this.imediateDominator = new Dictionary<IRBlock, IRBlock>();
 
-    CalculateImediateDominators(head, dominatesMapping, placed, imediateDominator);
+    CalculateImediateDominators(head, dominatesMapping, placed);
 
-    DominatorTreeNode headNode = BuildTreeFromImediateDominators(imediateDominator);
-
-    return headNode;
+    this.rootNode = BuildTreeFromImediateDominators();
   }
 
-  private DominatorTreeNode BuildTreeFromImediateDominators(Dictionary<IRBlock, IRBlock> imediateDominator) {
+  private DominatorTreeNode BuildTreeFromImediateDominators() {
     // create nodes
     foreach (IRBlock block in this.cfg.GetSetOfAllBlocks()) {
       this.blockToNodeMappings[block] = new DominatorTreeNode(block);
     }
 
     // link nodes
-    foreach (KeyValuePair<IRBlock, IRBlock> pair in imediateDominator) {
+    foreach (KeyValuePair<IRBlock, IRBlock> pair in this.imediateDominator) {
       DominatorTreeNode ancestor = this.blockToNodeMappings[pair.Value];
       DominatorTreeNode descendant = this.blockToNodeMappings[pair.Key];
 
@@ -65,14 +71,14 @@ public class DominatorTree
     return this.blockToNodeMappings[this.cfg.GetGraphHead()];
   }
 
-  private void CalculateImediateDominators(IRBlock block, Dictionary<IRBlock, SortedSet<IRBlock>> dominatesMapping, SortedSet<IRBlock> placed, Dictionary<IRBlock, IRBlock> imediateDominator) {
+  private void CalculateImediateDominators(IRBlock block, Dictionary<IRBlock, SortedSet<IRBlock>> dominatesMapping, SortedSet<IRBlock> placed) {
     placed.Add(block);
 
     foreach (IRBlock blocki in dominatesMapping[block]) {
       if(!placed.Contains(blocki)) {
-        imediateDominator[blocki] = block;
+        this.imediateDominator[blocki] = block;
 
-        CalculateImediateDominators(blocki, dominatesMapping, placed, imediateDominator);
+        CalculateImediateDominators(blocki, dominatesMapping, placed);
       }
     }
   }
@@ -112,12 +118,10 @@ public class DominatorTree
     return reachable;
   }
 
-  private Dictionary<IRBlock, List<IRBlock>> ConstructDominanceFrontierMapping(IRGraph graph) {
-    // Using Ron Cytron et al Algorithm quadratic algorithm
-    Dictionary<IRBlock, List<IRBlock>> mappings = new Dictionary<IRBlock, List<IRBlock>>();
-    
-
-    return mappings;
+  private void ConstructDominanceFrontierMapping() {
+    foreach (IRBlock block in this.GetBottomUpBlockList()) {
+      this.dominanceFrontiers[block] = this.ConstructDominanceFrontierMapping(block);
+    }
   }
 
   private SortedSet<IRBlock> ConstructDominanceFrontierMapping(IRBlock x) {
@@ -125,23 +129,38 @@ public class DominatorTree
     SortedSet<IRBlock> dfx = new SortedSet<IRBlock>();
 
     // DF(X)local
-    // foreach (IRBlock y in x.GetSuccessors()) {
-    //   if(idom(y) != x) {
-    //     dfx.Add(y);
-    //   }
-    // }
+    foreach (IRBlock y in x.GetSuccessors()) {
+      if(!this.imediateDominator[y].Equals(x)) {
+        dfx.Add(y);
+      }
+    }
 
-    // // DF(X)up
-    // DominatorTreeNode xt = this.blockToNodeMappings[x.GetIndex()];
-    // foreach (DominatorTreeNode z in xt.GetDescendants()) {
-    //   foreach (IRBlock y in df(z)) {
-    //     if(idom(y) != x) {
-    //       dfx.Add(y);
-    //     }
-    //   }
-    // }
+    // DF(X)up
+    DominatorTreeNode xnode = this.blockToNodeMappings[x];
+    foreach (DominatorTreeNode z in xnode.GetDescendants()) {
+      foreach (IRBlock y in this.dominanceFrontiers[z.GetBlock()]) {
+        if(!this.imediateDominator[y].Equals(x)) {
+          dfx.Add(y);
+        }
+      }
+    }
 
     return dfx;
+  }
+
+  private List<IRBlock> GetBottomUpBlockList() {
+    List<IRBlock> list = new List<IRBlock>();
+
+    RecurseDownTree(list, this.rootNode);
+
+    return list;
+  }
+
+  private void RecurseDownTree(List<IRBlock> list, DominatorTreeNode node) {
+    foreach(DominatorTreeNode descendant in node.GetDescendants()) {
+      RecurseDownTree(list, descendant);
+    }
+    list.Add(node.GetBlock());
   }
 
 }
