@@ -119,8 +119,10 @@ public class SSA
   }
 
   private static void RenameTupleSourcesHelper(IRTuple tuple, Ident replaceIdent, int numbering) {
-    Console.WriteLine("Before");
+    Console.WriteLine();
+    Console.Write("Before: ");
     tuple.Print();
+    Console.WriteLine();
 
     if (tuple.GetType() == typeof(IRTupleTwoOp)) {
       IRTupleTwoOp twoTuple = (IRTupleTwoOp)tuple;
@@ -143,8 +145,9 @@ public class SSA
       throw new Exception("You need to deal with more types: " + tuple.GetType());
     }
 
-    Console.WriteLine("After");
+    Console.Write("After: ");
     tuple.Print();
+    Console.WriteLine();
   }
 
   private static Ident RenameVar(Ident old, int numbering) {
@@ -156,9 +159,9 @@ public class SSA
    */
   private static void DeadCodeElimination(IRGraph graph) {
     // Setup Calculate Post Dominator Tree
-    ReverseControlFlowGraph(graph);
-    DominatorTree postDominatorTree = new DominatorTree(graph);
-    ReverseControlFlowGraph(graph);
+    // ReverseControlFlowGraph(graph);
+    // DominatorTree postDominatorTree = new DominatorTree(graph);
+    // ReverseControlFlowGraph(graph);
   }
 
   private static void ReverseControlFlowGraph(IRGraph graph) {

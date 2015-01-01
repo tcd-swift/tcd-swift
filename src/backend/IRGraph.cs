@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TCDSwift;
 
 using Ident = System.String;
@@ -65,6 +66,18 @@ public class IRGraph
       }
     }
     return this.variablesDefined;
+  }
+
+  public List<IRTuple> GenerateTupleStream() {
+    List<IRTuple> tuples = new List<IRTuple>();
+
+    foreach (KeyValuePair<int, IRBlock> pair in this.blocks)
+    {
+      List<IRTuple> blockTuples = pair.Value.GetStatements();
+      tuples.Concat(blockTuples);
+    }
+
+    return tuples;
   }
 
   // Split an IR stream into this graph; firsts and lasts are maps of indices of the first and last index in the stream of each block
