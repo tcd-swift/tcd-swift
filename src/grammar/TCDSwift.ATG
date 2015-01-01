@@ -166,7 +166,7 @@ PRODUCTIONS
  ************************************************/
 
 Literal<out string value, out SwiftType type>
-=                                 (.  type = SwiftType.Undefined; value = "NULL"; .)
+=                                 (.  type = SwiftType.Undefined; value = null;   .)
   ( number                        (.  type = SwiftType.Int;       value = t.val;  .)
   | stringToken                   (.  type = SwiftType.String;    value = t.val;  .)
   | "true"                        (.  type = SwiftType.Bool;      value = t.val;  .)
@@ -605,8 +605,8 @@ Expression<out SwiftType type>      (.  IrOp op; SwiftType simpType; .)
     SimpleExpression<out simpType>  (.
                                         if(type == simpType)
                                         {
-                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)exprStack.Pop();
-                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
+                                            var t2 = exprStack.Pop();
+                                            var t1 = exprStack.Pop();
 
                                             exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
                                             program.Add(exprStack.Peek());
@@ -627,8 +627,8 @@ SimpleExpression<out SwiftType type> (.  IrOp op; SwiftType termType; .)
     Term<out termType>               (.
                                         if(type == termType)
                                         {
-                                            IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)exprStack.Pop();
-                                            IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
+                                            var t2 = exprStack.Pop();
+                                            var t1 = exprStack.Pop();
 
                                             exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
                                             program.Add(exprStack.Peek());
@@ -648,8 +648,8 @@ Term<out SwiftType type>            (.  SwiftType primType; IrOp op;  .)
   {
     MultiplicativeOp<out op>
     PrimaryExpression<out primType> (.
-                                        IRTupleOneOpIdent t2 = (IRTupleOneOpIdent)exprStack.Pop();
-                                        IRTupleOneOpIdent t1 = (IRTupleOneOpIdent)exprStack.Pop();
+                                        var t2 = exprStack.Pop();
+                                        var t1 = exprStack.Pop();
 
                                         exprStack.Push(new IRTupleTwoOp(op, generateTemporary(), t1.getDest(), t2.getDest()));
                                         program.Add(exprStack.Peek());
@@ -722,7 +722,19 @@ PrimaryExpression
                                           }
                                       .)
   | Literal<out value, out _type>     (.
-                                          exprStack.Push(new IRTupleOneOpIdent(IrOp.STORE, generateTemporary(), value));
+                                          switch (_type)
+                                          {
+                                            case SwiftType.String:
+                                              exprStack.Push(new IRTupleOneOpImm<string>(IrOp.STORE, generateTemporary(), (string)value));
+                                              break;
+                                            case SwiftType.Int:
+                                              exprStack.Push(new IRTupleOneOpImm<int>(IrOp.STORE, generateTemporary(), Convert.ToInt32(value)));
+                                              break;
+                                            case SwiftType.Bool:
+                                              exprStack.Push(new IRTupleOneOpImm<bool>(IrOp.STORE, generateTemporary(), Convert.ToBoolean(value)));
+                                              break;
+                                          }
+
                                           program.Add(exprStack.Peek());
                                           type = _type;
                                       .)

@@ -3,4 +3,4 @@ generated/
 .DS_Store
 *.asm
 *.exe
-output.ir
+*.ir
