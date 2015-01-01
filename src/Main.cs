@@ -28,7 +28,7 @@ class TCDSwift
             graph.ComputeLiveness(out livein, out liveouts);
 
             // Code Optimizations
-            SSA.DoSSAOptimizations(graph);
+            // SSA.DoSSAOptimizations(graph);
     
             // Register Allocation
             Dictionary<string,string> registerAllocation = Allocate.run(liveouts, livein);

@@ -71,10 +71,15 @@ public class SSA
   private static void Search(IRBlock block, DominatorTree dominatorTree, Dictionary<Ident, int> count, Dictionary<Ident, Stack<int>> stack) {
     // Algorithm from Ron Cytron et al to rename variables into SSA form
     foreach (IRTuple irt in block.GetStatements()) {
+      // Console.Write("Type: " + irt.GetType() + " ");
+      // irt.Print();
+      // Console.WriteLine();
+
       if (irt.getOp() != IrOp.PHI) {
         foreach (Ident v in irt.GetUsedVars()) {
+          Console.WriteLine("Renaming variable: " + v);
           int i = stack[v].Peek();
-          RenameTupleSourcesHelper(irt, v, i); // replace use of v with vi in S
+          RenameTupleSourcesHelper(irt, v, i); // replace uses of v with vi in statement
         }
       }
 
@@ -82,7 +87,7 @@ public class SSA
         count[a] = count[a] + 1;
         int i = count[a];
         stack[a].Push(i);
-        irt.setDest(RenameVar(a, i)); // replace definition of a with ai in S
+        irt.setDest(RenameVar(a, i)); // replace definitions of a with ai in statement
       }
     }
 
@@ -105,9 +110,9 @@ public class SSA
       Search(descendant.GetBlock(), dominatorTree, count, stack);
     }
 
-    // pop stack
+    // pop stack phase
     foreach (IRTuple irt in block.GetStatements()) { 
-      foreach (Ident v in irt.GetDefinedVars()) { // ????
+      foreach (Ident v in irt.GetDefinedVars()) {
         stack[v].Pop();
       }
     }
