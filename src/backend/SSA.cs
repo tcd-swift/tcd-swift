@@ -154,10 +154,18 @@ public class SSA
   /*
    * Optimization Methods
    */
-  private static void DeadCodeElimination(IRGraph ssa_form) {
+  private static void DeadCodeElimination(IRGraph graph) {
+    // Setup Calculate Post Dominator Tree
+    ReverseControlFlowGraph(graph);
+    DominatorTree postDominatorTree = new DominatorTree(graph);
+    ReverseControlFlowGraph(graph);
   }
 
-  private static void ConstantPropagation(IRGraph ssa_form) {
+  private static void ReverseControlFlowGraph(IRGraph graph) {
+
+  }
+
+  private static void ConstantPropagation(IRGraph graph) {
   }
 
   /*
