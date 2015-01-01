@@ -37,7 +37,7 @@ public class IRBlock : IComparable<IRBlock>
 
   public bool Equals(IRBlock other)
   {
-      return (this.index == other.GetIndex());
+    return (this.index == other.GetIndex());
   }
 
   public int CompareTo(IRBlock other) {

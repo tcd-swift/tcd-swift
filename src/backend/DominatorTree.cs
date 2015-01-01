@@ -1,39 +1,80 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TCDSwift;
 
 public class DominatorTree
 {
   private IRGraph cfg;
-  private DominatorTreeNode startDominatorTree;
-  private Dictionary<int, DominatorTreeNode> blockToNodeMappings;
+  private DominatorTreeNode rootTree;
+  private Dictionary<IRBlock, DominatorTreeNode> blockToNodeMappings;
   private Dictionary<IRBlock, List<IRBlock>> dominanceFrontiers;
 
   public DominatorTree(IRGraph cfg) {
     this.cfg = cfg;
-    this.blockToNodeMappings = new Dictionary<int, DominatorTreeNode>();
+    this.blockToNodeMappings = new Dictionary<IRBlock, DominatorTreeNode>();
 
-    this.startDominatorTree = this.BuildDominatorTree();
+    this.rootTree = this.BuildDominatorTree();
     this.dominanceFrontiers = this.ConstructDominanceFrontierMapping(cfg);
+  }
+
+  public DominatorTreeNode GetRoot() {
+    return this.rootTree;
   }
 
   private DominatorTreeNode BuildDominatorTree() {
     // Using Aho & Ullman - The thoery of parsing and compilation Vol II ... Algorithm 11.5
+    IRBlock head = this.cfg.GetGraphHead();
     SortedSet<IRBlock> V = this.cfg.GetSetOfAllBlocks();
     SortedSet<IRBlock> VSansR = new SortedSet<IRBlock>();
     VSansR.UnionWith(V);
-    VSansR.Remove(this.cfg.GetGraphHead()); // remove head from the set of all blocks
+    VSansR.Remove(head); // remove head from the set of all blocks
     
     // calculate which blocks dominates what list of blocks
-    Dictionary<IRBlock, SortedSet<IRBlock>> dominates = new Dictionary<IRBlock, SortedSet<IRBlock>>();
+    Dictionary<IRBlock, SortedSet<IRBlock>> dominatesMapping = new Dictionary<IRBlock, SortedSet<IRBlock>>();
+    dominatesMapping[head] = VSansR;
     foreach (IRBlock v in VSansR) {
-      dominates[v] = CalculateDominatesSet(this.cfg, V, VSansR, v);
+      dominatesMapping[v] = CalculateDominatesSet(this.cfg, V, VSansR, v);
     }
 
     // use dominates sets to build the dominator tree
+    SortedSet<IRBlock> placed = new SortedSet<IRBlock>();
+    Dictionary<IRBlock, IRBlock> imediateDominator = new Dictionary<IRBlock, IRBlock>();
 
+    CalculateImediateDominators(head, dominatesMapping, placed, imediateDominator);
 
-    return null;
+    DominatorTreeNode headNode = BuildTreeFromImediateDominators(imediateDominator);
+
+    return headNode;
+  }
+
+  private DominatorTreeNode BuildTreeFromImediateDominators(Dictionary<IRBlock, IRBlock> imediateDominator) {
+    // create nodes
+    foreach (IRBlock block in this.cfg.GetSetOfAllBlocks()) {
+      this.blockToNodeMappings[block] = new DominatorTreeNode(block);
+    }
+
+    // link nodes
+    foreach (KeyValuePair<IRBlock, IRBlock> pair in imediateDominator) {
+      DominatorTreeNode ancestor = this.blockToNodeMappings[pair.Value];
+      DominatorTreeNode descendant = this.blockToNodeMappings[pair.Key];
+
+      ancestor.AddDescendant(descendant);
+    }
+
+    return this.blockToNodeMappings[this.cfg.GetGraphHead()];
+  }
+
+  private void CalculateImediateDominators(IRBlock block, Dictionary<IRBlock, SortedSet<IRBlock>> dominatesMapping, SortedSet<IRBlock> placed, Dictionary<IRBlock, IRBlock> imediateDominator) {
+    placed.Add(block);
+
+    foreach (IRBlock blocki in dominatesMapping[block]) {
+      if(!placed.Contains(blocki)) {
+        imediateDominator[blocki] = block;
+
+        CalculateImediateDominators(blocki, dominatesMapping, placed, imediateDominator);
+      }
+    }
   }
 
   public static SortedSet<IRBlock> CalculateDominatesSet(IRGraph cfg, SortedSet<IRBlock> V, SortedSet<IRBlock> VSansR, IRBlock v) {
