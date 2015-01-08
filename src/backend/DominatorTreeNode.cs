@@ -18,7 +18,8 @@ public class DominatorTreeNode : IComparable<DominatorTreeNode>
     return ((this.block.GetIndex() == other.GetBlock().GetIndex()) && (this.descendants.SetEquals(other.GetDescendants())));
   }
 
-  public int CompareTo(DominatorTreeNode other) {
+  public int CompareTo(DominatorTreeNode other)
+  {
     return this.block.CompareTo(other.GetBlock());
   }
 
@@ -37,9 +38,9 @@ public class DominatorTreeNode : IComparable<DominatorTreeNode>
     return this.descendants;
   }
 
-  public void printDescendants() {
-    foreach (DominatorTreeNode node in this.descendants) {
+  public void printDescendants()
+  {
+    foreach (DominatorTreeNode node in this.descendants)
       Console.WriteLine(node.GetBlock().GetIndex() + ", ");
-    }
   }
 }
