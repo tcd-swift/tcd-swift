@@ -10,6 +10,8 @@ public class IRBlock : IComparable<IRBlock>
   private int index; // The index number of this block within the graph
   private List<IRTuple> statements;
   private List<IRBlock> successors;
+
+  // variable analysis
   private HashSet<Ident> liveuse;
   private HashSet<Ident> def;
   private HashSet<Ident> livein;

@@ -41,4 +41,16 @@ public class IRIdent : IComparable<IRIdent>
 	{
 		return this.usesites;
 	}
+
+	public void AddUsesite(IRTuple stmt) {
+		this.usesites.Add(stmt);
+	}
+
+  public void DeleteUsesite(IRTuple stmt) {
+    this.usesites.Remove(stmt);
+  }
+
+	public int CountUsesites() {
+		return this.usesites.Count;
+	}
 }

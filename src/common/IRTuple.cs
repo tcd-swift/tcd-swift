@@ -56,6 +56,11 @@ public class IRTuple
     IrOp.PHI
   };
 
+  protected static readonly List<IrOp> hasSideEffects = new List<IrOp>()
+  {
+    IrOp.CALL, IrOp.RET, IrOp.STORE, IrOp.FUNC, IrOp.JMP, IrOp.JMPF, IrOp.LABEL
+  };
+
   protected IrOp op;
   protected Ident dest;
 
@@ -78,6 +83,10 @@ public class IRTuple
   public void setDest(Ident val) 
   {
     this.dest = val;
+  }
+
+  public bool HasSideEffects() {
+    return hasSideEffects.Contains(this.op);
   }
 
   // Return a list of names of variables used in this tuple
@@ -105,8 +114,7 @@ public class IRTuple
 
   public virtual void Print()
   {
-    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest);
-    Console.Write("}");
+    Console.Write("{" + Enum.GetName(typeof(IrOp), this.op) + ", " + this.dest + "}");
   }
 
   public virtual string toString()

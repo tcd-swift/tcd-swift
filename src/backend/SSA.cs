@@ -171,14 +171,78 @@ public class SSA
   /*
    * Optimization Methods
    */
-  private static void DeadCodeElimination(IRGraph graph)
+  private static void ConstantPropagation(IRGraph graph)
   {
     
   }
 
-  private static void ConstantPropagation(IRGraph graph)
-  {
 
+  private static void DeadCodeElimination(IRGraph graph)
+  {
+    Dictionary<Ident, IRIdent> identAnalysis = SimpleVariableAnalysis(graph);
+
+    Queue<Ident> worklist = new Queue<Ident>(identAnalysis.Keys);
+
+    while (worklist.Count > 0)
+    {
+      Ident ident = worklist.Dequeue();
+      IRIdent identObj = identAnalysis[ident];
+
+      if (identObj.CountUsesites() == 0)
+      {
+        IRTuple defStatement = identObj.GetDefsite();
+
+        if (!defStatement.HasSideEffects())
+        {
+          Console.WriteLine("SSA: Deleting tuple: " + defStatement.toString() + " as it is dead code");
+
+          HashSet<Ident> usedVars = defStatement.GetUsedVars();
+          foreach (Ident used in usedVars) {
+            IRIdent usedObj = identAnalysis[used];
+            usedObj.DeleteUsesite(defStatement);
+            worklist.Enqueue(used);
+          }
+
+          graph.RemoveStatement(defStatement);
+        }
+      }
+    }
+  }
+
+  private static Dictionary<Ident, IRIdent> SimpleVariableAnalysis(IRGraph graph)
+  {
+    Dictionary<Ident, IRIdent> identAnalysis = new Dictionary<Ident, IRIdent>();
+
+    foreach (IRBlock block in graph.GetSetOfAllBlocks())
+    {
+      foreach (IRTuple stmt in block.GetStatements())
+      {
+        HashSet<Ident> usedVars = stmt.GetUsedVars();
+        foreach (Ident ident in usedVars)
+        {
+          IRIdent identObj;
+          if (identAnalysis.ContainsKey(ident)) {
+            identObj = identAnalysis[ident];
+          } else {
+            identObj = new IRIdent(ident, stmt);
+            identAnalysis[ident] = identObj;
+          }
+
+          identObj.AddUsesite(stmt);
+        }
+
+        HashSet<Ident> definedVars = stmt.GetDefinedVars();
+        foreach (Ident ident in definedVars) 
+        {
+          if (!identAnalysis.ContainsKey(ident)) {
+            IRIdent identObj = new IRIdent(ident, stmt);
+            identAnalysis[ident] = identObj;
+          }
+        }
+      }
+    }
+
+    return identAnalysis;
   }
 
   /*

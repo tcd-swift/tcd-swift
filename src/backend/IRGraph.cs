@@ -252,6 +252,7 @@ public class IRGraph
     return setBlocks;
   }
 
+  // TODO simplify this mess - blocks should know predcessors
   public SortedSet<IRBlock> GetPredecessors(IRBlock block)
   {
     SortedSet<IRBlock> predecessors = new SortedSet<IRBlock>();
@@ -264,5 +265,12 @@ public class IRGraph
     }
 
     return predecessors;
+  }
+
+  // TODO simplify this mess - if IRTuples knew what block they were in
+  public void RemoveStatement(IRTuple stmt)
+  {
+    foreach (IRBlock block in this.GetSetOfAllBlocks())
+      block.RemoveStatement(stmt);
   }
 }

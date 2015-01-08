@@ -23,15 +23,16 @@ class TCDSwift
             
             IRGraph graph = new IRGraph(tuples);
 
-            List<string> livein;
-            List<List<string>> liveouts;
-            graph.ComputeLiveness(out livein, out liveouts);
-
             // Code Optimizations
             SSA.DoSSAOptimizations(graph);
 
             tuples = graph.GenerateTupleStream(); // generate new list of tuples from the optimized graph
     
+            // Live variable analysis
+            List<string> livein;
+            List<List<string>> liveouts;
+            graph.ComputeLiveness(out livein, out liveouts);
+
             // Register Allocation
             Dictionary<string,string> registerAllocation = Allocate.run(liveouts, livein);
     
