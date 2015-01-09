@@ -9,14 +9,21 @@ public class SSA
   public static void DoSSAOptimizations(IRGraph graph)
   {
     // convert into SSA form
+    Console.WriteLine("** SSA: Starting conversion into SSA form ...");
     ConvertIntoSSAForm(graph);
+    Console.WriteLine("** SSA: Conversion into SSA form complete");
 
     // do optimizations (constant propagation, dead code elimination)
+    Console.WriteLine("** SSA: Starting dead code elimination ...");
     DeadCodeElimination(graph);
+
+    Console.WriteLine("** SSA: Starting constant propagation ...");
     ConstantPropagation(graph);
 
     // use Briggs method to translate out of SSA form
+    Console.WriteLine("** SSA: Starting conversion out of SSA form ...");
     TranslateOutOfSSAForm(graph);
+    Console.WriteLine("** SSA: Conversion out of SSA form complete");
   }
 
   /*
@@ -31,30 +38,62 @@ public class SSA
 
   private static void InsertPhiFunctions(IRGraph graph, DominatorTree dominatorTree)
   {
+    foreach (IRBlock block in graph.GetSetOfAllBlocks())
+    {
+      Console.WriteLine();
+      Console.WriteLine("***");
+      Console.WriteLine("Block: " + block.GetIndex());
+      block.PrintStatements();
+
+      Console.Write("Predecessors: ");
+      foreach (IRBlock pred in graph.GetPredecessors(block))
+        Console.Write(pred.GetIndex() + ", ");
+      Console.WriteLine();
+
+      Console.Write("Live in : ");
+      foreach (Ident ident in block.GetLiveIn())
+        Console.Write(ident + ", ");
+      Console.WriteLine();
+
+      Console.Write("Defined vars: ");
+      foreach (Ident ident in block.GetDefinedVars())
+        Console.Write(ident + ", ");
+      Console.WriteLine();
+    }
+
     foreach (Ident v in graph.GetDefinedVars())
     {
       // A(v) = blocks containing an assignment to v
       HashSet<IRBlock> Av = new HashSet<IRBlock>();
       foreach (IRBlock block in graph.GetSetOfAllBlocks())
       {
-        if (block.GetDefinedVars().Contains(v))
+        if (block.GetDefinedVars().Contains(v) && block.GetLiveIn().Contains(v))
           Av.Add(block);
       }
 
       // place Phi tuple for each v in the iterated dominance frontier of A(v)
+      HashSet<IRBlock> needsPhiFunction = new HashSet<IRBlock>();
       foreach (IRBlock Avblock in Av)
       {
+        // create set of blocks that need phi functions
         foreach (IRBlock block in dominatorTree.GetDominanceFrontier(Avblock))
         {
-          // Phi function should have as many arguments as it does predecessors
-          List<Ident> sources = new List<Ident>();
-          foreach (IRBlock b in graph.GetPredecessors(block))
-            sources.Add(v);
-          
-          IRTupleManyOp phi = new IRTupleManyOp(IrOp.PHI, v, sources);
-
-          block.InsertStatement(phi, 0);
+          needsPhiFunction.Add(block);
         }
+      }
+
+      // only want one phi function per block for each variable where appropiate
+      foreach (IRBlock block in needsPhiFunction)
+      {
+        // Phi function should have as many arguments as it does predecessors
+        List<Ident> sources = new List<Ident>();
+        foreach (IRBlock b in graph.GetPredecessors(block))
+          sources.Add(v);
+        
+        IRTupleManyOp phi = new IRTupleManyOp(IrOp.PHI, v, sources);
+
+        block.InsertStatement(phi, 0);
+        Console.WriteLine("** SSA: Inserting phi function: " + phi.toString() + " into block " + block.GetIndex());
       }
     }
   }
@@ -81,9 +120,9 @@ public class SSA
     // Algorithm from Ron Cytron et al to rename variables into SSA form
     foreach (IRTuple irt in block.GetStatements())
     {
-      // Console.Write("Type: " + irt.GetType() + " ");
-      // irt.Print();
-      // Console.WriteLine();
+      Console.Write("Type: " + irt.GetType() + " ");
+      irt.Print();
+      Console.WriteLine();
 
       if (irt.getOp() != IrOp.PHI) {
         foreach (Ident v in irt.GetUsedVars()) {
