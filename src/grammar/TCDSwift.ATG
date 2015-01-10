@@ -903,7 +903,7 @@ TCDSwift
 
                                   foreach(var func in functionDecls.Values)
                                   {
-                                      program.Add(new IRTuple(IrOp.LABEL, func._label));
+                                      program.Add(new IRTuple(IrOp.FUNC, func._label));
                                       foreach(var inst in func._codeblock)
                                       {
                                           program.Add(inst);

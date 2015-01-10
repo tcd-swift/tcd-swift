@@ -86,6 +86,9 @@ public class CodeGen{
         if(IR.getOp() == IrOp.LABEL){
             return IR.getDest() + ':';
         }
+        if(IR.getOp() == IrOp.FUNC) {
+            return IR.getDest() + ':';
+        }
         // MOD
         if(IR.getOp() == IrOp.NOT){
             return "MVN " + IROOI.getDest() + ", " + IROOI.getSrc1();
