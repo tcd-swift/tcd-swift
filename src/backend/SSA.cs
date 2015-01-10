@@ -6,8 +6,16 @@ using Ident = System.String;
 
 public class SSA
 {
-  public static void DoSSAOptimizations(IRGraph graph)
+  public static void DoSSAOptimizations(List<IRTuple> tuples)
   {
+    Console.WriteLine("** SSA: Building Control Flow Graph ...");
+    IRGraph graph = new IRGraph(tuples);
+
+    // Live variable analysis
+    List<string> livein;
+    List<List<string>> liveouts;
+    graph.ComputeLiveness(out livein, out liveouts);
+
     // convert into SSA form
     Console.WriteLine("** SSA: Starting conversion into SSA form ...");
     ConvertIntoSSAForm(graph);

@@ -2,6 +2,8 @@ using System;
 using System.Text.RegularExpressions;
 using System.Collections.Generic;
 
+namespace TCDSwift{
+
 public class Allocate{
 
     public static Graph graph;
@@ -10,12 +12,53 @@ public class Allocate{
     public static int registers = 12;
     public static List<string> livein;
     public static List<List<string>> input;
+    
+    public static List<IRTuple> run(List<IRTuple> irstream){
+        List<string> live;
+        List<List<string>> interfereList;
+        List<IRTuple> temp;
+        
+        List<string> spill = new List<string>();
+        List<List<string>> results = null;
+        Dictionary<string,string> dict;
 
-    public static Dictionary<string,string> run(List<List<string>> inputIn, List<string> live){
-        takeInput(inputIn, live);
-        build();
-        List<List<string>> results = simplify(graph);
-        Dictionary<string,string> dict = new Dictionary<string,string>();
+        while(results == null){
+            int i = 0;
+            temp = new List<IRTuple>();
+            Console.WriteLine("Spill count: " + spill.Count);
+            foreach (IRTuple irt in irstream){
+                dict = new Dictionary<string,string>();
+                HashSet<string> defined = irt.GetDefinedVars();
+                HashSet<string> used = irt.GetUsedVars();
+                for(int j = 0; j < spill.Count; j++){
+                    dict.Add(spill[j],"#t"+i);
+                    i++;
+                    if(used.Contains(spill[j])){
+                        temp.Add(new IRTupleOneOpIdent(IrOp.STORE, dict[spill[j]], "MEM["+spill[j]+"]"));
+                    }
+                }
+                temp.Add(irt.TranslateNames(dict));
+                for(int j = 0; j < spill.Count; j++){
+                    if(defined.Contains(spill[j])){
+                        temp.Add(new IRTupleOneOpIdent(IrOp.STORE, "MEM["+spill[j]+"]", dict[spill[j]]));
+                    }
+                }   
+            }
+            irstream = temp;
+            
+            //magic live variable analysis provided by Orla
+            IRGraph irgraph = new IRGraph(irstream);
+            irgraph.ComputeLiveness(out live, out interfereList);
+        
+            takeInput(interfereList, live);
+            build();
+            
+            spill = new List<string>();
+            results = simplify(graph, spill);
+        }
+        
+        
+        dict = new Dictionary<string,string>();
         for(int i = 0; i < results.Count; i++){
             dict.Add(results[i][0], results[i][1]);
         }
@@ -26,7 +69,12 @@ public class Allocate{
         }
         Console.WriteLine();
         
-        return dict;
+        List<IRTuple> irstream_out = new List<IRTuple>();
+        foreach (IRTuple irt in irstream){
+            IRTuple translated = irt.TranslateNames(dict);
+            irstream_out.Add(translated);
+        }
+        return irstream_out;
     }
 
     public static void takeInput(List<List<string>> inputIn, List<string> live){
@@ -42,6 +90,7 @@ public class Allocate{
         //remove anything that isn't an ident from input but leave as isolated node in graph
         Regex literal = new Regex(@"^[0-9]+");
         Regex str = new Regex(@"^"".+""");
+        Regex memory = new Regex(@"[MEM.+]");
         
         for(int i = livein.Count-1; i >= 0; i--){
             if(literal.IsMatch(livein[i]) || str.IsMatch(livein[i])){
@@ -53,13 +102,13 @@ public class Allocate{
             if(input[i][0] == ""){
                 input.Remove(input[i]);
             }
-            else if(literal.IsMatch(input[i][0]) || str.IsMatch(input[i][0])){
+            else if(literal.IsMatch(input[i][0]) || str.IsMatch(input[i][0]) || memory.IsMatch(input[i][0])){
                 graph.getNode(input[i][0]);
                 input.Remove(input[i]);
             }
             else{
                 for(int j = input[i].Count-1; j > 0; j--){
-                    if(literal.IsMatch(input[i][j]) || str.IsMatch(input[i][j])){
+                    if(literal.IsMatch(input[i][j]) || str.IsMatch(input[i][j]) || memory.IsMatch(input[i][j])){
                         graph.getNode(input[i][j]);
                         input[i].Remove(input[i][j]);
                     }
@@ -84,6 +133,8 @@ public class Allocate{
         List<string> line;
         for(int i = 0; i < input.Count; i++){
             line = input[i];
+            string output = string.Join(",", line.ToArray());
+            Console.WriteLine(output);
             if(line[0] != ""){
                 Node n = graph.getNode(line[0]);
                 Node m;
@@ -112,9 +163,14 @@ public class Allocate{
         List<string> regs = getRegisters();
         Regex literal = new Regex(@"^[0-9]+");
         Regex str = new Regex(@"^"".+""");
+        Regex memory = new Regex(@"[MEM.+]");
         
-        if(str.IsMatch(n.id) || literal.IsMatch(n.id)){
+        if(literal.IsMatch(n.id)){
             alloc.Add(new List<string>(){n.id,"="+n.id});
+            return alloc;
+        }
+        else if(str.IsMatch(n.id) || memory.IsMatch(n.id)){
+            alloc.Add(new List<string>(){n.id, n.id});
             return alloc;
         }
         for(int i = 0; i < alloc.Count; i++){
@@ -126,11 +182,10 @@ public class Allocate{
             alloc.Add(new List<string>(){n.id,regs[0]});
             return alloc;
         }
-        alloc.Add(new List<string>(){n.id,"MEM["+ n.id +"]"});
-        return alloc;
+        return null;
     }
 
-    public static List<List<string>> simplify(Graph graph){
+    public static List<List<string>> simplify(Graph graph, List<string> spill){
         //conditions to start colouring graph
         if(graph.Count == 1 || graph.isRegisters()){
             return assign(graph);
@@ -156,7 +211,10 @@ public class Allocate{
                 int index = degrees.IndexOf(k);
                 n = graph.Get(index);
                 graph.Remove(n);
-                result = simplify(graph);
+                result = simplify(graph, spill);
+                if(result == null){
+                    return null;
+                }
                 graph.Add(n);
                 return appendToAllocated(result, n);
             }
@@ -164,9 +222,17 @@ public class Allocate{
         }
         n = graph.GetHighestDegreeNode();
         graph.Remove(n);
-        result = simplify(graph);
+        spill.Add(n.id);
+        result = simplify(graph, spill);
+        if(result == null){
+            return null;
+        }
         graph.Add(n);
-        return appendToAllocated(result, n); //you know, let's just try to colour the node anyway
+        result = appendToAllocated(result, n); //you know, let's just try to colour the node anyway
+        if(result != null){
+            spill.Remove(n.id);
+        }
+        return result;
     }
 
     public static List<List<string>> assign(Graph graph){
@@ -176,6 +242,7 @@ public class Allocate{
         
         Regex literal = new Regex(@"^[0-9]+");
         Regex str = new Regex(@"^"".+""");
+        Regex memory = new Regex(@"[MEM.+]");
         
         //build list of available registers
         for(int i = 1; i <= Allocate.registers; i++){
@@ -188,10 +255,10 @@ public class Allocate{
         //assign registers
         for(int i = 0; i < graph.Count; i++){
             Node n = graph.Get(i);
-            if(n.isRegister){
+            if(n.isRegister || str.IsMatch(n.id) || memory.IsMatch(n.id)){
                 assigned.Add(new List<string>(){n.id,n.id});
             }
-            else if(str.IsMatch(n.id) || literal.IsMatch(n.id)){
+            else if(literal.IsMatch(n.id)){
                 assigned.Add(new List<string>(){n.id,"="+n.id});
             }
             else{
@@ -331,4 +398,4 @@ public class Node{
         }
     }
 }
-
+}
