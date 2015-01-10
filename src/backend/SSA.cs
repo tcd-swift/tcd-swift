@@ -6,7 +6,7 @@ using Ident = System.String;
 
 public class SSA
 {
-  public static void DoSSAOptimizations(List<IRTuple> tuples)
+  public static List<IRTuple> DoSSAOptimizations(List<IRTuple> tuples)
   {
     Console.WriteLine("** SSA: Building Control Flow Graph ...");
     IRGraph graph = new IRGraph(tuples);
@@ -31,7 +31,9 @@ public class SSA
     // use Briggs method to translate out of SSA form
     Console.WriteLine("** SSA: Starting conversion out of SSA form ...");
     TranslateOutOfSSAForm(graph);
-    Console.WriteLine("** SSA: Conversion out of SSA form complete");
+
+    Console.WriteLine("** SSA: Generating new IRTuple Stream");
+    return graph.GenerateTupleStream();
   }
 
   /*
