@@ -175,6 +175,7 @@ public class DominatorTreeTest
     TestCalculatingDominanceFrontier(9, expected);
   }
 
+
   /* 
    * Helper Methods
    */
