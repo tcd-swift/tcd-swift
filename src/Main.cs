@@ -25,8 +25,8 @@ class TCDSwift
 
       IRStream tuples = parser.GetStream();
 
-      // Code Optimizations
-      tuples = SSA.DoSSAOptimizations(tuples);
+      // Code Optimizations - 100% doesn't work yet 
+      // tuples = SSA.DoSSAOptimizations(tuples);
   
       // Register Allocation  
       List<IRTuple> tuples_out = Allocate.run(tuples); 
