@@ -33,6 +33,7 @@ class TCDSwift
       
       // backenders should write ARM out to arg[1]
       CodeGen.IRListToArmFile(tuples_out, arg[1]);
+      Console.Write("\n");
     }
     else Console.WriteLine("Usage: tcdscc <program.swift> <output.asm>");
   }

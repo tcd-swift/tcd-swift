@@ -5,18 +5,12 @@ An implementation of the Swift programming language for CS4071 Compiler Design I
 
 ## Developing
 
-#### Mac OSX
+#### Mac OS X
 
-_Requirements:_ [Boot2Docker](https://github.com/boot2docker/boot2docker)
-
-* ```brew install docker```
-* ```boot2docker init```
-* ```boot2docker up```
-* ```docker pull ianconnolly/tcd-swift```
+Running ```./install_osx``` will install Docker and all it’s dependencies.
 
 Running ```./launch.sh``` will drop you into a shell inside the docker
 container with the repository mounted in ```/opt/tcd-swift```.
-
 
 So  ```cd /opt/tcd-swift``` will allow you to run make commands like ```make all```.
 
